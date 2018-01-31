@@ -1,0 +1,19 @@
+<%= for command <- @commands do %>
+  <form action="/commands" method="POST" ujs-remote>
+    <div class="input-group">
+      <div class="input-group-prepend">
+        <span class="input-group-text" id=""><%= command.index %></span>
+      </div>
+      <input name="index" type="hidden" value="<%= command.index %>">
+      <select name="type" class="custom-select col-sm-3">
+        <%= for {type, num} <- @types do %>
+          <option><%= type %></option>
+        <% end %>
+      </select>
+      <input name="data" type="text" value="<%= command.data %>" class="form-control" placeholder="Data (hex)">
+      <span class="input-group-append">
+        <button class="btn btn-outline-secondary" type="submit">Send</button>
+      </span>
+    </div>
+  </form>
+<% end %>

@@ -1,0 +1,16 @@
+<%= form_for @changeset, commands_path(@conn, :send), fn f -> %>
+  <div class="form-label-group">
+    <%= label f, :index %>
+    <%= text_input f, :index, class: "form-control" %>
+    <%= error_tag f, :index %>
+  </div>
+
+  <%= submit "Send", class: "btn btn-lg btn-primary btn-block" %>
+<% end %>
+<%#
+
+  <div class="form-label-group">
+    <input type="email" id="inputEmail" class="form-control" placeholder="Command" required autofocus>
+    <label for="inputEmail">Command</label>
+  </div> %>
+
