@@ -24,14 +24,11 @@ defmodule Tr33Control.Application do
 
   defp initial_commands() do
     commands = [
-      %Command{index: 0, type: :singe_hue, data: "50"},
-      %Command{index: 1, type: :disabled, data: ""},
-      %Command{index: 2, type: :disabled, data: ""},
-      %Command{index: 3, type: :disabled, data: ""},
-      %Command{index: 4, type: :disabled, data: ""},
-      %Command{index: 5, type: :disabled, data: ""},
-      %Command{index: 6, type: :disabled, data: ""},
-      %Command{index: 7, type: :disabled, data: ""}
+      %Command{index: 0, type: :singe_hue, data: [50]},
+      %Command{index: 1, type: :disabled},
+      %Command{index: 2, type: :disabled},
+      %Command{index: 3, type: :disabled},
+      %Command{index: 4, type: :disabled}
     ]
 
     Application.put_env(:tr33_control, :commands, commands)

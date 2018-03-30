@@ -1,7 +1,33 @@
-<%= for {name, data_index} <- data_inputs(@command)  do %>
-  <%= name %>: <input id="slider_<%= @command.index %>" name="data_<%= data_index %>" data-slider-value="<%= Enum.at(@command.data, data_index, 0) %>" type="text" data-slider-min="0" data-slider-max="255" data-slider-step="1" data-slider-tooltip="hide">
-<% end %>
+<%# <div class="form-row"> %>
 
-<%= if data_inputs(@command) == [] do %>
-  <input name="data_0" type="hidden" value="0">
-<% end %>
+  <%= for {input, data_index} <- data_inputs(@command)  do %>
+    <%= case input do %>
+      <% {:select, {name, options}} -> %>
+        <div class="form-group col-md-4">
+          <label for="select_<%= data_index %>"><%= name %></label>
+          <select id="select_<%= data_index %>" name="data_<%= data_index %>" class="custom-select">
+            <%= for option <- options do %>
+              <option <%= if option == data_value(@command, data_index) do %>selected<% end %> ><%= option %></option>
+            <% end %>
+          </select>
+        </div>
+      <% name when is_binary(name) -> %>
+        <div class="form-group col-md-4">
+          <label for="<%= slider_id(@command, data_index) %>"><%= name %></label>
+          <input
+            class="form-control"
+            id="<%= slider_id(@command, data_index) %>"
+            name="data_<%= data_index %>"
+            type="text"
+            data-slider-value="<%= data_value(@command, data_index) %>"
+            data-slider-min="0"
+            data-slider-max="255"
+            data-slider-step="1">
+        </div>
+    <% end %>
+  <% end %>
+
+  <%= if data_inputs(@command) == [] do %>
+    <input name="data_0" type="hidden" value="0">
+  <% end %>
+<%# </div> %>

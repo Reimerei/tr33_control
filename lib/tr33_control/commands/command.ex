@@ -34,6 +34,12 @@ defmodule Tr33Control.Commands.Command do
   end
 
   def data_inputs(%Command{type: :single_hue}), do: ["Hue"]
+  def data_inputs(%Command{type: :single_color}), do: ["Hue", "Saturation", "Color"]
+  def data_inputs(%Command{type: :color_wipe}), do: ["Hue", "Rate", "Offset"]
   def data_inputs(%Command{type: :rainbow_sine}), do: ["Rate", "Wavelength", "Width"]
+
+  def data_inputs(%Command{type: :ping_pong}),
+    do: [{:select, {"Strip Index", 0..10}}, "Hue", "Rate", "Width"]
+
   def data_inputs(_), do: []
 end

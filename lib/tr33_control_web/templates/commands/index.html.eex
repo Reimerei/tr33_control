@@ -1,6 +1,6 @@
-<%= for index <- 0..31 do %>
-
-  <div id="<%= index %>">
-  </div>
-
-<% end %>
+<ul class="list-group">
+  <%= for index <- 0..31 do %>
+    <div id="<%= index %>">
+    </div>
+  <% end %>
+</ul>

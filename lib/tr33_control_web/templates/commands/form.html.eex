@@ -1,16 +1,19 @@
-<form action="" id="form_<%= @command.index %>">
-  <div class="input-group">
-    <div class="input-group-prepend">
-      <span class="input-group-text" id=""><%= @command.index %></span>
-    </div>
+<li class="list-group-item">
+  <form action="" id="form_<%= @command.index %>">
     <input name="index" type="hidden" value="<%= @command.index %>">
-    <select id="type_<%= @command.index %>" name="type" class="custom-select col-sm-3">
-      <%= for {type, num} <- Tr33Control.Commands.Command.CommandTypes.__enum_map__() do %>
-        <option <%= if type == @command.type do %>selected<% end %>><%= type %></option>
-      <% end %>
-    </select>
-    <div style= "padding-left: 10px">
+    <div class="form-row">
+      <div class="form-group col-md-4">
+      </div>
+      <div class="form-group col-md-4">
+        <select id="type_<%= @command.index %>" name="type" class="custom-select">
+          <%= for {type, num} <- Tr33Control.Commands.Command.CommandTypes.__enum_map__() do %>
+            <option <%= if type == @command.type do %>selected<% end %>><%= type %></option>
+          <% end %>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
       <%= render Tr33ControlWeb.CommandsView , "data_inputs.html", assigns %>
     </div>
-  </div>
-</form>
+  </form>
+</li>

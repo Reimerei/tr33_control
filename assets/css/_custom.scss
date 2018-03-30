@@ -11,3 +11,11 @@
   appearance: none;
 }
 
+.slider.slider-horizontal {
+   width: 100%;
+}
+
+.form-row > .col, .form-row > [class*="col-"] {
+  padding-right: 20px
+}
+
