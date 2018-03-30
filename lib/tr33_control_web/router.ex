@@ -9,14 +9,9 @@ defmodule Tr33ControlWeb.Router do
     plug :put_secure_browser_headers
   end
 
-  pipeline :api do
-    plug :accepts, ["json"]
-  end
-
   scope "/", Tr33ControlWeb do
     pipe_through :browser
 
-    get "/", CommandsController, :show
-    post "/commands", CommandsController, :receive
+    get "/", CommandsController, :index
   end
 end

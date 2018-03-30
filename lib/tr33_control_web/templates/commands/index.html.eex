@@ -1,0 +1,6 @@
+<%= for index <- 0..31 do %>
+
+  <div id="<%= index %>">
+  </div>
+
+<% end %>

@@ -2,10 +2,10 @@ defmodule Tr33ControlWeb.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  # channel "room:*", Tr33ControlWeb.RoomChannel
+  channel "commands", Tr33ControlWeb.CommandsChannel
 
   ## Transports
-  transport :websocket, Phoenix.Transports.WebSocket
+  transport(:websocket, Phoenix.Transports.WebSocket)
   # transport :longpoll, Phoenix.Transports.LongPoll
 
   # Socket params are passed from the client and can
