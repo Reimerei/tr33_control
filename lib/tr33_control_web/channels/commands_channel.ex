@@ -21,14 +21,13 @@ defmodule Tr33ControlWeb.CommandsChannel do
     msg
     |> normalize_data()
     |> Commands.create_command!()
-    |> update_cache
     |> broadcast_form(socket)
     |> Commands.send_command()
 
     {:noreply, socket}
   end
 
-  defp broadcast_form({old_command, new_command}, socket) do
+  defp broadcast_form({new_command, old_command}, socket) do
     if old_command.type != new_command.type do
       broadcast!(socket, "form", render_form(new_command))
     else
@@ -62,18 +61,5 @@ defmodule Tr33ControlWeb.CommandsChannel do
           Map.put(acc, key, value)
       end
     end)
-  end
-
-  defp update_cache(new_command = %Command{}) do
-    cache = Application.fetch_env!(:tr33_control, :commands)
-    old_command = Enum.at(cache, new_command.index)
-
-    Application.put_env(
-      :tr33_control,
-      :commands,
-      List.replace_at(cache, new_command.index, new_command)
-    )
-
-    {old_command, new_command}
   end
 end

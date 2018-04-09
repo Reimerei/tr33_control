@@ -10,7 +10,7 @@ config :tr33_control, ecto_repos: [Tr33Control.Repo]
 
 # Configures the endpoint
 config :tr33_control, Tr33ControlWeb.Endpoint,
-  url: [host: "localhost"],
+  url: [host: "0.0.0.0"],
   secret_key_base: "zZr2viMBYqxMGuXda+ebLv+fhZOlOZOWjdNWwaSpCMSeRk59ZWqJA18pZBnevauD",
   render_errors: [view: Tr33ControlWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Tr33Control.PubSub, adapter: Phoenix.PubSub.PG2]

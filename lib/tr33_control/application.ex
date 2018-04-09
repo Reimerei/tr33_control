@@ -1,11 +1,11 @@
 defmodule Tr33Control.Application do
   use Application
-  alias Tr33Control.Commands.Command
+  alias Tr33Control.Commands
 
   def start(_type, _args) do
     import Supervisor.Spec
 
-    initial_commands()
+    Commands.cache_init()
 
     children = [
       # supervisor(Tr33Control.Repo, []),
@@ -20,17 +20,5 @@ defmodule Tr33Control.Application do
   def config_change(changed, _new, removed) do
     Tr33ControlWeb.Endpoint.config_change(changed, removed)
     :ok
-  end
-
-  defp initial_commands() do
-    commands = [
-      %Command{index: 0, type: :singe_hue, data: [50]},
-      %Command{index: 1, type: :disabled},
-      %Command{index: 2, type: :disabled},
-      %Command{index: 3, type: :disabled},
-      %Command{index: 4, type: :disabled}
-    ]
-
-    Application.put_env(:tr33_control, :commands, commands)
   end
 end
