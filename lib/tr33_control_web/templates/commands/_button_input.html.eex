@@ -1,0 +1,1 @@
+<button id="button_<%= @command.index %>" type="button" class="btn btn-primary"><%= @name %></button>

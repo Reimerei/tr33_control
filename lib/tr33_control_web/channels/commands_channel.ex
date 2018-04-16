@@ -29,12 +29,13 @@ defmodule Tr33ControlWeb.CommandsChannel do
 
   defp broadcast_form({new_command, old_command}, socket) do
     if old_command.type != new_command.type do
+      new_command = Command.defaults(new_command)
       broadcast!(socket, "form", render_form(new_command))
+      new_command
     else
       broadcast_from!(socket, "form", render_form(new_command))
+      new_command
     end
-
-    new_command
   end
 
   defp push_form(command = %Command{}, socket) do

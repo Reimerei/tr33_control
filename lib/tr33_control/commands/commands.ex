@@ -9,9 +9,12 @@ defmodule Tr33Control.Commands do
     |> cache_update()
   end
 
+  def send_command(%Command{type: :add_ball, active: false}), do: :noop
+
   def send_command(%Command{} = command) do
     command
     |> Socket.send_command()
+    |> IO.inspect(label: :send_command)
   end
 
   def cache_init() do

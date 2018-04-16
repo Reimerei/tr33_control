@@ -3,9 +3,9 @@ defmodule Tr33Control.Commands.Socket do
   require Logger
   alias Tr33Control.Commands.Command
 
-  @host {192, 168, 0, 42}
+  @host {192, 168, 0, 5}
   @port 1337
-  @idle_period_ms 50
+  @idle_period_ms 100
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])

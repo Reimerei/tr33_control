@@ -9,8 +9,8 @@ defmodule Tr33Control.Application do
 
     children = [
       # supervisor(Tr33Control.Repo, []),
-      Tr33Control.Commands.Socket,
-      Tr33ControlWeb.Endpoint
+      Tr33ControlWeb.Endpoint,
+      Tr33Control.Commands.Socket
     ]
 
     opts = [strategy: :one_for_one, name: Tr33Control.Supervisor]

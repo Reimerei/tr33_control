@@ -18,18 +18,26 @@ channel.on("form", msg => {
 
   // add event listeners
   $("#form_" + msg.id).change(function(event){
-    var form = $("#form_" + msg.id).serializeArray();
-    var data = {};
-    $.each(form, function(i, v) {data[v.name] = v.value});
-
-    channel.push("form_change", data);
+    push_data(msg.id, false);
   });
 
   // enable sliders
   $("[id^=slider_"  + msg.id + "]").each(function(){
     $(this).slider();
   });
+
+  $("#button_" + msg.id).on('click', function () {
+    push_data(msg.id, true);
+  });
 });
+
+function push_data(id, active) {
+  var form = $("#form_" + id).serializeArray();
+  var data = {};
+  $.each(form, function(i, v) {data[v.name] = v.value});
+  data["active"] = active;
+  channel.push("form_change", data);
+}
 
 
 

@@ -2,7 +2,7 @@ defmodule Tr33Control.Commands.Command do
   use Ecto.Schema
   import EctoEnum
   alias Ecto.Changeset
-  alias Tr33Control.Commands.{Command, HexBinary}
+  alias Tr33Control.Commands.{Command}
 
   defenum CommandTypes,
     disabled: 0,
@@ -32,11 +32,12 @@ defmodule Tr33Control.Commands.Command do
     field :index, :integer
     field :type, CommandTypes
     field :data, {:array, :integer}, default: []
+    field :active, :boolean, default: false
   end
 
   def changeset(command, params) do
     command
-    |> Changeset.cast(params, [:index, :type, :data])
+    |> Changeset.cast(params, [:index, :type, :data, :active])
     |> Changeset.validate_required([:index, :type])
     |> Changeset.validate_number(:index, less_than: 256)
   end
@@ -46,6 +47,15 @@ defmodule Tr33Control.Commands.Command do
     data_bin = Enum.map(data, fn int -> <<int::size(8)>> end) |> Enum.join()
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end
+
+  def defaults(%Command{type: :single_hue} = cmd), do: %Command{cmd | data: [226]}
+  def defaults(%Command{type: :single_color} = cmd), do: %Command{cmd | data: [0, 0, 255]}
+  def defaults(%Command{type: :rainbow_sine} = cmd), do: %Command{cmd | data: [15, 50, 120]}
+  def defaults(%Command{type: :color_wipe} = cmd), do: %Command{cmd | data: [30, 10, 0]}
+  def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [0, 65, 25, 91]}
+  def defaults(%Command{type: :ping_pong_ring} = cmd), do: %Command{cmd | data: [185, 30, 45]}
+  def defaults(%Command{type: :add_ball} = cmd), do: %Command{cmd | data: [0, 0, 35, 100, 50, 50]}
+  def defaults(%Command{type: _} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
 
   def data_inputs(%Command{type: :single_hue}) do
     [{:slider, {"Hue", 255}}]
@@ -74,6 +84,18 @@ defmodule Tr33Control.Commands.Command do
 
   def data_inputs(%Command{type: :ping_pong_ring}) do
     [{:slider, {"Hue", 255}}, {:slider, {"Rate", 255}}, {:slider, {"Width", 255}}]
+  end
+
+  def data_inputs(%Command{type: :add_ball}) do
+    [
+      {:select, {"Strip Index", StripIndex}},
+      {:slider, {"Hue", 255}},
+      {:slider, {"Width", 255}},
+      {:slider, {"Height", 255}},
+      {:slider, {"Rate", 255}},
+      {:slider, {"Gravity", 255}},
+      {:button, {"Add Ball"}}
+    ]
   end
 
   def data_inputs(_), do: []
