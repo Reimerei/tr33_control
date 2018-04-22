@@ -6,7 +6,7 @@ defmodule Tr33Control.Commands.Socket do
 
   @host {192, 168, 0, 42}
   @port 1337
-  @idle_period_ms 50
+  @idle_period_ms 5
   @refresh_after_idle_ms 150
   @poll_interval_ms 250
   @cache_persist_interval_ms 1_000
@@ -64,7 +64,7 @@ defmodule Tr33Control.Commands.Socket do
     Process.send_after(self(), :poll, @poll_interval_ms)
   end
 
-  defp maybe_refresh(%{refresh_index: index, last_command: last_command} = state) do
+  defp maybe_refresh(%{refresh_index: index, last_command: last_command, socket: socket} = state) do
     now = System.os_time(:milliseconds)
 
     if now > last_command + @refresh_after_idle_ms do
@@ -72,8 +72,11 @@ defmodule Tr33Control.Commands.Socket do
         nil ->
           %{state | refresh_index: 0}
 
-        %Command{} = command ->
-          send_command(command)
+        %Command{type: type} = command ->
+          if type != :add_gravity_ball do
+            do_send_command(command, socket)
+          end
+
           %{state | refresh_index: index + 1}
       end
     else

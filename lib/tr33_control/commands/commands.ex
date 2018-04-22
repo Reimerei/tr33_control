@@ -11,7 +11,7 @@ defmodule Tr33Control.Commands do
     |> cache_update()
   end
 
-  def send_command(%Command{type: :add_ball, active: false}), do: :noop
+  def send_command(%Command{type: :add_gravity_ball, active: false}), do: :noop
 
   def send_command(%Command{} = command) do
     command

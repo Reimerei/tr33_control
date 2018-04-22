@@ -12,7 +12,7 @@ defmodule Tr33Control.Commands.Command do
     rainbow_sine: 4,
     ping_pong: 5,
     ping_pong_ring: 6,
-    add_ball: 7
+    add_gravity_ball: 7
 
   defenum StripIndex,
     trunk_0: 0,
@@ -54,7 +54,7 @@ defmodule Tr33Control.Commands.Command do
   def defaults(%Command{type: :color_wipe} = cmd), do: %Command{cmd | data: [30, 10, 0]}
   def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [0, 65, 25, 91]}
   def defaults(%Command{type: :ping_pong_ring} = cmd), do: %Command{cmd | data: [185, 30, 45]}
-  def defaults(%Command{type: :add_ball} = cmd), do: %Command{cmd | data: [0, 0, 35, 100, 50, 50]}
+  def defaults(%Command{type: :add_gravity_ball} = cmd), do: %Command{cmd | data: [0, 0, 35, 100]}
   def defaults(%Command{type: _} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
 
   def data_inputs(%Command{type: :single_hue}) do
@@ -86,14 +86,12 @@ defmodule Tr33Control.Commands.Command do
     [{:slider, {"Hue", 255}}, {:slider, {"Rate", 255}}, {:slider, {"Width", 255}}]
   end
 
-  def data_inputs(%Command{type: :add_ball}) do
+  def data_inputs(%Command{type: :add_gravity_ball}) do
     [
       {:select, {"Strip Index", StripIndex}},
       {:slider, {"Hue", 255}},
       {:slider, {"Width", 255}},
-      {:slider, {"Height", 255}},
-      {:slider, {"Rate", 255}},
-      {:slider, {"Gravity", 255}},
+      {:slider, {"Inital Spped", 255}},
       {:button, {"Add Ball"}}
     ]
   end
