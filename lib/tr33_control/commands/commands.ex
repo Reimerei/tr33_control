@@ -1,6 +1,8 @@
 defmodule Tr33Control.Commands do
   alias Tr33Control.Commands.{Command, Socket}
 
+  @cache_persist_file [:code.priv_dir(:tr33_control), "cache.bin"] |> Path.join()
+
   def create_command!(params) do
     %Command{}
     |> Command.changeset(params)
@@ -18,15 +20,36 @@ defmodule Tr33Control.Commands do
   end
 
   def cache_init() do
-    cache = [
-      %Command{index: 0, type: :single_hue, data: [50]},
-      %Command{index: 1, type: :disabled},
-      %Command{index: 2, type: :disabled},
-      %Command{index: 3, type: :disabled},
-      %Command{index: 4, type: :disabled}
-    ]
+    cache =
+      if File.exists?(@cache_persist_file) do
+        File.read!(@cache_persist_file)
+        |> :erlang.binary_to_term()
+      else
+        [
+          %Command{index: 0, type: :disabled},
+          %Command{index: 1, type: :disabled},
+          %Command{index: 2, type: :disabled},
+          %Command{index: 3, type: :disabled},
+          %Command{index: 4, type: :disabled},
+          %Command{index: 5, type: :disabled},
+          %Command{index: 6, type: :disabled}
+        ]
+      end
 
     Application.put_env(:tr33_control, :commands, cache)
+  end
+
+  def cache_get(index) do
+    Application.fetch_env!(:tr33_control, :commands)
+    |> Enum.at(index)
+  end
+
+  def cache_persist() do
+    binary =
+      Application.fetch_env!(:tr33_control, :commands)
+      |> :erlang.term_to_binary()
+
+    File.write!(@cache_persist_file, binary)
   end
 
   defp cache_update(%Command{index: index} = new_command) do
