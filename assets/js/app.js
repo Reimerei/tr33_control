@@ -18,7 +18,7 @@ channel.on("form", msg => {
 
   // add event listeners
   $("#form_" + msg.id).change(function(event){
-    push_data(msg.id, false);
+    on_event(msg.id, "form_change");
   });
 
   // enable sliders
@@ -27,17 +27,17 @@ channel.on("form", msg => {
   });
 
   $("#button_" + msg.id).on('click', function () {
-    push_data(msg.id, true);
+    on_event(msg.id, "button");
   });
 });
 
-function push_data(id, active) {
+function on_event(id, topic) {
   var form = $("#form_" + id).serializeArray();
   var data = {};
   $.each(form, function(i, v) {data[v.name] = v.value});
-  data["active"] = active;
-  channel.push("form_change", data);
+  channel.push(topic, data);
 }
+
 
 
 

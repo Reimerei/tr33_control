@@ -15,8 +15,8 @@ defmodule Tr33Control.Commands.Socket do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
   end
 
-  def send_command(%Command{} = command) do
-    GenServer.cast(__MODULE__, {:send_command, command})
+  def send(packet) when is_binary(packet) do
+    GenServer.cast(__MODULE__, {:send, packet})
   end
 
   # -- GenServer callbacks -----------------------------------------------------
@@ -26,15 +26,15 @@ defmodule Tr33Control.Commands.Socket do
     {:ok, socket} = :gen_udp.open(local_port, [:binary])
     schedule_poll()
     now = System.os_time(:milliseconds)
-    {:ok, %{socket: socket, last_command: now, refresh_index: 0, last_persist: now}}
+    {:ok, %{socket: socket, last_packet: now, refresh_index: 0, last_persist: now}}
   end
 
-  def handle_cast({:send_command, command}, state) do
-    %{socket: socket, last_command: last_command} = state
+  def handle_cast({:send, packet}, state) do
+    %{socket: socket, last_packet: last_packet} = state
 
-    if System.os_time(:milliseconds) > last_command + @idle_period_ms do
-      result = do_send_command(command, socket)
-      {:noreply, %{state | last_command: System.os_time(:milliseconds)}}
+    if System.os_time(:milliseconds) > last_packet + @idle_period_ms do
+      send_packet(packet, socket)
+      {:noreply, %{state | last_packet: System.os_time(:milliseconds)}}
     else
       {:noreply, state}
     end
@@ -51,12 +51,7 @@ defmodule Tr33Control.Commands.Socket do
     {:noreply, state}
   end
 
-  defp do_send_command(command, socket) do
-    packet =
-      command
-      |> Command.to_binary()
-
-    Logger.info("Send packet to #{inspect(@host)}:#{@port} data: #{inspect(packet)}")
+  defp send_packet(packet, socket) do
     :ok = :gen_udp.send(socket, @host, @port, packet)
   end
 
@@ -64,18 +59,17 @@ defmodule Tr33Control.Commands.Socket do
     Process.send_after(self(), :poll, @poll_interval_ms)
   end
 
-  defp maybe_refresh(%{refresh_index: index, last_command: last_command, socket: socket} = state) do
+  defp maybe_refresh(%{refresh_index: index, last_packet: last_packet, socket: socket} = state) do
     now = System.os_time(:milliseconds)
 
-    if now > last_command + @refresh_after_idle_ms do
+    if now > last_packet + @refresh_after_idle_ms do
       case Commands.cache_get(index) do
         nil ->
           %{state | refresh_index: 0}
 
-        %Command{type: type} = command ->
-          if type != :add_gravity_ball do
-            do_send_command(command, socket)
-          end
+        struct ->
+          Command.to_binary(struct)
+          |> send_packet(socket)
 
           %{state | refresh_index: index + 1}
       end

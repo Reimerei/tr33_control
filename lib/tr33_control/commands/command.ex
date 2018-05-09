@@ -11,8 +11,7 @@ defmodule Tr33Control.Commands.Command do
     color_wipe: 3,
     rainbow_sine: 4,
     ping_pong: 5,
-    ping_pong_ring: 6,
-    add_gravity_ball: 7
+    gravity: 6
 
   defenum StripIndex,
     trunk_0: 0,
@@ -32,12 +31,11 @@ defmodule Tr33Control.Commands.Command do
     field :index, :integer
     field :type, CommandTypes
     field :data, {:array, :integer}, default: []
-    field :active, :boolean, default: false
   end
 
   def changeset(command, params) do
     command
-    |> Changeset.cast(params, [:index, :type, :data, :active])
+    |> Changeset.cast(params, [:index, :type, :data])
     |> Changeset.validate_required([:index, :type])
     |> Changeset.validate_number(:index, less_than: 256)
   end
@@ -50,12 +48,11 @@ defmodule Tr33Control.Commands.Command do
 
   def defaults(%Command{type: :single_hue} = cmd), do: %Command{cmd | data: [226]}
   def defaults(%Command{type: :single_color} = cmd), do: %Command{cmd | data: [0, 0, 255]}
-  def defaults(%Command{type: :rainbow_sine} = cmd), do: %Command{cmd | data: [15, 50, 120]}
+  def defaults(%Command{type: :rainbow_sine} = cmd), do: %Command{cmd | data: [10, 150, 255]}
   def defaults(%Command{type: :color_wipe} = cmd), do: %Command{cmd | data: [30, 10, 0]}
-  def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [0, 65, 25, 91]}
-  def defaults(%Command{type: :ping_pong_ring} = cmd), do: %Command{cmd | data: [185, 30, 45]}
-  def defaults(%Command{type: :add_gravity_ball} = cmd), do: %Command{cmd | data: [0, 0, 35, 100]}
-  def defaults(%Command{type: _} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
+  def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [4, 65, 25, 91]}
+  def defaults(%Command{type: :gravity} = cmd), do: %Command{cmd | data: [4, 13, 80, 0, 5]}
+  def defaults(%Command{} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
 
   def data_inputs(%Command{type: :single_hue}) do
     [{:slider, {"Hue", 255}}]
@@ -82,16 +79,13 @@ defmodule Tr33Control.Commands.Command do
     ]
   end
 
-  def data_inputs(%Command{type: :ping_pong_ring}) do
-    [{:slider, {"Hue", 255}}, {:slider, {"Rate", 255}}, {:slider, {"Width", 255}}]
-  end
-
-  def data_inputs(%Command{type: :add_gravity_ball}) do
+  def data_inputs(%Command{type: :gravity}) do
     [
       {:select, {"Strip Index", StripIndex}},
       {:slider, {"Hue", 255}},
       {:slider, {"Width", 255}},
-      {:slider, {"Inital Spped", 255}},
+      {:slider, {"Inital Speed", 150}},
+      {:slider, {"New Balls (per 100 sec)", 100}},
       {:button, {"Add Ball"}}
     ]
   end

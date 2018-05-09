@@ -22,12 +22,23 @@ defmodule Tr33ControlWeb.CommandsChannel do
     |> normalize_data()
     |> Commands.create_command!()
     |> broadcast_form(socket)
+    |> Commands.cache_put()
     |> Commands.send_command()
 
     {:noreply, socket}
   end
 
-  defp broadcast_form({new_command, old_command}, socket) do
+  def handle_in("button", msg, socket) do
+    msg
+    |> Commands.create_event!()
+    |> Commands.send_event()
+
+    {:noreply, socket}
+  end
+
+  defp broadcast_form(new_command, socket) do
+    old_command = Commands.cache_get(new_command.index)
+
     if old_command.type != new_command.type do
       new_command = Command.defaults(new_command)
       broadcast!(socket, "form", render_form(new_command))
