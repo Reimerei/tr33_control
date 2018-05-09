@@ -3,18 +3,13 @@ defmodule Tr33ControlWeb.CommandsChannel do
   require Logger
 
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.Command
+  alias Tr33Control.Commands.{Command, Cache}
 
   def join("commands", msg, socket) do
-    Logger.debug("join in commands channel, msg: #{inspect(msg)}")
-    {:ok, socket}
-  end
+    Logger.debug("Join in commands channel, msg: #{inspect(msg)}")
+    forms = Cache.get_all() |> Enum.map(&render_form/1)
 
-  def handle_in("init", msg, socket) do
-    Application.fetch_env!(:tr33_control, :commands)
-    |> Enum.each(&push_form(&1, socket))
-
-    {:noreply, socket}
+    {:ok, %{msgs: forms}, socket}
   end
 
   def handle_in("form_change", msg, socket) do
@@ -22,7 +17,7 @@ defmodule Tr33ControlWeb.CommandsChannel do
     |> normalize_data()
     |> Commands.create_command!()
     |> broadcast_form(socket)
-    |> Commands.cache_put()
+    |> Commands.Cache.insert()
     |> Commands.send_command()
 
     {:noreply, socket}
@@ -36,21 +31,17 @@ defmodule Tr33ControlWeb.CommandsChannel do
     {:noreply, socket}
   end
 
-  defp broadcast_form(new_command, socket) do
-    old_command = Commands.cache_get(new_command.index)
+  defp broadcast_form(%Command{index: index, type: type} = command, socket) do
+    %Command{type: prev_type} = Commands.Cache.get(index)
 
-    if old_command.type != new_command.type do
-      new_command = Command.defaults(new_command)
-      broadcast!(socket, "form", render_form(new_command))
-      new_command
+    if type != prev_type do
+      command = Command.defaults(command)
+      broadcast!(socket, "form", render_form(command))
+      command
     else
-      broadcast_from!(socket, "form", render_form(new_command))
-      new_command
+      broadcast_from!(socket, "form", render_form(command))
+      command
     end
-  end
-
-  defp push_form(command = %Command{}, socket) do
-    push(socket, "form", render_form(command))
   end
 
   defp render_form(command) do

@@ -8,12 +8,17 @@ socket.connect()
 let channel = socket.channel("commands", {})
 channel.join()
   .receive("ok", resp => {
-    console.log("Joined commands successfully", resp)
-    channel.push("init", {})
+    var length = resp.msgs.length;
+    for (var i = 0; i < length; i++) {
+      on_msg(resp.msgs[i]);
+    }
+    console.log("Joined channel successfully", resp)
   })
-  .receive("error", resp => { console.log("Unable to join commands", resp) })
+  .receive("error", resp => { console.log("Unable to join channel", resp) })
 
-channel.on("form", msg => {
+channel.on("form", msg => { on_msg(msg); });
+
+function on_msg(msg) {
   $("#" + msg.id).html(msg.html);
 
   // add event listeners
@@ -29,7 +34,7 @@ channel.on("form", msg => {
   $("#button_" + msg.id).on('click', function () {
     on_event(msg.id, "button");
   });
-});
+}
 
 function on_event(id, topic) {
   var form = $("#form_" + id).serializeArray();

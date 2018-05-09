@@ -5,12 +5,13 @@ defmodule Tr33Control.Application do
   def start(_type, _args) do
     import Supervisor.Spec
 
-    Commands.cache_init()
+    Commands.Cache.init()
 
     children = [
       # supervisor(Tr33Control.Repo, []),
       Tr33ControlWeb.Endpoint,
       Tr33Control.Commands.Socket
+      # Tr33Control.Commands.Cache
     ]
 
     opts = [strategy: :one_for_one, name: Tr33Control.Supervisor]

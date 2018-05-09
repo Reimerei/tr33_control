@@ -7,8 +7,6 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <%= csrf_meta_tag() %>
-
     <title>Tr33</title>
     <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
   </head>

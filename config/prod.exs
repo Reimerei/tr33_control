@@ -17,7 +17,7 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
   http: [port: 80],
   check_origin: false,
   server: true,
-  # load_from_system_env: false,
+  load_from_system_env: false,
   cache_static_manifest: "priv/static/cache_manifest.json"
 
 # Do not print debug messages in production
