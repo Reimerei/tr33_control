@@ -19,6 +19,10 @@ defmodule Tr33Control.Commands.Socket do
     GenServer.cast(__MODULE__, {:send, packet})
   end
 
+  def resync() do
+    GenServer.cast(__MODULE__, :resync)
+  end
+
   # -- GenServer callbacks -----------------------------------------------------
 
   def init(:ok) do
@@ -35,7 +39,7 @@ defmodule Tr33Control.Commands.Socket do
   end
 
   def handle_cast({:send, packet}, state) do
-    %{socket: socket, last_packet: last_packet, refresh_queue: queue} = state
+    %{socket: socket, last_packet: last_packet} = state
 
     if System.os_time(:milliseconds) > last_packet + @silent_period_ms do
       send_packet(packet, socket)
@@ -45,6 +49,10 @@ defmodule Tr33Control.Commands.Socket do
     end
   end
 
+  def handle_cast(:resync, state) do
+    {:noreply, %{state | refresh_queue: initial_queue()}, @idle_timeout_ms}
+  end
+
   def handle_info(:timeout, %{refresh_queue: []} = state) do
     {:noreply, %{state | refresh_queue: initial_queue()}, @idle_timeout_ms}
   end
@@ -52,7 +60,7 @@ defmodule Tr33Control.Commands.Socket do
   def handle_info(:timeout, %{refresh_queue: [index | rest]} = state) do
     index
     |> Cache.get()
-    |> send
+    |> send()
 
     {:noreply, %{state | refresh_queue: rest}, @idle_timeout_ms}
   end

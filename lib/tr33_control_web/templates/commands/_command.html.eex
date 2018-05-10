@@ -6,9 +6,9 @@
 
     <div class="form-row">
       <div class="form-group col-md-4">
-        <label for="type_<%= @command.index %>">Type</label>
+        <label for="type_<%= @command.index %>"><%= type_label(@command) %></label>
         <select id="type_<%= @command.index %>" name="type" class="custom-select listen_form_change_<%= @command.index %>">
-          <%= for {type, num} <- Tr33Control.Commands.Command.CommandTypes.__enum_map__() do %>
+          <%= for type <- types(@command) do %>
             <option <%= if type == @command.type do %>selected<% end %>><%= type %></option>
           <% end %>
         </select>

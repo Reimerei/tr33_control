@@ -3,8 +3,6 @@ defmodule Tr33Control.Application do
   alias Tr33Control.Commands
 
   def start(_type, _args) do
-    import Supervisor.Spec
-
     setup_db!()
     Commands.Cache.init()
 

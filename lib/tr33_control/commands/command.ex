@@ -11,7 +11,11 @@ defmodule Tr33Control.Commands.Command do
     color_wipe: 3,
     rainbow_sine: 4,
     ping_pong: 5,
-    gravity: 6
+    gravity: 6,
+    off: 7,
+    white: 8
+
+  @background_types [:off, :single_hue, :single_color, :rainbow_sine, :white]
 
   defenum StripIndex,
     trunk_0: 0,
@@ -52,7 +56,16 @@ defmodule Tr33Control.Commands.Command do
   def defaults(%Command{type: :color_wipe} = cmd), do: %Command{cmd | data: [30, 10, 0]}
   def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [4, 65, 25, 91]}
   def defaults(%Command{type: :gravity} = cmd), do: %Command{cmd | data: [4, 13, 80, 0, 5]}
+  def defaults(%Command{type: :white} = cmd), do: %Command{cmd | data: [0, 255]}
   def defaults(%Command{} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
+
+  def types() do
+    Tr33Control.Commands.Command.CommandTypes.__enum_map__()
+    |> Enum.map(fn {type, _} -> type end)
+    |> Enum.filter(fn type -> type not in @background_types end)
+  end
+
+  def background_types(), do: @background_types
 
   def data_inputs(%Command{type: :single_hue}) do
     [{:slider, {"Hue", 255}}]
@@ -88,6 +101,10 @@ defmodule Tr33Control.Commands.Command do
       {:slider, {"New Balls (per 100 sec)", 100}},
       {:button, {"Add Ball"}}
     ]
+  end
+
+  def data_inputs(%Command{type: :white}) do
+    [{:slider, {"Color Temperature", 255}}, {:slider, {"Value", 255}}]
   end
 
   def data_inputs(_), do: []
