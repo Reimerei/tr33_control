@@ -3,7 +3,6 @@
     <input name="index" type="hidden" value="<%= @command.index %>">
 
     <div class="form-row">
-
       <div class="form-group col-md-4">
         <label for="type_<%= @command.index %>">Type</label>
         <select id="type_<%= @command.index %>" name="type" class="custom-select">

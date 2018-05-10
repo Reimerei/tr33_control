@@ -2,7 +2,7 @@ defmodule Tr33ControlWeb.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  channel "commands", Tr33ControlWeb.CommandsChannel
+  channel "live_forms", Tr33ControlWeb.CommandsChannel
 
   ## Transports
   transport(:websocket, Phoenix.Transports.WebSocket)

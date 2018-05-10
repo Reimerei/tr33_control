@@ -1,8 +1,6 @@
 # todo
 
-* cleanup and publish
-* persistent_ets
-* presets
+* -cleanup- and publish
 * background setting
 * effects:
 ** white
@@ -10,3 +8,6 @@
 ** gravity profile
 * serial connection
 * add/remove command
+
+# done
+* presets

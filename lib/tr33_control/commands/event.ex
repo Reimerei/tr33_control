@@ -11,8 +11,8 @@ defmodule Tr33Control.Commands.Event do
     field :type, EventTypes
   end
 
-  def changeset(command, params) do
-    command
+  def changeset(event, params) do
+    event
     |> Changeset.cast(params, [:type])
     |> Changeset.validate_required([:type])
   end

@@ -5,7 +5,7 @@ defmodule Tr33ControlWeb.Router do
     plug :accepts, ["html"]
     plug :fetch_session
     plug :fetch_flash
-    # plug :protect_from_forgery
+    plug :protect_from_forgery
     plug :put_secure_browser_headers
   end
 
@@ -13,5 +13,7 @@ defmodule Tr33ControlWeb.Router do
     pipe_through :browser
 
     get "/", CommandsController, :index
+    post "/presets", CommandsController, :create_preset
+    get "/presets/:name", CommandsController, :load_preset
   end
 end

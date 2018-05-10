@@ -18,6 +18,7 @@
         <h1 class="h3 mb-3 font-weight-normal">Tr33 Control</h1>
         <%# <p>The commands are documented in the <a href="https://github.com/xHain-hackspace/tr33/blob/master/lib/Commands/Commands.h#L48">firmware repo</a></p> %>
       </div>
+      <%= render Tr33ControlWeb.LayoutView , "_preset_form.html", assigns %>
       <%= render @view_module, @view_template, assigns %>
     </div>
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>

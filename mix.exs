@@ -41,6 +41,7 @@ defmodule Tr33Control.Mixfile do
       {:gettext, "~> 0.11"},
       {:cowboy, "~> 1.0"},
       {:ecto_enum, "~> 1.0"},
+      {:sqlite_ecto2, "~> 2.2"},
       {:distillery, "~> 1.5", runtime: false}
     ]
   end

@@ -5,7 +5,7 @@ defmodule Tr33ControlWeb.CommandsChannel do
   alias Tr33Control.Commands
   alias Tr33Control.Commands.{Command, Cache}
 
-  def join("commands", msg, socket) do
+  def join("live_forms", msg, socket) do
     Logger.debug("Join in commands channel, msg: #{inspect(msg)}")
     forms = Cache.get_all() |> Enum.map(&render_form/1)
 
@@ -31,6 +31,12 @@ defmodule Tr33ControlWeb.CommandsChannel do
     {:noreply, socket}
   end
 
+  def update_all() do
+    Cache.get_all()
+    |> Enum.map(&render_form/1)
+    |> Enum.each(&Tr33ControlWeb.Endpoint.broadcast!("live_forms", "form", &1))
+  end
+
   defp broadcast_form(%Command{index: index, type: type} = command, socket) do
     %Command{type: prev_type} = Commands.Cache.get(index)
 
@@ -45,8 +51,7 @@ defmodule Tr33ControlWeb.CommandsChannel do
   end
 
   defp render_form(command) do
-    html =
-      Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "form.html", command: command)
+    html = Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "form.html", command: command)
 
     %{id: "#{command.index}", html: html}
   end

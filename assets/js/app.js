@@ -5,7 +5,7 @@ import "bootstrap-slider"
 let socket = new Socket("/socket", {})
 socket.connect()
 
-let channel = socket.channel("commands", {})
+let channel = socket.channel("live_forms", {})
 channel.join()
   .receive("ok", resp => {
     var length = resp.msgs.length;

@@ -8,12 +8,3 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
 
 # Print only warnings and errors during test
 config :logger, level: :warn
-
-# Configure your database
-config :tr33_control, Tr33Control.Repo,
-  adapter: Ecto.Adapters.Postgres,
-  username: "postgres",
-  password: "postgres",
-  database: "tr33_control_test",
-  hostname: "localhost",
-  pool: Ecto.Adapters.SQL.Sandbox
