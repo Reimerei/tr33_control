@@ -14,4 +14,7 @@ defmodule Tr33ControlWeb.CommandsView do
   def commands() do
     Cache.get_all()
   end
+
+  def current_name(%{current_name: name}) when is_binary(name), do: name
+  def current_name(_), do: ""
 end

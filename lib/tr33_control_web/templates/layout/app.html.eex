@@ -15,10 +15,9 @@
     <div class="main">
       <div class="text-center mb-4">
         <img class="mb-4" src="<%= static_path(@conn, "/images/xhain_logo_small.png") %>" alt="" width="256" height="256">
-        <h1 class="h3 mb-3 font-weight-normal">Tr33 Control</h1>
+        <h1 class="h3 mb-3 font-weight-normal">Tr33 Controller</h1>
         <%# <p>The commands are documented in the <a href="https://github.com/xHain-hackspace/tr33/blob/master/lib/Commands/Commands.h#L48">firmware repo</a></p> %>
       </div>
-      <%= render Tr33ControlWeb.LayoutView , "_preset_form.html", assigns %>
       <%= render @view_module, @view_template, assigns %>
     </div>
     <script src="<%= static_path(@conn, "/js/app.js") %>"></script>

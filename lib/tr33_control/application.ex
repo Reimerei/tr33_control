@@ -5,10 +5,11 @@ defmodule Tr33Control.Application do
   def start(_type, _args) do
     import Supervisor.Spec
 
+    setup_db!()
     Commands.Cache.init()
 
     children = [
-      # supervisor(Tr33Control.Repo, []),
+      Tr33Control.Repo,
       Tr33ControlWeb.Endpoint,
       Tr33Control.Commands.Socket
       # Tr33Control.Commands.Cache
@@ -21,5 +22,31 @@ defmodule Tr33Control.Application do
   def config_change(changed, _new, removed) do
     Tr33ControlWeb.Endpoint.config_change(changed, removed)
     :ok
+  end
+
+  defp setup_db!() do
+    [repo] = Application.fetch_env!(:tr33_control, :ecto_repos)
+
+    setup_repo!(repo)
+    migrate_repo!(repo)
+  end
+
+  defp setup_repo!(repo) do
+    db_file = Application.fetch_env!(:tr33_control, repo)[:database]
+
+    unless File.exists?(db_file) do
+      :ok = repo.__adapter__.storage_up(repo.config)
+    end
+  end
+
+  defp migrate_repo!(repo) do
+    opts = [all: true]
+    {:ok, pid, apps} = Mix.Ecto.ensure_started(repo, opts)
+
+    migrations_path = Path.join([:code.priv_dir(:tr33_control), "repo", "migrations"])
+    migrated = Ecto.Migrator.run(repo, migrations_path, :up, all: true)
+
+    pid && repo.stop(pid)
+    Mix.Ecto.restart_apps_if_migrated(apps, migrated)
   end
 end

@@ -3,16 +3,17 @@ defmodule Tr33ControlWeb.CommandsChannel do
   require Logger
 
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Command, Cache}
+  alias Tr33Control.Commands.{Command, Cache, Preset}
 
   def join("live_forms", msg, socket) do
     Logger.debug("Join in commands channel, msg: #{inspect(msg)}")
-    forms = Cache.get_all() |> Enum.map(&render_form/1)
+    command_forms = Cache.get_all() |> Enum.map(&render_form/1)
+    presets_form = Commands.list_presets() |> render_form()
 
-    {:ok, %{msgs: forms}, socket}
+    {:ok, %{msgs: [presets_form | command_forms]}, socket}
   end
 
-  def handle_in("form_change", msg, socket) do
+  def handle_in("form_change", %{"form_type" => "command"} = msg, socket) do
     msg
     |> normalize_data()
     |> Commands.create_command!()
@@ -23,10 +24,45 @@ defmodule Tr33ControlWeb.CommandsChannel do
     {:noreply, socket}
   end
 
-  def handle_in("button", msg, socket) do
+  def handle_in("form_change", %{"form_type" => "presets"} = msg, socket) do
+    assigns =
+      case Map.get(msg, "load_preset") |> Commands.get_preset() do
+        nil ->
+          %{message: "Error loading preset"}
+
+        %Preset{commands: commands, name: name} ->
+          commands
+          |> Enum.map(&Commands.Cache.insert/1)
+          |> Enum.map(fn command -> broadcast!(socket, "form", render_form(command)) end)
+
+          %{message: "Loaded preset #{name}", current_name: name}
+      end
+
+    presets_form = Commands.list_presets() |> render_form(assigns)
+    broadcast(socket, "form", presets_form)
+    {:noreply, socket}
+  end
+
+  def handle_in("button", %{"form_type" => "command"} = msg, socket) do
     msg
     |> Commands.create_event!()
     |> Commands.send_event()
+
+    {:noreply, socket}
+  end
+
+  def handle_in("button", %{"form_type" => "presets"} = msg, socket) do
+    result =
+      case Commands.create_preset(msg) do
+        {:ok, %Preset{name: name}} -> "Saved #{inspect(name)}"
+        {:error, _} -> "Error saving #{inspect(Map.get(msg, "name"))}"
+      end
+
+    presets_form =
+      Commands.list_presets()
+      |> render_form(%{message: result, current_name: Map.get(msg, "name")})
+
+    broadcast(socket, "form", presets_form)
 
     {:noreply, socket}
   end
@@ -50,10 +86,19 @@ defmodule Tr33ControlWeb.CommandsChannel do
     end
   end
 
-  defp render_form(command) do
-    html = Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "form.html", command: command)
+  defp render_form(struct, assigns \\ %{})
+
+  defp render_form(%Command{} = command, _) do
+    html = Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "_command.html", command: command)
 
     %{id: "#{command.index}", html: html}
+  end
+
+  defp render_form(presets, assigns) when is_list(presets) do
+    html =
+      Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "_presets.html", Map.put(assigns, :presets, presets))
+
+    %{id: "presets", html: html}
   end
 
   defp normalize_data(msg) do

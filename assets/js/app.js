@@ -22,17 +22,17 @@ function on_msg(msg) {
   $("#" + msg.id).html(msg.html);
 
   // add event listeners
-  $("#form_" + msg.id).change(function(event){
+  $(".listen_form_change_" + msg.id).change(function(event){
     on_event(msg.id, "form_change");
+  });
+
+  $(".listen_button_" + msg.id).on('click', function () {
+    on_event(msg.id, "button");
   });
 
   // enable sliders
   $("[id^=slider_"  + msg.id + "]").each(function(){
     $(this).slider();
-  });
-
-  $("#button_" + msg.id).on('click', function () {
-    on_event(msg.id, "button");
   });
 }
 

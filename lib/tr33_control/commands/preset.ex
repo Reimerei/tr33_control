@@ -1,18 +1,22 @@
 defmodule Tr33Control.Commands.Preset do
   use Ecto.Schema
   alias Ecto.Changeset
-  alias Tr33Control.Commands.Command
+  alias Tr33Control.Commands.CommandList
 
-  @primary_key false
-  embedded_schema do
+  schema "presets" do
     field :name, :string
-    embeds_many :commands, Command
+    field :commands, CommandList
+
+    timestamps()
   end
 
-  def changeset(command, params, commands) do
-    command
+  def changeset(preset, params, commands) do
+    preset
     |> Changeset.cast(params, [:name])
-    |> Changeset.put_embed(:commands, commands)
+    |> Changeset.put_change(:commands, commands)
     |> Changeset.validate_required([:name])
+    |> Changeset.validate_length(:name, min: 3)
+    |> Changeset.validate_length(:name, max: 42)
+    |> Changeset.unique_constraint(:name)
   end
 end

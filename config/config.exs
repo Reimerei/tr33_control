@@ -17,9 +17,9 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
   render_errors: [view: Tr33ControlWeb.ErrorView, accepts: ~w(html json)],
   pubsub: [name: Tr33Control.PubSub, adapter: Phoenix.PubSub.PG2]
 
-config :tr33_control, Repo,
+config :tr33_control, Tr33Control.Repo,
   adapter: Sqlite.Ecto2,
-  database: "tr33.sqlite3"
+  database: "/opt/tr33/tr33_db.sqlite3"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

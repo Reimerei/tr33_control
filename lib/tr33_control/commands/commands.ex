@@ -1,4 +1,5 @@
 defmodule Tr33Control.Commands do
+  alias Tr33Control.Repo
   alias Tr33Control.Commands.{Command, Socket, Event, Cache, Preset}
 
   def create_command!(params) do
@@ -26,14 +27,28 @@ defmodule Tr33Control.Commands do
     |> Socket.send()
   end
 
-  def create_preset!(params) do
+  def create_preset(params) do
     commands = Cache.get_all()
 
-    %Preset{}
+    with {:ok, name} <- Map.fetch(params, "name"),
+         preset when not is_nil(preset) <- Repo.get_by(Preset, name: name) do
+      preset
+    else
+      _ -> %Preset{}
+    end
     |> Preset.changeset(params, commands)
-    |> Ecto.Changeset.apply_action(:insert)
-    |> raise_on_error()
+    |> Repo.insert_or_update()
   end
+
+  def list_presets() do
+    Repo.all(Preset)
+  end
+
+  def get_preset(name) when not is_nil(name) do
+    Repo.get_by(Preset, name: name)
+  end
+
+  def get_preset(_), do: nil
 
   defp raise_on_error({:ok, result}), do: result
 
