@@ -23,7 +23,6 @@ defmodule Tr33Control.Commands do
 
   def send_event(%Event{} = event) do
     event
-    |> Event.to_binary()
     |> Socket.send()
   end
 

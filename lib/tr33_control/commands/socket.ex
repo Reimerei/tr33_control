@@ -2,7 +2,7 @@ defmodule Tr33Control.Commands.Socket do
   use GenServer
   require Logger
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Command, Cache}
+  alias Tr33Control.Commands.{Event, Command, Cache}
 
   @host {192, 168, 0, 42}
   @port 1337
@@ -14,8 +14,9 @@ defmodule Tr33Control.Commands.Socket do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
   end
 
-  def send(command = %Command{}) do
-    GenServer.cast(__MODULE__, {:send, command})
+  def send(struct) do
+    packet = to_packet(struct)
+    GenServer.cast(__MODULE__, {:send, packet})
   end
 
   # -- GenServer callbacks -----------------------------------------------------
@@ -33,11 +34,11 @@ defmodule Tr33Control.Commands.Socket do
     {:ok, state, @idle_timeout_ms}
   end
 
-  def handle_cast({:send, %Command{index: index} = command}, state) do
+  def handle_cast({:send, packet}, state) do
     %{socket: socket, last_packet: last_packet, refresh_queue: queue} = state
 
     if System.os_time(:milliseconds) > last_packet + @silent_period_ms do
-      send_command(command, socket)
+      send_packet(packet, socket)
       {:noreply, %{state | last_packet: System.os_time(:milliseconds)}, @idle_timeout_ms}
     else
       {:noreply, state, @idle_timeout_ms}
@@ -56,8 +57,7 @@ defmodule Tr33Control.Commands.Socket do
     {:noreply, %{state | refresh_queue: rest}, @idle_timeout_ms}
   end
 
-  defp send_command(%Command{} = command, socket) do
-    packet = Command.to_binary(command)
+  defp send_packet(packet, socket) when is_binary(packet) do
     result = :gen_udp.send(socket, @host, @port, packet)
 
     if @enable_log do
@@ -69,4 +69,7 @@ defmodule Tr33Control.Commands.Socket do
     Cache.get_all()
     |> Enum.map(& &1.index)
   end
+
+  def to_packet(%Command{} = command), do: Command.to_binary(command)
+  def to_packet(%Event{} = event), do: Event.to_binary(event)
 end
