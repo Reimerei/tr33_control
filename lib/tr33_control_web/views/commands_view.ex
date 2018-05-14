@@ -21,6 +21,6 @@ defmodule Tr33ControlWeb.CommandsView do
   def types(%Command{index: 0}), do: Command.background_types() |> IO.inspect()
   def types(%Command{index: _}), do: Command.types()
 
-  def type_label(%Command{index: 0}), do: "Background Type"
-  def type_label(%Command{index: _}), do: "Type"
+  def type_label(%Command{index: 0}), do: "Background"
+  def type_label(%Command{index: _}), do: "Effect"
 end

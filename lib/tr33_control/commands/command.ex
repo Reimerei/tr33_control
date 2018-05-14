@@ -13,7 +13,8 @@ defmodule Tr33Control.Commands.Command do
     ping_pong: 5,
     gravity: 6,
     off: 7,
-    white: 8
+    white: 8,
+    sparkle: 9
 
   @background_types [:off, :single_hue, :single_color, :rainbow_sine, :white]
 
@@ -28,7 +29,7 @@ defmodule Tr33Control.Commands.Command do
     branch_3: 7,
     branch_4: 8,
     branch_5: 9,
-    branch_6: 10
+    ring: 10
 
   @primary_key false
   embedded_schema do
@@ -57,6 +58,7 @@ defmodule Tr33Control.Commands.Command do
   def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [4, 65, 25, 91]}
   def defaults(%Command{type: :gravity} = cmd), do: %Command{cmd | data: [4, 13, 80, 0, 5]}
   def defaults(%Command{type: :white} = cmd), do: %Command{cmd | data: [0, 255]}
+  def defaults(%Command{type: :sparkle} = cmd), do: %Command{cmd | data: [1, 0, 15, 50]}
   def defaults(%Command{} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
 
   def types() do
@@ -105,6 +107,15 @@ defmodule Tr33Control.Commands.Command do
 
   def data_inputs(%Command{type: :white}) do
     [{:slider, {"Color Temperature", 255}}, {:slider, {"Value", 255}}]
+  end
+
+  def data_inputs(%Command{type: :sparkle}) do
+    [
+      {:slider, {"Hue", 255}},
+      {:slider, {"Saturation", 255}},
+      {:slider, {"Width", 255}},
+      {:slider, {"Sparkles (per 1/100 sec)", 255}}
+    ]
   end
 
   def data_inputs(_), do: []
