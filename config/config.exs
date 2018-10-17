@@ -8,7 +8,9 @@ use Mix.Config
 # General application configuration
 config :tr33_control,
   ecto_repos: [Tr33Control.Repo],
-  command_max_index: 9
+  command_max_index: 9,
+  esp32_ip: "192.168.0.42",
+  esp32_port: "1337"
 
 # Configures the endpoint
 config :tr33_control, Tr33ControlWeb.Endpoint,

@@ -4,11 +4,11 @@ defmodule Tr33Control.Commands.Socket do
   alias Tr33Control.Commands
   alias Tr33Control.Commands.{Event, Command, Cache}
 
-  @host {192, 168, 0, 42}
-  @port 1337
+  @host Application.fetch_env!(:tr33_control, :esp32_ip) |> to_charlist() |> :inet.parse_address() |> elem(1)
+  @port Application.fetch_env!(:tr33_control, :esp32_port) |> String.to_integer()
   @silent_period_ms 0
   @idle_timeout_ms 250
-  @enable_log false
+  @enable_log true
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -69,7 +69,9 @@ defmodule Tr33Control.Commands.Socket do
     result = :gen_udp.send(socket, @host, @port, packet)
 
     if @enable_log do
-      Logger.debug("Sending packet to #{inspect(@host)}: #{inspect(result)} content: #{inspect(packet)}")
+      Logger.debug(
+        "Sending packet to #{inspect(@host)}:#{inspect(@port)} result: #{inspect(result)} content: #{inspect(packet)}"
+      )
     end
   end
 

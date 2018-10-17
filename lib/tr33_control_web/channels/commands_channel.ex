@@ -35,7 +35,7 @@ defmodule Tr33ControlWeb.CommandsChannel do
           |> Enum.map(&Commands.Cache.insert/1)
           |> Enum.map(fn command -> broadcast!(socket, "form", render_form(command)) end)
 
-          Commands.Socket.resync()
+          Commands.UART.resync()
 
           %{message: "Loaded preset #{name}", current_name: name}
       end

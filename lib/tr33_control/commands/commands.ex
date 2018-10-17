@@ -1,6 +1,6 @@
 defmodule Tr33Control.Commands do
   alias Tr33Control.Repo
-  alias Tr33Control.Commands.{Command, Socket, Event, Cache, Preset}
+  alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset}
 
   def create_command!(params) do
     %Command{}
@@ -11,7 +11,7 @@ defmodule Tr33Control.Commands do
 
   def send_command(%Command{} = command) do
     command
-    |> Socket.send()
+    |> UART.send()
   end
 
   def create_event!(params) do
@@ -23,7 +23,7 @@ defmodule Tr33Control.Commands do
 
   def send_event(%Event{} = event) do
     event
-    |> Socket.send()
+    |> UART.send()
   end
 
   def create_preset(params) do

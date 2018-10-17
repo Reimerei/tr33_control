@@ -4,17 +4,20 @@ defmodule Tr33Control.Application do
 
   def start(_type, _args) do
     setup_db!()
-    Commands.Cache.init()
 
     children = [
       Tr33Control.Repo,
       Tr33ControlWeb.Endpoint,
-      Tr33Control.Commands.Socket
-      # Tr33Control.Commands.Cache
+      Tr33Control.Commands.UART
+      # Tr33Control.Commands.Socket
     ]
 
     opts = [strategy: :one_for_one, name: Tr33Control.Supervisor]
-    Supervisor.start_link(children, opts)
+    sup = Supervisor.start_link(children, opts)
+
+    Commands.Cache.init()
+
+    sup
   end
 
   def config_change(changed, _new, removed) do

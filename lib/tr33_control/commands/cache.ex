@@ -14,7 +14,7 @@ defmodule Tr33Control.Commands.Cache do
     |> Enum.map(&Commands.create_command!/1)
     |> Enum.map(&Commands.Command.defaults/1)
     |> Enum.map(&Commands.Cache.insert/1)
-    |> Enum.map(&Commands.Socket.send/1)
+    |> Enum.map(&Commands.UART.send/1)
   end
 
   def insert(%Command{index: index} = command) do
