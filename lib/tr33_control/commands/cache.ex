@@ -10,11 +10,7 @@ defmodule Tr33Control.Commands.Cache do
     :ets.new(@ets_table, [:named_table, :public])
 
     0..@max_index
-    |> Enum.map(&default/1)
-    |> Enum.map(&Commands.create_command!/1)
-    |> Enum.map(&Commands.Command.defaults/1)
-    |> Enum.map(&Commands.Cache.insert/1)
-    |> Enum.map(&Commands.UART.send/1)
+    |> Enum.map(&default_command/1)
   end
 
   def insert(%Command{index: index} = command) do
@@ -38,6 +34,6 @@ defmodule Tr33Control.Commands.Cache do
     end
   end
 
-  defp default(0 = index), do: %{index: index, type: :rainbow_sine}
-  defp default(index), do: %{index: index, type: :disabled}
+  defp default_command(0 = index), do: %{index: index, type: :rainbow_sine}
+  defp default_command(index), do: %{index: index, type: :disabled}
 end

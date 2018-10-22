@@ -1,3 +1,5 @@
+export SERIAL_PORT = ttyUSB0
+
 run:
 	iex -S mix phx.server
 

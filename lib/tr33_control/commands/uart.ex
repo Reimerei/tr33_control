@@ -4,8 +4,10 @@ defmodule Tr33Control.Commands.UART do
   alias Tr33Control.Commands.Command
   alias Tr33Control.Commands.{Event, Command, Cache}
 
-  @bautrate 230_400
-  @serial_port "ttyAMA0"
+  @baudrate 230_400
+  @serial_port Application.fetch_env!(:tr33_control, :serial_port)
+
+  # @serial_port "ttyAMA0"
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -28,7 +30,10 @@ defmodule Tr33Control.Commands.UART do
 
   def init(_) do
     {:ok, uart_pid} = Nerves.UART.start_link()
-    :ok = Nerves.UART.open(uart_pid, @serial_port, speed: @bautrate, active: true)
+
+    result = Nerves.UART.open(uart_pid, @serial_port, speed: @baudrate, active: true)
+    Logger.debug("Connection to serial port #{@serial_port}, baudrate: #{@baudrate}. Result: #{inspect(result)}")
+
     :ok = Nerves.UART.configure(uart_pid, framing: {Nerves.UART.Framing.Line, separator: "\r\n"})
 
     state = %{

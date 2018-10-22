@@ -10,7 +10,8 @@ config :tr33_control,
   ecto_repos: [Tr33Control.Repo],
   command_max_index: 9,
   esp32_ip: "192.168.0.42",
-  esp32_port: "1337"
+  esp32_port: "1337",
+  serial_port: System.get_env("SERIAL_PORT") || "ttyAMA0"
 
 # Configures the endpoint
 config :tr33_control, Tr33ControlWeb.Endpoint,

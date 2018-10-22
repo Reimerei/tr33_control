@@ -53,12 +53,12 @@ defmodule Tr33Control.Commands.Command do
 
   def defaults(%Command{type: :single_hue} = cmd), do: %Command{cmd | data: [226]}
   def defaults(%Command{type: :single_color} = cmd), do: %Command{cmd | data: [0, 0, 255]}
-  def defaults(%Command{type: :rainbow_sine} = cmd), do: %Command{cmd | data: [10, 150, 255]}
+  def defaults(%Command{type: :rainbow_sine} = cmd), do: %Command{cmd | data: [10, 100, 100, 255]}
   def defaults(%Command{type: :color_wipe} = cmd), do: %Command{cmd | data: [30, 10, 0]}
   def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [4, 65, 25, 91]}
-  def defaults(%Command{type: :gravity} = cmd), do: %Command{cmd | data: [4, 13, 80, 0, 5]}
+  def defaults(%Command{type: :gravity} = cmd), do: %Command{cmd | data: [10, 13, 25, 0, 50]}
   def defaults(%Command{type: :white} = cmd), do: %Command{cmd | data: [0, 255]}
-  def defaults(%Command{type: :sparkle} = cmd), do: %Command{cmd | data: [1, 0, 15, 50]}
+  def defaults(%Command{type: :sparkle} = cmd), do: %Command{cmd | data: [1, 0, 15, 10]}
   def defaults(%Command{} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
 
   def types() do
@@ -82,7 +82,12 @@ defmodule Tr33Control.Commands.Command do
   end
 
   def data_inputs(%Command{type: :rainbow_sine}) do
-    [{:slider, {"Rate", 255}}, {:slider, {"Wavelength", 255}}, {:slider, {"Width", 255}}]
+    [
+      {:slider, {"Rate [pixel/s]", 255}},
+      {:slider, {"Wavelength [pixel]", 255}},
+      {:slider, {"Rainbow Width [%]", 255}},
+      {:slider, {"Max Brightnes", 255}}
+    ]
   end
 
   def data_inputs(%Command{type: :ping_pong}) do
@@ -100,7 +105,7 @@ defmodule Tr33Control.Commands.Command do
       {:slider, {"Hue", 255}},
       {:slider, {"Width", 255}},
       {:slider, {"Inital Speed", 150}},
-      {:slider, {"New Balls (per 100 sec)", 100}},
+      {:slider, {"New Balls per 10 seconds", 100}},
       {:button, {"Add Ball"}}
     ]
   end
@@ -114,7 +119,7 @@ defmodule Tr33Control.Commands.Command do
       {:slider, {"Hue", 255}},
       {:slider, {"Saturation", 255}},
       {:slider, {"Width", 255}},
-      {:slider, {"Sparkles (per 1/100 sec)", 255}}
+      {:slider, {"Sparkles per second", 255}}
     ]
   end
 

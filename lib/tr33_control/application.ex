@@ -15,7 +15,7 @@ defmodule Tr33Control.Application do
     opts = [strategy: :one_for_one, name: Tr33Control.Supervisor]
     sup = Supervisor.start_link(children, opts)
 
-    Commands.Cache.init()
+    Commands.init()
 
     sup
   end

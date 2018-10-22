@@ -11,7 +11,7 @@ defmodule Tr33Control.Commands.CommandList do
 
   def load(string) do
     case Poison.decode(string) do
-      {:ok, list} -> {:ok, Enum.map(list, &Commands.create_command!/1)}
+      {:ok, list} -> {:ok, Enum.map(list, &Commands.new_command!/1)}
       error -> error
     end
   end

@@ -8,10 +8,9 @@ This app leverages phoenix channels to sync the state between all connected brow
 # ToDo
 * color temperature for white
 * set single led
-* send commands via serial
-* rescale gravity/sparkle to 1/second
-* gravity: scale initial speed with number of leds
 * fix first LED
-* export/import presets
 * resync button
 * reset button
+* color palettes
+* strip index: all_branches, all_trunk
+* export/import presets
