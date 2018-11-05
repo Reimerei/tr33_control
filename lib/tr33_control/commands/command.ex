@@ -70,12 +70,12 @@ defmodule Tr33Control.Commands.Command do
   end
 
   def properties(%Command{type: :single_hue}) do
-    [{:select, {"Strip Index", StripIndex}, :all}, {:slider, {"Hue", 255}, 226}]
+    [{:select, {"Strip Index", StripIndex}, strip_index(:all)}, {:slider, {"Hue", 255}, 226}]
   end
 
   def properties(%Command{type: :single_color}) do
     [
-      {:select, {"Strip Index", StripIndex}, :all},
+      {:select, {"Strip Index", StripIndex}, strip_index(:all)},
       {:slider, {"Hue", 255}, 0},
       {:slider, {"Saturation", 255}, 255},
       {:slider, {"Value", 255}, 255}
@@ -84,7 +84,7 @@ defmodule Tr33Control.Commands.Command do
 
   def properties(%Command{type: :color_wipe}) do
     [
-      {:select, {"Strip Index", StripIndex}, :all},
+      {:select, {"Strip Index", StripIndex}, strip_index(:all)},
       {:slider, {"Hue", 255}, 30},
       {:slider, {"Rate", 255}, 10},
       {:slider, {"Offset", 255}, 0}
@@ -93,31 +93,32 @@ defmodule Tr33Control.Commands.Command do
 
   def properties(%Command{type: :rainbow_sine}) do
     [
-      {:select, {"Strip Index", StripIndex}, :all},
+      {:select, {"Strip Index", StripIndex}, strip_index(:all)},
       {:slider, {"Rate [pixel/s]", 255}, 10},
       {:slider, {"Wavelength [pixel]", 255}, 100},
       {:slider, {"Rainbow Width [%]", 255}, 100},
-      {:slider, {"Max Brightnes", 255}, 255}
+      {:slider, {"Max Brightness", 255}, 255}
     ]
   end
 
   def properties(%Command{type: :ping_pong}) do
     [
-      {:select, {"Strip Index", StripIndex}, :all},
+      {:select, {"Strip Index", StripIndex}, strip_index(:trunks_all)},
+      {:slider, {"Offset", 100}, 0},
       {:slider, {"Hue", 255}, 65},
-      {:slider, {"Rate", 255}, 25},
+      {:slider, {"BPM", 255}, 25},
       {:slider, {"Width", 255}, 90}
     ]
   end
 
   def properties(%Command{type: :gravity}) do
     [
-      {:select, {"Strip Index", StripIndex}, :all},
+      {:select, {"Strip Index", StripIndex}, strip_index(:all)},
       {:slider, {"Hue", 255}, 13},
       {:slider, {"Width", 255}, 25},
-      {:slider, {"Inital Speed", 255}, 0},
+      {:slider, {"Initial Speed", 255}, 0},
       {:slider, {"New Balls per 10 seconds", 100}, 5},
-      {:button, {"Add Ball"}}
+      {:button, {"Add Ball"}, 0}
     ]
   end
 
@@ -135,4 +136,11 @@ defmodule Tr33Control.Commands.Command do
   end
 
   def properties(_), do: []
+
+  def strip_index(type) do
+    case StripIndex.dump(type) do
+      {:ok, int} -> int
+      _ -> 0
+    end
+  end
 end

@@ -64,14 +64,16 @@ defmodule Tr33Control.Commands do
     Repo.all(query)
   end
 
-  def load_preset(name) when not is_nil(name) do
-    preset = Repo.get_by!(Preset, name: name)
-
-    %Preset{commands: commands} = preset
+  def load_preset(%Preset{commands: commands} = preset) do
     Enum.each(commands, &Cache.insert/1)
     UART.resync()
 
     preset
+  end
+
+  def load_preset(name) when is_binary(name) and not is_nil(name) do
+    Repo.get_by!(Preset, name: name)
+    |> load_preset()
   end
 
   def latest_preset() do
