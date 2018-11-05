@@ -7,7 +7,7 @@ defmodule Tr33ControlWeb.CommandsChannel do
 
   def join("live_forms", msg, socket) do
     Logger.debug("Join in commands channel, msg: #{inspect(msg)}")
-    command_forms = Commands.list_commands() |> Enum.map(&render_form/1)
+    command_forms = Commands.list_commands() |> IO.inspect() |> Enum.map(&render_form/1)
     presets_form = Commands.list_presets() |> render_form()
 
     {:ok, %{msgs: [presets_form | command_forms]}, socket}

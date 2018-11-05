@@ -18,9 +18,9 @@ defmodule Tr33ControlWeb.CommandsView do
   def current_name(%{current_name: name}) when is_binary(name), do: name
   def current_name(_), do: ""
 
-  def types(%Command{index: 0}), do: Command.background_types() |> IO.inspect()
+  # def types(%Command{index: 0}), do: Command.background_types() |> IO.inspect()
   def types(%Command{index: _}), do: Command.types()
 
-  def type_label(%Command{index: 0}), do: "Background"
+  # def type_label(%Command{index: 0}), do: "Background"
   def type_label(%Command{index: _}), do: "Effect"
 end

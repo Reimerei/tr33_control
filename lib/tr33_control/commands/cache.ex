@@ -11,6 +11,8 @@ defmodule Tr33Control.Commands.Cache do
 
     0..@max_index
     |> Enum.map(&default_command/1)
+    |> Enum.map(&Command.defaults/1)
+    |> Enum.map(&insert/1)
   end
 
   def insert(%Command{index: index} = command) do
@@ -34,6 +36,6 @@ defmodule Tr33Control.Commands.Cache do
     end
   end
 
-  defp default_command(0 = index), do: %{index: index, type: :rainbow_sine}
-  defp default_command(index), do: %{index: index, type: :disabled}
+  defp default_command(0 = index), do: %Command{index: index, type: :rainbow_sine}
+  defp default_command(index), do: %Command{index: index, type: :disabled}
 end

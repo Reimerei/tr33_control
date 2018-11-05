@@ -12,13 +12,14 @@ defmodule Tr33Control.Commands.Command do
     rainbow_sine: 4,
     ping_pong: 5,
     gravity: 6,
-    off: 7,
+    # off: 7,
     white: 8,
     sparkle: 9
 
-  @background_types [:off, :single_hue, :single_color, :rainbow_sine, :white]
-
   defenum StripIndex,
+    all: 12,
+    trunks_all: 10,
+    branches_all: 11,
     trunk_0: 0,
     trunk_1: 1,
     trunk_2: 2,
@@ -28,8 +29,7 @@ defmodule Tr33Control.Commands.Command do
     branch_2: 6,
     branch_3: 7,
     branch_4: 8,
-    branch_5: 9,
-    ring: 10
+    branch_5: 9
 
   @primary_key false
   embedded_schema do
@@ -51,77 +51,88 @@ defmodule Tr33Control.Commands.Command do
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end
 
-  def defaults(%Command{type: :single_hue} = cmd), do: %Command{cmd | data: [226]}
-  def defaults(%Command{type: :single_color} = cmd), do: %Command{cmd | data: [0, 0, 255]}
-  def defaults(%Command{type: :rainbow_sine} = cmd), do: %Command{cmd | data: [10, 100, 100, 255]}
-  def defaults(%Command{type: :color_wipe} = cmd), do: %Command{cmd | data: [30, 10, 0]}
-  def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [4, 65, 25, 91]}
-  def defaults(%Command{type: :gravity} = cmd), do: %Command{cmd | data: [10, 13, 25, 0, 50]}
-  def defaults(%Command{type: :white} = cmd), do: %Command{cmd | data: [0, 255]}
-  def defaults(%Command{type: :sparkle} = cmd), do: %Command{cmd | data: [1, 0, 15, 10]}
-  def defaults(%Command{} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
+  def defaults(%Command{} = cmd) do
+    data =
+      properties(cmd)
+      |> Enum.map(fn {_, _, value} -> value end)
+
+    %Command{cmd | data: data}
+  end
+
+  def data_inputs(%Command{} = cmd) do
+    properties(cmd)
+    |> Enum.map(fn {type, properties, _} -> {type, properties} end)
+  end
 
   def types() do
     Tr33Control.Commands.Command.CommandTypes.__enum_map__()
     |> Enum.map(fn {type, _} -> type end)
-    |> Enum.filter(fn type -> type not in @background_types end)
   end
 
-  def background_types(), do: @background_types
-
-  def data_inputs(%Command{type: :single_hue}) do
-    [{:slider, {"Hue", 255}}]
+  def properties(%Command{type: :single_hue}) do
+    [{:select, {"Strip Index", StripIndex}, :all}, {:slider, {"Hue", 255}, 226}]
   end
 
-  def data_inputs(%Command{type: :single_color}) do
-    [{:slider, {"Hue", 255}}, {:slider, {"Saturation", 255}}, {:slider, {"Value", 255}}]
-  end
-
-  def data_inputs(%Command{type: :color_wipe}) do
-    [{:slider, {"Hue", 255}}, {:slider, {"Rate", 255}}, {:slider, {"Offset", 255}}]
-  end
-
-  def data_inputs(%Command{type: :rainbow_sine}) do
+  def properties(%Command{type: :single_color}) do
     [
-      {:slider, {"Rate [pixel/s]", 255}},
-      {:slider, {"Wavelength [pixel]", 255}},
-      {:slider, {"Rainbow Width [%]", 255}},
-      {:slider, {"Max Brightnes", 255}}
+      {:select, {"Strip Index", StripIndex}, :all},
+      {:slider, {"Hue", 255}, 0},
+      {:slider, {"Saturation", 255}, 255},
+      {:slider, {"Value", 255}, 255}
     ]
   end
 
-  def data_inputs(%Command{type: :ping_pong}) do
+  def properties(%Command{type: :color_wipe}) do
     [
-      {:select, {"Strip Index", StripIndex}},
-      {:slider, {"Hue", 255}},
-      {:slider, {"Rate", 255}},
-      {:slider, {"Width", 255}}
+      {:select, {"Strip Index", StripIndex}, :all},
+      {:slider, {"Hue", 255}, 30},
+      {:slider, {"Rate", 255}, 10},
+      {:slider, {"Offset", 255}, 0}
     ]
   end
 
-  def data_inputs(%Command{type: :gravity}) do
+  def properties(%Command{type: :rainbow_sine}) do
     [
-      {:select, {"Strip Index", StripIndex}},
-      {:slider, {"Hue", 255}},
-      {:slider, {"Width", 255}},
-      {:slider, {"Inital Speed", 150}},
-      {:slider, {"New Balls per 10 seconds", 100}},
+      {:select, {"Strip Index", StripIndex}, :all},
+      {:slider, {"Rate [pixel/s]", 255}, 10},
+      {:slider, {"Wavelength [pixel]", 255}, 100},
+      {:slider, {"Rainbow Width [%]", 255}, 100},
+      {:slider, {"Max Brightnes", 255}, 255}
+    ]
+  end
+
+  def properties(%Command{type: :ping_pong}) do
+    [
+      {:select, {"Strip Index", StripIndex}, :all},
+      {:slider, {"Hue", 255}, 65},
+      {:slider, {"Rate", 255}, 25},
+      {:slider, {"Width", 255}, 90}
+    ]
+  end
+
+  def properties(%Command{type: :gravity}) do
+    [
+      {:select, {"Strip Index", StripIndex}, :all},
+      {:slider, {"Hue", 255}, 13},
+      {:slider, {"Width", 255}, 25},
+      {:slider, {"Inital Speed", 255}, 0},
+      {:slider, {"New Balls per 10 seconds", 100}, 5},
       {:button, {"Add Ball"}}
     ]
   end
 
-  def data_inputs(%Command{type: :white}) do
-    [{:slider, {"Color Temperature", 255}}, {:slider, {"Value", 255}}]
+  def properties(%Command{type: :white}) do
+    [{:slider, {"Color Temperature", 255}, 255}, {:slider, {"Value", 255}, 255}]
   end
 
-  def data_inputs(%Command{type: :sparkle}) do
+  def properties(%Command{type: :sparkle}) do
     [
-      {:slider, {"Hue", 255}},
-      {:slider, {"Saturation", 255}},
-      {:slider, {"Width", 255}},
-      {:slider, {"Sparkles per second", 255}}
+      {:slider, {"Hue", 255}, 1},
+      {:slider, {"Saturation", 255}, 0},
+      {:slider, {"Width", 255}, 15},
+      {:slider, {"Sparkles per second", 255}, 10}
     ]
   end
 
-  def data_inputs(_), do: []
+  def properties(_), do: []
 end

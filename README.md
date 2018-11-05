@@ -9,8 +9,10 @@ This app leverages phoenix channels to sync the state between all connected brow
 * color temperature for white
 * set single led
 * fix first LED
-* resync button
-* reset button
 * color palettes
 * strip index: all_branches, all_trunk
 * export/import presets
+* offset for ping_pong
+* strip index for rainbow
+* revert to sane default
+* gravity: scale initial speed
