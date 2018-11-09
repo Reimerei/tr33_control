@@ -15,7 +15,7 @@ defmodule Tr33Control.Commands.Preset do
     |> Changeset.cast(params, [:name])
     |> Changeset.put_change(:commands, commands)
     |> Changeset.validate_required([:name])
-    |> Changeset.validate_length(:name, min: 3)
+    |> Changeset.validate_length(:name, min: 2)
     |> Changeset.validate_length(:name, max: 42)
     |> Changeset.unique_constraint(:name)
   end

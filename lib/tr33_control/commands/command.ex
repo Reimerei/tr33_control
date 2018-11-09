@@ -12,7 +12,7 @@ defmodule Tr33Control.Commands.Command do
     rainbow_sine: 4,
     ping_pong: 5,
     gravity: 6,
-    # off: 7,
+    off: 7,
     white: 8,
     sparkle: 9
 
