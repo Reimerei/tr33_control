@@ -17,19 +17,26 @@ defmodule Tr33Control.Commands.Command do
     sparkle: 9
 
   defenum StripIndex,
-    all: 12,
-    trunks_all: 10,
-    branches_all: 11,
+    all: 14,
+    trunks_all: 12,
+    branches_all: 13,
     trunk_0: 0,
     trunk_1: 1,
     trunk_2: 2,
     trunk_3: 3,
-    branch_0: 4,
-    branch_1: 5,
-    branch_2: 6,
-    branch_3: 7,
-    branch_4: 8,
-    branch_5: 9
+    trunk_4: 4,
+    trunk_5: 5,
+    branch_0: 6,
+    branch_1: 7,
+    branch_2: 8,
+    branch_3: 9,
+    branch_4: 10,
+    branch_5: 11
+
+  defenum BallType,
+    # square: 0,
+    sine: 1,
+    comet: 2
 
   @primary_key false
   embedded_schema do
@@ -104,6 +111,7 @@ defmodule Tr33Control.Commands.Command do
   def properties(%Command{type: :ping_pong}) do
     [
       {:select, {"Strip Index", StripIndex}, strip_index(:trunks_all)},
+      {:select, {"Ball Type", BallType}, 1},
       {:slider, {"Offset", 100}, 0},
       {:slider, {"Hue", 255}, 65},
       {:slider, {"BPM", 255}, 25},

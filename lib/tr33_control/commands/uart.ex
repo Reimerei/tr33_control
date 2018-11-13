@@ -62,11 +62,12 @@ defmodule Tr33Control.Commands.UART do
       Logger.debug("UART OK: sending package #{inspect(package)}")
     end
 
-    # if rem(state.count, 100) == 0 do
-    #   Logger.debug("#{DateTime.utc_now() |> DateTime.to_string()} Received OK #{inspect(state.count)} times.")
-    # end
-
     {:noreply, %{state | queue: rest, count: state.count + 1}}
+  end
+
+  def handle_info({:nerves_uart, _, "INIT"}, %{uart_pid: uart_pid, queue: queue} = state) do
+    resync()
+    {:noreply, state}
   end
 
   def handle_info({:nerves_uart, _, msg}, state) do
