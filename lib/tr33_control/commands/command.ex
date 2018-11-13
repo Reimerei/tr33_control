@@ -123,7 +123,6 @@ defmodule Tr33Control.Commands.Command do
     [
       {:select, {"Strip Index", StripIndex}, strip_index(:all)},
       {:slider, {"Hue", 255}, 13},
-      {:slider, {"Width", 255}, 25},
       {:slider, {"Initial Speed", 255}, 0},
       {:slider, {"New Balls per 10 seconds", 100}, 5},
       {:button, {"Add Ball"}, 0}
