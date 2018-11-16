@@ -1,6 +1,6 @@
 defmodule Tr33ControlWeb.CommandsView do
   use Tr33ControlWeb, :view
-  alias Tr33Control.Commands.{Command, Cache}
+  alias Tr33Control.Commands.{Command, Cache, ColorPalette}
 
   def data_inputs(%Command{} = command) do
     Command.data_inputs(command)

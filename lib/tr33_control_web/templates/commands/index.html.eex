@@ -1,6 +1,8 @@
 <ul class="list-group">
   <div id="presets">
   </div>
+  <div id="color_palette">
+  </div>
   <%= for index <- 0..31 do %>
     <div id="<%= index %>">
     </div>

@@ -4,44 +4,40 @@ defmodule Tr33Control.Commands.Command do
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Command}
 
-  defenum CommandTypes,
+  @trunk_count 6
+  @branch_count 6
+
+  defenum CommandType,
     disabled: 0,
-    single_hue: 1,
-    single_color: 2,
-    color_wipe: 3,
+    single_color: 1,
     rainbow_sine: 4,
     ping_pong: 5,
     gravity: 6,
-    off: 7,
-    white: 8,
     sparkle: 9
 
-  defenum StripIndex,
-    all: 14,
-    trunks_all: 12,
-    branches_all: 13,
-    trunk_0: 0,
-    trunk_1: 1,
-    trunk_2: 2,
-    trunk_3: 3,
-    trunk_4: 4,
-    trunk_5: 5,
-    branch_0: 6,
-    branch_1: 7,
-    branch_2: 8,
-    branch_3: 9,
-    branch_4: 10,
-    branch_5: 11
+  @disabled_commands []
+
+  @strip_index_values [
+                        all: @trunk_count + @branch_count + 2,
+                        all_trunks: @trunk_count + @branch_count,
+                        all_branches: @trunk_count + @branch_count + 1
+                      ] ++
+                        Enum.map(0..(@trunk_count - 1), &{:"trunk_#{&1}", &1}) ++
+                        Enum.map(0..(@branch_count - 1), &{:"branch_#{&1}", &1 + @trunk_count})
+
+  defenum StripIndex, @strip_index_values
 
   defenum BallType,
     # square: 0,
     sine: 1,
-    comet: 2
+    comet: 2,
+    fill_top: 3,
+    fill_bottom: 4
 
   @primary_key false
   embedded_schema do
     field :index, :integer
-    field :type, CommandTypes
+    field :type, CommandType
     field :data, {:array, :integer}, default: []
   end
 
@@ -53,7 +49,7 @@ defmodule Tr33Control.Commands.Command do
   end
 
   def to_binary(%Command{index: index, type: type, data: data}) do
-    type_bin = CommandTypes.__enum_map__() |> Keyword.get(type)
+    type_bin = CommandType.__enum_map__() |> Keyword.get(type)
     data_bin = Enum.map(data, fn int -> <<int::size(8)>> end) |> Enum.join()
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end
@@ -72,36 +68,23 @@ defmodule Tr33Control.Commands.Command do
   end
 
   def types() do
-    Tr33Control.Commands.Command.CommandTypes.__enum_map__()
+    Tr33Control.Commands.Command.CommandType.__enum_map__()
     |> Enum.map(fn {type, _} -> type end)
-  end
-
-  def properties(%Command{type: :single_hue}) do
-    [{:select, {"Strip Index", StripIndex}, strip_index(:all)}, {:slider, {"Hue", 255}, 226}]
+    |> Enum.reject(&Enum.member?(@disabled_commands, &1))
   end
 
   def properties(%Command{type: :single_color}) do
     [
       {:select, {"Strip Index", StripIndex}, strip_index(:all)},
-      {:slider, {"Hue", 255}, 0},
-      {:slider, {"Saturation", 255}, 255},
-      {:slider, {"Value", 255}, 255}
-    ]
-  end
-
-  def properties(%Command{type: :color_wipe}) do
-    [
-      {:select, {"Strip Index", StripIndex}, strip_index(:all)},
-      {:slider, {"Hue", 255}, 30},
-      {:slider, {"Rate", 255}, 10},
-      {:slider, {"Offset", 255}, 0}
+      {:slider, {"Color", 255}, 226},
+      {:slider, {"Brightness", 255}, 255}
     ]
   end
 
   def properties(%Command{type: :rainbow_sine}) do
     [
       {:select, {"Strip Index", StripIndex}, strip_index(:all)},
-      {:slider, {"Rate [pixel/s]", 255}, 10},
+      {:slider, {"BPM", 255}, 10},
       {:slider, {"Wavelength [pixel]", 255}, 100},
       {:slider, {"Rainbow Width [%]", 255}, 100},
       {:slider, {"Max Brightness", 255}, 255}
@@ -110,33 +93,30 @@ defmodule Tr33Control.Commands.Command do
 
   def properties(%Command{type: :ping_pong}) do
     [
-      {:select, {"Strip Index", StripIndex}, strip_index(:trunks_all)},
+      {:select, {"Strip Index", StripIndex}, strip_index(:all_trunks)},
       {:select, {"Ball Type", BallType}, 1},
-      {:slider, {"Offset", 100}, 0},
-      {:slider, {"Hue", 255}, 65},
+      {:slider, {"Color", 255}, 65},
+      {:slider, {"Brightness", 255}, 255},
+      {:slider, {"Width", 255}, 90},
       {:slider, {"BPM", 255}, 25},
-      {:slider, {"Width", 255}, 90}
+      {:slider, {"Offset", 100}, 0}
     ]
   end
 
   def properties(%Command{type: :gravity}) do
     [
       {:select, {"Strip Index", StripIndex}, strip_index(:all)},
-      {:slider, {"Hue", 255}, 13},
+      {:slider, {"Color", 255}, 13},
       {:slider, {"Initial Speed", 255}, 0},
       {:slider, {"New Balls per 10 seconds", 100}, 5},
       {:button, {"Add Ball"}, 0}
     ]
   end
 
-  def properties(%Command{type: :white}) do
-    [{:slider, {"Color Temperature", 255}, 255}, {:slider, {"Value", 255}, 255}]
-  end
-
   def properties(%Command{type: :sparkle}) do
     [
-      {:slider, {"Hue", 255}, 1},
-      {:slider, {"Saturation", 255}, 0},
+      {:select, {"Strip Index", StripIndex}, strip_index(:all_branches)},
+      {:slider, {"Color", 255}, 1},
       {:slider, {"Width", 255}, 15},
       {:slider, {"Sparkles per second", 255}, 10}
     ]

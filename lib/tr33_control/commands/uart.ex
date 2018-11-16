@@ -1,7 +1,7 @@
 defmodule Tr33Control.Commands.UART do
   use GenServer
   require Logger
-  alias Tr33Control.Commands.Command
+  alias Tr33Control.Commands
   alias Tr33Control.Commands.{Event, Command, Cache}
 
   @baudrate 230_400
@@ -19,8 +19,12 @@ defmodule Tr33Control.Commands.UART do
   end
 
   def resync() do
+    palette_event =
+      Commands.new_event!(%{type: :set_color_palette, data: [Commands.get_color_palette()]})
+      |> IO.inspect(label: "uart resync")
+
     binaries =
-      Cache.get_all()
+      (Cache.get_all() ++ [palette_event])
       |> Enum.map(&to_binary/1)
 
     GenServer.cast(__MODULE__, {:resync, binaries})
