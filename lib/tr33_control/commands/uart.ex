@@ -16,15 +16,12 @@ defmodule Tr33Control.Commands.UART do
   def send(struct) do
     binary = to_binary(struct)
     GenServer.cast(__MODULE__, {:send, binary})
+    struct
   end
 
   def resync() do
-    palette_event =
-      Commands.new_event!(%{type: :set_color_palette, data: [Commands.get_color_palette()]})
-      |> IO.inspect(label: "uart resync")
-
     binaries =
-      (Cache.get_all() ++ [palette_event])
+      (Cache.all_commands() ++ Cache.all_events())
       |> Enum.map(&to_binary/1)
 
     GenServer.cast(__MODULE__, {:resync, binaries})
@@ -42,8 +39,7 @@ defmodule Tr33Control.Commands.UART do
 
     state = %{
       uart_pid: uart_pid,
-      queue: :queue.new(),
-      count: 0
+      queue: :queue.new()
     }
 
     {:ok, state}
@@ -66,10 +62,10 @@ defmodule Tr33Control.Commands.UART do
       Logger.debug("UART OK: sending package #{inspect(package)}")
     end
 
-    {:noreply, %{state | queue: rest, count: state.count + 1}}
+    {:noreply, %{state | queue: rest}}
   end
 
-  def handle_info({:nerves_uart, _, "INIT"}, %{uart_pid: uart_pid, queue: queue} = state) do
+  def handle_info({:nerves_uart, _, "INIT"}, state) do
     resync()
     {:noreply, state}
   end

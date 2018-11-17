@@ -10,12 +10,11 @@ defmodule Tr33Control.Commands.Command do
   defenum CommandType,
     disabled: 0,
     single_color: 1,
-    rainbow_sine: 4,
-    ping_pong: 5,
-    gravity: 6,
-    sparkle: 9
-
-  @disabled_commands []
+    white: 2,
+    rainbow_sine: 3,
+    ping_pong: 4,
+    gravity: 5,
+    sparkle: 6
 
   @strip_index_values [
                         all: @trunk_count + @branch_count + 2,
@@ -70,7 +69,8 @@ defmodule Tr33Control.Commands.Command do
   def types() do
     Tr33Control.Commands.Command.CommandType.__enum_map__()
     |> Enum.map(fn {type, _} -> type end)
-    |> Enum.reject(&Enum.member?(@disabled_commands, &1))
+
+    # |> Enum.reject(&Enum.member?(@disabled_commands, &1))
   end
 
   def properties(%Command{type: :single_color}) do

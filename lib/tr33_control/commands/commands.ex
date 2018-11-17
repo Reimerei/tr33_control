@@ -6,12 +6,13 @@ defmodule Tr33Control.Commands do
 
   defenum ColorPalette,
     rainbow: 0,
-    cloud: 1,
-    forest: 2,
-    lava: 3,
-    ocean: 4,
-    party: 5,
-    heat: 6
+    forest: 1,
+    ocean: 2,
+    party: 3,
+    heat: 4,
+    purple_fly: 5,
+    spring_angel: 6,
+    scoutie: 7
 
   def init() do
     Cache.init()
@@ -36,11 +37,11 @@ defmodule Tr33Control.Commands do
   end
 
   def list_commands() do
-    Cache.get_all()
+    Cache.all_commands()
   end
 
   def get_command(index) do
-    Cache.get(index)
+    Cache.get_command(index)
   end
 
   def new_event!(params) do
@@ -52,12 +53,17 @@ defmodule Tr33Control.Commands do
 
   def send_event(%Event{} = event) do
     event
+    |> maybe_insert()
     |> UART.send()
   end
 
+  def list_events() do
+    Cache.all_events()
+  end
+
   def create_preset(params) do
-    commands = Cache.get_all()
-    color_palette = get_color_palette()
+    commands = list_commands()
+    events = list_events()
 
     with {:ok, name} <- Map.fetch(params, "name"),
          preset when not is_nil(preset) <- Repo.get_by(Preset, name: name) do
@@ -65,7 +71,7 @@ defmodule Tr33Control.Commands do
     else
       _ -> %Preset{}
     end
-    |> Preset.changeset(params, commands, color_palette)
+    |> Preset.changeset(params, commands, events)
     |> Repo.insert_or_update()
   end
 
@@ -75,9 +81,10 @@ defmodule Tr33Control.Commands do
     Repo.all(query)
   end
 
-  def load_preset(%Preset{commands: commands, color_palette: color_palette} = preset) do
-    Enum.each(commands, &Cache.insert/1)
-    set_color_palette(color_palette)
+  def load_preset(%Preset{commands: commands, events: events, name: name} = preset) do
+    Application.put_env(:tr33_control, :current_preset, name)
+    Enum.map(commands, &Cache.insert/1) |> IO.inspect()
+    Enum.map(events, &Cache.insert/1)
     UART.resync()
 
     preset
@@ -93,24 +100,19 @@ defmodule Tr33Control.Commands do
     Repo.one(query)
   end
 
-  def list_color_palettes() do
-    Tr33Control.Commands.ColorPalette.__enum_map__()
-  end
-
-  def get_color_palette() do
-    Application.fetch_env!(:tr33_control, :color_palette)
-  end
-
-  def set_color_palette(color_palette) when is_integer(color_palette) do
-    Application.put_env(:tr33_control, :color_palette, color_palette)
-  end
-
-  def set_color_palette(color_palette) when is_atom(color_palette) do
-    index = ColorPalette.__enum_map__() |> Keyword.fetch!(color_palette)
-    Application.put_env(:tr33_control, :color_palette, index)
+  def current_preset() do
+    Application.get_env(:tr33_control, :current_preset, "")
   end
 
   defp raise_on_error({:ok, result}), do: result
 
   defp raise_on_error(error), do: raise(RuntimeError, message: "Could not create command: #{inspect(error)}")
+
+  defp maybe_insert(%Event{} = event) do
+    if Event.persist?(event) do
+      Cache.insert(event)
+    end
+
+    event
+  end
 end

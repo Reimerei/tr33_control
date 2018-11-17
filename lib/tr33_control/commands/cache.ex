@@ -1,13 +1,15 @@
 defmodule Tr33Control.Commands.Cache do
   require Logger
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.Command
+  alias Tr33Control.Commands.{Command, Event}
 
-  @ets_table :commands
+  @commands_ets :commands
+  @events_ets :events
   @max_index Application.fetch_env!(:tr33_control, :command_max_index)
 
   def init() do
-    :ets.new(@ets_table, [:named_table, :public])
+    :ets.new(@commands_ets, [:named_table, :public])
+    :ets.new(@events_ets, [:named_table, :public])
 
     0..@max_index
     |> Enum.map(&default_command/1)
@@ -16,26 +18,38 @@ defmodule Tr33Control.Commands.Cache do
   end
 
   def insert(%Command{index: index} = command) do
-    true = :ets.insert(@ets_table, {index, command})
+    :ets.insert(@commands_ets, {index, command})
     command
   end
 
-  def get(index) do
-    case :ets.lookup(@ets_table, index) do
-      [{^index, command = %Command{}}] ->
-        command
+  def insert(%Event{type: type} = event) do
+    :ets.insert(@events_ets, {type, event})
+  end
 
-      [] ->
-        nil
+  def get_command(index) do
+    case :ets.lookup(@commands_ets, index) do
+      [{^index, command = %Command{}}] -> command
+      [] -> nil
     end
   end
 
-  def get_all() do
-    for index <- 0..@max_index do
-      get(index)
+  def get_event(type) do
+    case :ets.lookup(@events_ets, type) do
+      [{^type, event = %Event{}}] -> event
+      [] -> nil
     end
   end
 
-  defp default_command(0 = index), do: %Command{index: index, type: :rainbow_sine}
+  def all_commands() do
+    :ets.match_object(@commands_ets, {:_, :_})
+    |> Enum.sort_by(fn {index, _} -> index end)
+    |> Enum.map(fn {_, event} -> event end)
+  end
+
+  def all_events() do
+    :ets.match_object(@events_ets, {:_, :_})
+    |> Enum.map(fn {_, event} -> event end)
+  end
+
   defp default_command(index), do: %Command{index: index, type: :disabled}
 end

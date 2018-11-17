@@ -6,7 +6,10 @@ defmodule Tr33Control.Commands.Event do
 
   defenum EventTypes,
     gravity: 100,
-    set_color_palette: 101
+    set_color_palette: 101,
+    set_color_temperature: 102
+
+  @persist_types [:set_color_palette, :set_color_temperature]
 
   defenum ColorPalette,
     rainbow: 0,
@@ -35,4 +38,6 @@ defmodule Tr33Control.Commands.Event do
     data_bin = Enum.map(data, fn int -> <<int::size(8)>> end) |> Enum.join()
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end
+
+  def persist?(%Event{type: type}), do: type in @persist_types
 end

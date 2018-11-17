@@ -4,7 +4,6 @@ defmodule Tr33Control.Repo.Migrations.Presets2 do
   def change do
     create table(:presets2) do
       add :name, :string
-      add :color_palette, :integer
       add :commands, {:array, :map}
 
       timestamps()

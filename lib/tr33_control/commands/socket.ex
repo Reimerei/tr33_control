@@ -32,7 +32,7 @@ defmodule Tr33Control.Commands.Socket do
     state = %{
       socket: socket,
       last_packet: System.os_time(:milliseconds),
-      refresh_queue: initial_queue()
+      queue: queue_all_cache()
     }
 
     {:ok, state, @idle_timeout_ms}
@@ -50,16 +50,15 @@ defmodule Tr33Control.Commands.Socket do
   end
 
   def handle_cast(:resync, state) do
-    {:noreply, %{state | refresh_queue: initial_queue()}, @idle_timeout_ms}
+    {:noreply, %{state | refresh_queue: queue_all_cache()}, @idle_timeout_ms}
   end
 
   def handle_info(:timeout, %{refresh_queue: []} = state) do
-    {:noreply, %{state | refresh_queue: initial_queue()}, @idle_timeout_ms}
+    {:noreply, %{state | refresh_queue: queue_all_cache()}, @idle_timeout_ms}
   end
 
-  def handle_info(:timeout, %{refresh_queue: [index | rest]} = state) do
-    index
-    |> Cache.get()
+  def handle_info(:timeout, %{refresh_queue: [head | rest]} = state) do
+    head
     |> send()
 
     {:noreply, %{state | refresh_queue: rest}, @idle_timeout_ms}
@@ -75,9 +74,8 @@ defmodule Tr33Control.Commands.Socket do
     end
   end
 
-  defp initial_queue() do
-    Cache.get_all()
-    |> Enum.map(& &1.index)
+  defp queue_all_cache() do
+    Cache.all_commands() ++ Cache.all_events()
   end
 
   def to_packet(%Command{} = command), do: Command.to_binary(command)

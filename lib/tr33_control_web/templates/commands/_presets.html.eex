@@ -14,7 +14,7 @@
 
       <div class="form-group col-md-4">
         <label for="preset_name">Name</label>
-        <input type="text" class="form-control" id="preset_name" name="name" value="<%= current_name(assigns) %>">
+        <input type="text" class="form-control" id="preset_name" name="name" value="<%= seleted_name(assigns) %>">
       </div>
 
       <div class="form-group col-md-2">
