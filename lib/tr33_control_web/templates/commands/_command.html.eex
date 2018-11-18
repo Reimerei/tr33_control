@@ -15,24 +15,24 @@
       </div>
 
       <%= for {input, data_index} <- data_inputs(@command) do %>
-        <% assigns = Map.put(assigns, :data_index, data_index) %>
+        <% input_assigns = %{
+          data_index: data_index,
+          form_id: @command.index,
+          data_value: data_value(@command, data_index)
+        }%>
 
         <div class="form-group col-md-4">
           <%= case input do %>
             <% {:select, {name, enum}} -> %>
-              <%= render Tr33ControlWeb.CommandsView , "_select_input.html", Map.merge(assigns, %{name: name, enum: enum}) %>
+              <%= render Tr33ControlWeb.CommandsView , "_select_input.html", Map.merge(input_assigns, %{name: name, enum: enum}) %>
 
             <% {:slider, {name, max}} -> %>
-              <%= render Tr33ControlWeb.CommandsView , "_slider_input.html", Map.merge(assigns, %{name: name, max: max}) %>
+              <%= render Tr33ControlWeb.CommandsView , "_slider_input.html", Map.merge(input_assigns, %{name: name, max: max}) %>
 
             <% {:button, {name}} -> %>
-              <%= render Tr33ControlWeb.CommandsView , "_button_input.html", Map.merge(assigns, %{name: name}) %>
+              <%= render Tr33ControlWeb.CommandsView , "_button_input.html", Map.merge(input_assigns, %{name: name}) %>
           <% end %>
         </div>
-      <% end %>
-
-      <%= if data_inputs(@command) == [] do %>
-        <input name="data_0" type="hidden" value="0">
       <% end %>
     </div>
 

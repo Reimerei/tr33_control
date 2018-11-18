@@ -7,8 +7,6 @@ defmodule Tr33Control.Commands.UART do
   @baudrate 230_400
   @serial_port Application.fetch_env!(:tr33_control, :serial_port)
 
-  # @serial_port "ttyAMA0"
-
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
   end
@@ -21,7 +19,7 @@ defmodule Tr33Control.Commands.UART do
 
   def resync() do
     binaries =
-      (Cache.all_commands() ++ Cache.all_events())
+      Cache.all_commands()
       |> Enum.map(&to_binary/1)
 
     GenServer.cast(__MODULE__, {:resync, binaries})

@@ -14,7 +14,8 @@ defmodule Tr33Control.Commands.Command do
     rainbow_sine: 3,
     ping_pong: 4,
     gravity: 5,
-    sparkle: 6
+    sparkle: 6,
+    change_settings: 101
 
   @strip_index_values [
                         all: @trunk_count + @branch_count + 2,
@@ -32,6 +33,25 @@ defmodule Tr33Control.Commands.Command do
     comet: 2,
     fill_top: 3,
     fill_bottom: 4
+
+  defenum ColorPalette,
+    rainbow: 0,
+    forest: 1,
+    ocean: 2,
+    party: 3,
+    heat: 4,
+    spring_angel: 5,
+    scouty: 6
+
+  defenum ColorTemperature,
+    t_1900K: 0,
+    t_2600K: 1,
+    t_2850K: 2,
+    t_3200K: 3,
+    t_5200K: 4,
+    t_5400K: 5,
+    t_6000K: 6,
+    t_7000K: 7
 
   @primary_key false
   embedded_schema do
@@ -69,8 +89,6 @@ defmodule Tr33Control.Commands.Command do
   def types() do
     Tr33Control.Commands.Command.CommandType.__enum_map__()
     |> Enum.map(fn {type, _} -> type end)
-
-    # |> Enum.reject(&Enum.member?(@disabled_commands, &1))
   end
 
   def properties(%Command{type: :single_color}) do
@@ -119,6 +137,13 @@ defmodule Tr33Control.Commands.Command do
       {:slider, {"Color", 255}, 1},
       {:slider, {"Width", 255}, 15},
       {:slider, {"Sparkles per second", 255}, 10}
+    ]
+  end
+
+  def properties(%Command{type: :change_settings}) do
+    [
+      {:select, {"Color Palette", ColorPalette}, 0},
+      {:select, {"Color Temperature", ColorTemperature}, 0}
     ]
   end
 

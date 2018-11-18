@@ -4,16 +4,6 @@ defmodule Tr33Control.Commands do
   alias Tr33Control.Repo
   alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset, ColorPalette}
 
-  defenum ColorPalette,
-    rainbow: 0,
-    forest: 1,
-    ocean: 2,
-    party: 3,
-    heat: 4,
-    purple_fly: 5,
-    spring_angel: 6,
-    scoutie: 7
-
   def init() do
     Cache.init()
 
@@ -44,26 +34,24 @@ defmodule Tr33Control.Commands do
     Cache.get_command(index)
   end
 
-  def new_event!(params) do
+  def new_event(params) do
     %Event{}
     |> Event.changeset(params)
     |> Ecto.Changeset.apply_action(:insert)
+  end
+
+  def new_event!(params) do
+    new_event(params)
     |> raise_on_error()
   end
 
   def send_event(%Event{} = event) do
     event
-    |> maybe_insert()
     |> UART.send()
-  end
-
-  def list_events() do
-    Cache.all_events()
   end
 
   def create_preset(params) do
     commands = list_commands()
-    events = list_events()
 
     with {:ok, name} <- Map.fetch(params, "name"),
          preset when not is_nil(preset) <- Repo.get_by(Preset, name: name) do
@@ -71,8 +59,10 @@ defmodule Tr33Control.Commands do
     else
       _ -> %Preset{}
     end
-    |> Preset.changeset(params, commands, events)
+    |> Preset.changeset(params, commands)
     |> Repo.insert_or_update()
+
+    Application.put_env(:tr33_control, :current_preset, name)
   end
 
   def list_presets() do
@@ -81,10 +71,9 @@ defmodule Tr33Control.Commands do
     Repo.all(query)
   end
 
-  def load_preset(%Preset{commands: commands, events: events, name: name} = preset) do
+  def load_preset(%Preset{commands: commands, name: name} = preset) do
     Application.put_env(:tr33_control, :current_preset, name)
-    Enum.map(commands, &Cache.insert/1) |> IO.inspect()
-    Enum.map(events, &Cache.insert/1)
+    Enum.map(commands, &Cache.insert/1)
     UART.resync()
 
     preset
@@ -107,12 +96,4 @@ defmodule Tr33Control.Commands do
   defp raise_on_error({:ok, result}), do: result
 
   defp raise_on_error(error), do: raise(RuntimeError, message: "Could not create command: #{inspect(error)}")
-
-  defp maybe_insert(%Event{} = event) do
-    if Event.persist?(event) do
-      Cache.insert(event)
-    end
-
-    event
-  end
 end

@@ -1,1 +1,1 @@
-<button id="button_<%= @command.index %>" type="button" class="btn btn-primary listen_button_<%= @command.index %>"><%= @name %></button>
+<button id="button_<%= @form_id %>" type="button" class="btn btn-primary listen_button_<%= @form_id %>"><%= @name %></button>

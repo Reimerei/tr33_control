@@ -1,11 +1,11 @@
-<label for="<%= "slider_#{@command.index}_#{@data_index}" %>"><%= @name %></label>
+<label for="<%= "slider_#{@form_id}_#{@data_index}" %>"><%= @name %></label>
 <input
-  class="form-control listen_form_change_<%= @command.index %>"
+  class="form-control listen_form_change_<%= @form_id %>"
   name="data_<%= @data_index %>"
   type="text"
-  data-slider-value="<%= data_value(@command, @data_index) %>"
+  data-slider-value="<%= @data_value %>"
   data-slider-min="0"
   data-slider-max="<%= @max %>"
   data-slider-step="1"
-  id="<%= "slider_#{@command.index}_#{@data_index}" %>"
+  id="<%= "slider_#{@form_id}_#{@data_index}" %>"
   >

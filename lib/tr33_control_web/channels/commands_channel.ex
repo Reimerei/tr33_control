@@ -38,17 +38,6 @@ defmodule Tr33ControlWeb.CommandsChannel do
     {:noreply, socket}
   end
 
-  # def handle_in("form_change", %{"form_type" => "event"} = msg, socket) do
-  #   msg
-  #   |> normalize_data()
-  #   |> Commands.send_event!()
-  #   |> broadcast_form(socket)
-  #   |> persist_event()
-  #   |> Commands.send_event()
-
-  #   {:noreply, socket}
-  # end
-
   def handle_in("button", %{"form_type" => "command"} = msg, socket) do
     msg
     |> Commands.new_event!()
@@ -98,7 +87,7 @@ defmodule Tr33ControlWeb.CommandsChannel do
   end
 
   defp render_all(socket) do
-    render_all_command_forms() ++ [render_presets_form(socket), render_events_form()]
+    render_all_command_forms() ++ [render_presets_form(socket)]
   end
 
   defp render_all_command_forms() do
@@ -129,21 +118,6 @@ defmodule Tr33ControlWeb.CommandsChannel do
 
     %{id: "presets", html: html}
   end
-
-  def render_events_form() do
-    %{}
-  end
-
-  # defp render_color_palette_form(selected) when is_integer(selected) do
-  #   assigns = %{
-  #     palettes: Commands.list_color_palettes(),
-  #     selected: selected
-  #   }
-
-  #   html = Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "_color_palette.html", assigns)
-
-  #   %{id: "color_palette", html: html}
-  # end
 
   defp normalize_data(msg) do
     msg
