@@ -1,8 +1,7 @@
 defmodule Tr33Control.Commands do
   import Ecto.Query, only: [from: 2]
-  import EctoEnum
   alias Tr33Control.Repo
-  alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset, ColorPalette}
+  alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset}
 
   def init() do
     Cache.init()
@@ -47,11 +46,21 @@ defmodule Tr33Control.Commands do
 
   def send_event(%Event{} = event) do
     event
+    |> maybe_insert()
     |> UART.send()
+  end
+
+  def get_event(type) do
+    Cache.get_event(type)
+  end
+
+  def list_events() do
+    Cache.all_events()
   end
 
   def create_preset(params) do
     commands = list_commands()
+    events = list_events()
 
     with {:ok, name} <- Map.fetch(params, "name"),
          preset when not is_nil(preset) <- Repo.get_by(Preset, name: name) do
@@ -59,10 +68,9 @@ defmodule Tr33Control.Commands do
     else
       _ -> %Preset{}
     end
-    |> Preset.changeset(params, commands)
+    |> Preset.changeset(params, commands, events)
     |> Repo.insert_or_update()
-
-    Application.put_env(:tr33_control, :current_preset, name)
+    |> update_current_preset()
   end
 
   def list_presets() do
@@ -71,9 +79,12 @@ defmodule Tr33Control.Commands do
     Repo.all(query)
   end
 
-  def load_preset(%Preset{commands: commands, name: name} = preset) do
+  def load_preset(%Preset{commands: commands, events: events, name: name} = preset) do
     Application.put_env(:tr33_control, :current_preset, name)
-    Enum.map(commands, &Cache.insert/1)
+
+    (commands ++ events)
+    |> Enum.map(&Cache.insert/1)
+
     UART.resync()
 
     preset
@@ -93,7 +104,22 @@ defmodule Tr33Control.Commands do
     Application.get_env(:tr33_control, :current_preset, "")
   end
 
+  def data_inputs(%Event{} = event), do: Event.data_inputs(event)
+  def data_inputs(%Command{} = command), do: Command.data_inputs(command)
+
   defp raise_on_error({:ok, result}), do: result
 
   defp raise_on_error(error), do: raise(RuntimeError, message: "Could not create command: #{inspect(error)}")
+
+  defp update_current_preset({:ok, %Preset{name: name}} = result) do
+    Application.put_env(:tr33_control, :current_preset, name)
+    result
+  end
+
+  defp update_current_preset(result), do: result
+
+  defp maybe_insert(%Event{} = event) do
+    if Event.persist?(event), do: Cache.insert(event)
+    event
+  end
 end

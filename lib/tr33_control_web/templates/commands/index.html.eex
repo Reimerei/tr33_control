@@ -1,7 +1,7 @@
 <ul class="list-group">
   <div id="presets">
   </div>
-  <div id="events">
+  <div id="settings">
   </div>
   <%= for index <- 0..31 do %>
     <div id="<%= index %>">

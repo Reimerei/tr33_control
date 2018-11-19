@@ -19,7 +19,7 @@ defmodule Tr33Control.Commands.UART do
 
   def resync() do
     binaries =
-      Cache.all_commands()
+      Cache.all()
       |> Enum.map(&to_binary/1)
 
     GenServer.cast(__MODULE__, {:resync, binaries})

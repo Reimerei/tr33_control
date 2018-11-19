@@ -1,18 +1,14 @@
 defmodule Tr33ControlWeb.CommandsView do
   use Tr33ControlWeb, :view
-  alias Tr33Control.Commands.{Command, Cache, Event}
+  alias Tr33Control.Commands
+  alias Tr33Control.Commands.{Command}
 
-  def data_inputs(%Command{} = command) do
-    Command.data_inputs(command)
+  def data_inputs(struct) do
+    Commands.data_inputs(struct)
     |> Enum.with_index()
   end
 
-  def data_inputs(:events) do
-    Event.data_inputs()
-    |> Enum.with_index()
-  end
-
-  def data_value(%Command{data: data}, data_index) do
+  def data_value(%{data: data}, data_index) do
     Enum.at(data, data_index, 0)
   end
 

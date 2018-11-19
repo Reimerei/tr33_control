@@ -38,6 +38,18 @@ defmodule Tr33ControlWeb.CommandsChannel do
     {:noreply, socket}
   end
 
+  def handle_in("form_change", %{"form_type" => "settings"} = msg, socket) do
+    settings_event =
+      msg
+      |> normalize_data()
+      |> Commands.new_event!()
+      |> Commands.send_event()
+
+    msg = render_settings_form()
+    broadcast_from!(socket, @channel_event_name, msg)
+    {:noreply, socket}
+  end
+
   def handle_in("button", %{"form_type" => "command"} = msg, socket) do
     msg
     |> Commands.new_event!()
@@ -87,7 +99,7 @@ defmodule Tr33ControlWeb.CommandsChannel do
   end
 
   defp render_all(socket) do
-    render_all_command_forms() ++ [render_presets_form(socket)]
+    render_all_command_forms() ++ [render_presets_form(socket), render_settings_form()]
   end
 
   defp render_all_command_forms() do
@@ -117,6 +129,16 @@ defmodule Tr33ControlWeb.CommandsChannel do
     html = Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "_presets.html", assigns)
 
     %{id: "presets", html: html}
+  end
+
+  defp render_settings_form() do
+    assigns = %{
+      event: Commands.get_event(:update_settings)
+    }
+
+    html = Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "_settings.html", assigns)
+
+    %{id: "settings", html: html}
   end
 
   defp normalize_data(msg) do
