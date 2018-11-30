@@ -1,3 +1,10 @@
+<div class="text-center mb-4">
+  <h3 class="h5 mb-3 font-weight-normal">
+    Listening for commands on UDP <%= Application.fetch_env!(:tr33_control, :udp_listen_port) %> (<a href="/docs">docs</a>)
+  </h3>
+</div>
+
+
 <ul class="list-group">
   <div id="presets">
   </div>

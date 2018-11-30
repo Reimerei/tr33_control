@@ -6,6 +6,11 @@ defmodule Tr33Control.Commands.UART do
 
   @baudrate 230_400
   @serial_port Application.fetch_env!(:tr33_control, :serial_port)
+  @serial_header "42" |> Base.decode16!()
+  @serial_ready_to_send "AA" |> Base.decode16!()
+  @serial_clear_to_send "BB" |> Base.decode16!()
+  @serial_request_resync "CC" |> Base.decode16!()
+  @command_size 2 + 8
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -31,9 +36,9 @@ defmodule Tr33Control.Commands.UART do
     {:ok, uart_pid} = Nerves.UART.start_link()
 
     result = Nerves.UART.open(uart_pid, @serial_port, speed: @baudrate, active: true)
-    Logger.debug("Connection to serial port #{@serial_port}, baudrate: #{@baudrate}. Result: #{inspect(result)}")
+    Logger.info("Connection to serial port #{@serial_port}, baudrate: #{@baudrate}. Result: #{inspect(result)}")
 
-    :ok = Nerves.UART.configure(uart_pid, framing: {Nerves.UART.Framing.Line, separator: "\r\n"})
+    :ok = Nerves.UART.configure(uart_pid, framing: Nerves.UART.Framing.None)
 
     state = %{
       uart_pid: uart_pid,
@@ -44,38 +49,57 @@ defmodule Tr33Control.Commands.UART do
   end
 
   def handle_cast({:send, binary}, %{queue: queue} = state) do
+    send_rts(state)
     {:noreply, %{state | queue: :queue.in(binary, queue)}}
   end
 
   def handle_cast({:resync, binaries}, state) do
+    send_rts(state)
     {:noreply, %{state | queue: :queue.from_list(binaries)}}
   end
 
-  def handle_info({:nerves_uart, _, "OK"}, %{uart_pid: uart_pid, queue: queue} = state) do
+  def handle_info({:nerves_uart, _, @serial_clear_to_send}, %{uart_pid: uart_pid, queue: queue} = state) do
+    Logger.debug("UART RECEIVED CTS")
     {head, rest} = :queue.out(queue)
-    package = to_package(head)
-    :ok = Nerves.UART.write(uart_pid, package)
+    send_binary(state, head)
 
-    if byte_size(package) > 1 do
-      Logger.debug("UART OK: sending package #{inspect(package)}")
-    end
+    if :queue.len(rest) > 0, do: send_rts(state)
 
     {:noreply, %{state | queue: rest}}
   end
 
-  def handle_info({:nerves_uart, _, "INIT"}, state) do
-    resync()
+  def handle_info({:nerves_uart, _, bytes}, state) do
+    left_size = (byte_size(bytes) - 1) * 8
+
+    case bytes do
+      <<_::size(left_size), @serial_request_resync>> ->
+        Logger.debug("UART RECEIVED RESYNC REQUEST")
+        resync()
+
+      _ ->
+        Logger.warn("UART RECEIVED UNEXPECTED: #{inspect(bytes)}")
+        :noop
+    end
+
     {:noreply, state}
   end
 
-  def handle_info({:nerves_uart, _, msg}, state) do
-    Logger.debug("UART RECEIVED: #{inspect(msg)}")
-    {:noreply, state}
+  defp to_binary(%Command{} = command), do: Command.to_binary(command)
+  defp to_binary(%Event{} = event), do: Event.to_binary(event)
+
+  defp send_binary(%{uart_pid: uart_pid}, {:value, binary}) when byte_size(binary) < @command_size do
+    padding_size = (@command_size - byte_size(binary)) * 8
+    package = <<@serial_header, binary::binary, 0::size(padding_size)>>
+    Logger.debug("UART SENDING #{inspect(package)}")
+    :ok = Nerves.UART.write(uart_pid, package)
   end
 
-  def to_binary(%Command{} = command), do: Command.to_binary(command)
-  def to_binary(%Event{} = event), do: Event.to_binary(event)
+  defp send_binary(_, value) do
+    Logger.error("UART CANT SEND #{inspect(value)}")
+  end
 
-  def to_package(:empty), do: <<0::size(8)>>
-  def to_package({:value, binary}), do: <<byte_size(binary)::size(8), binary::binary>>
+  defp send_rts(%{uart_pid: uart_pid}) do
+    Logger.debug("UART SENDING RTS")
+    Nerves.UART.write(uart_pid, @serial_ready_to_send)
+  end
 end

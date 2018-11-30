@@ -3,6 +3,8 @@ defmodule Tr33Control.Commands do
   alias Tr33Control.Repo
   alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset}
 
+  @max_index Application.fetch_env!(:tr33_control, :command_max_index)
+
   def init() do
     Cache.init()
 
@@ -13,17 +15,28 @@ defmodule Tr33Control.Commands do
   end
 
   def new_command!(params) do
-    %Command{}
-    |> Command.changeset(params)
-    |> Ecto.Changeset.apply_action(:insert)
+    new_command(params)
     |> raise_on_error()
   end
 
-  def send_command(%Command{} = command) do
+  def new_command(params) when is_map(params) do
+    %Command{}
+    |> Command.changeset(params)
+    |> Ecto.Changeset.apply_action(:insert)
+  end
+
+  def new_command(binary) when is_binary(binary) do
+    binary
+    |> Command.from_binary()
+  end
+
+  def send_command(%Command{index: index} = command) when index <= @max_index do
     command
     |> Cache.insert()
     |> UART.send()
   end
+
+  def send_command(command), do: command
 
   def list_commands() do
     Cache.all_commands()
@@ -103,6 +116,8 @@ defmodule Tr33Control.Commands do
   def current_preset() do
     Application.get_env(:tr33_control, :current_preset, "")
   end
+
+  def command_types(), do: Command.types()
 
   def data_inputs(%Event{} = event), do: Event.data_inputs(event)
   def data_inputs(%Command{} = command), do: Command.data_inputs(command)

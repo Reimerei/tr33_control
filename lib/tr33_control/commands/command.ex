@@ -4,8 +4,8 @@ defmodule Tr33Control.Commands.Command do
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Command}
 
-  @trunk_count 6
-  @branch_count 6
+  @trunk_count 8
+  @branch_count 8
 
   defenum CommandType,
     disabled: 0,
@@ -14,7 +14,8 @@ defmodule Tr33Control.Commands.Command do
     rainbow_sine: 3,
     ping_pong: 4,
     gravity: 5,
-    sparkle: 6
+    sparkle: 6,
+    rain: 8
 
   @hidden_commands []
 
@@ -47,7 +48,18 @@ defmodule Tr33Control.Commands.Command do
     |> Changeset.cast(params, [:index, :type, :data])
     |> Changeset.validate_required([:index, :type])
     |> Changeset.validate_number(:index, less_than: 256)
+    |> Changeset.validate_length(:data, max: 8)
   end
+
+  def from_binary(<<index::size(8), type::size(8), data_bin::binary>>) do
+    data = for <<element::size(8) <- data_bin>>, do: element
+
+    %Command{}
+    |> changeset(%{index: index, type: type, data: data})
+    |> Ecto.Changeset.apply_action(:insert)
+  end
+
+  def from_binary(_), do: {:error, :invalid_binary_format}
 
   def to_binary(%Command{index: index, type: type, data: data}) do
     type_bin = CommandType.__enum_map__() |> Keyword.get(type)
@@ -120,6 +132,16 @@ defmodule Tr33Control.Commands.Command do
       {:slider, {"Color", 255}, 1},
       {:slider, {"Width", 255}, 15},
       {:slider, {"Sparkles per second", 255}, 10}
+    ]
+  end
+
+  def properties(%Command{type: :rain}) do
+    [
+      {:select, {"Strip Index", StripIndex}, strip_index(:all_branches)},
+      {:slider, {"Color", 255}, 1},
+      {:slider, {"Width", 255}, 15},
+      {:slider, {"Drops per second", 255}, 10},
+      {:slider, {"Rate", 255}, 10}
     ]
   end
 

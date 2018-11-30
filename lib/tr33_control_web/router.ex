@@ -13,7 +13,6 @@ defmodule Tr33ControlWeb.Router do
     pipe_through :browser
 
     get "/", CommandsController, :index
-    post "/presets", CommandsController, :create_preset
-    get "/presets/:name", CommandsController, :load_preset
+    get "/docs", DocsController, :index
   end
 end
