@@ -4,8 +4,8 @@ defmodule Tr33Control.Commands.Event do
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Event}
 
-  defenum EventTypes,
-    gravity: 100,
+  defenum EventType,
+    gravity_add_ball: 100,
     update_settings: 101
 
   defenum ColorPalette,
@@ -32,8 +32,8 @@ defmodule Tr33Control.Commands.Event do
 
   @primary_key false
   embedded_schema do
-    field :type, EventTypes
-    field :data, {:array, :integer}, default: []
+    field(:type, EventType)
+    field(:data, {:array, :integer}, default: [])
   end
 
   def changeset(event, params) do
@@ -50,6 +50,11 @@ defmodule Tr33Control.Commands.Event do
   end
 
   def persist?(%Event{type: type}), do: type in @persisted_events
+
+  def types() do
+    Tr33Control.Commands.Event.EventType.__enum_map__()
+    |> Enum.map(fn {type, _} -> type end)
+  end
 
   def defaults(%Event{} = event) do
     data =
@@ -70,4 +75,6 @@ defmodule Tr33Control.Commands.Event do
       {:select, {"Color Temperature", ColorTemperature}, 0}
     ]
   end
+
+  def properties(_), do: []
 end

@@ -87,7 +87,7 @@ defmodule Tr33Control.Commands do
   end
 
   def list_presets() do
-    query = from p in Preset, order_by: [asc: p.name]
+    query = from(p in Preset, order_by: [asc: p.name])
 
     Repo.all(query)
   end
@@ -109,7 +109,7 @@ defmodule Tr33Control.Commands do
   end
 
   def latest_preset() do
-    query = from p in Preset, order_by: [desc: p.updated_at], limit: 1
+    query = from(p in Preset, order_by: [desc: p.updated_at], limit: 1)
     Repo.one(query)
   end
 
@@ -118,6 +118,7 @@ defmodule Tr33Control.Commands do
   end
 
   def command_types(), do: Command.types()
+  def event_types(), do: Event.types()
 
   def data_inputs(%Event{} = event), do: Event.data_inputs(event)
   def data_inputs(%Command{} = command), do: Command.data_inputs(command)

@@ -23,8 +23,8 @@ defmodule Tr33Control.Commands.UdpServer do
     {:ok, state}
   end
 
-  def handle_info({:udp, _socket, address, _port, data}, state) do
-    Logger.debug("Incomping command: #{inspect(data)}, from: #{inspect(address)}:#{inspect(port)}", label: @log_label)
+  def handle_info({:udp, _socket, address, port, data}, state) do
+    Logger.debug("Incoming command: #{inspect(data)}, from: #{inspect(address)}:#{inspect(port)}", label: @log_label)
 
     case Commands.new_command(data) do
       {:ok, command} ->
@@ -32,7 +32,7 @@ defmodule Tr33Control.Commands.UdpServer do
         Logger.debug("Valid command: #{inspect(command)}", label: @log_label)
 
       {:error, error} ->
-        Logger.debug("Inalid command: #{inspect(command)}", label: @log_label)
+        Logger.debug("Inalid command: #{inspect(data)}, Error: #{inspect(error)}", label: @log_label)
     end
 
     {:noreply, state}
