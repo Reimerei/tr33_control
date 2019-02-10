@@ -44,7 +44,7 @@ defmodule Tr33Control.Commands.Event do
 
   def to_binary(%Event{type: type, data: data}) do
     index = 0
-    type_bin = EventTypes.__enum_map__() |> Keyword.get(type)
+    type_bin = EventType.__enum_map__() |> Keyword.get(type)
     data_bin = Enum.map(data, fn int -> <<int::size(8)>> end) |> Enum.join()
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end

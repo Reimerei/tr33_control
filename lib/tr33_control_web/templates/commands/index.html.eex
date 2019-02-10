@@ -1,17 +1,37 @@
-<div class="text-center mb-4">
-  <h3 class="h5 mb-3 font-weight-normal">
-    Listening for commands on UDP <%= Application.fetch_env!(:tr33_control, :udp_listen_port) %> (<a href="/docs">docs</a>)
-  </h3>
-</div>
 
 
 <ul class="list-group">
-  <div id="presets">
-  </div>
-  <div id="settings">
-  </div>
-  <%= for index <- 0..31 do %>
-    <div id="<%= index %>">
+
+  <li class="list-group-item list-group-item-secondary">
+    <h3>Settings</h3>
+  </li>
+
+  <li class="list-group-item">
+    Listening for Commands on UDP Port <%= Application.fetch_env!(:tr33_control, :udp_listen_port) %>: <a href="/docs">packet format</a>
+  </li>
+
+  <li class="list-group-item">
+    <div id="presets">
     </div>
+  </li>
+
+  <li class="list-group-item">
+    <div id="settings">
+    </div>
+  </li>
+
+
+</ul>
+
+<ul class="list-group">
+  <li class="list-group-item list-group-item-secondary">
+    <h3>Commands</h3>
+  </li>
+
+  <%= for index <- 0..31 do %>
+    <li class="list-group-item">
+      <div id="<%= index %>">
+      </div>
+    </li>
   <% end %>
 </ul>
