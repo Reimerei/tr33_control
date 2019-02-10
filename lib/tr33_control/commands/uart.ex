@@ -58,7 +58,7 @@ defmodule Tr33Control.Commands.UART do
     {:noreply, %{state | queue: :queue.from_list(binaries)}}
   end
 
-  def handle_info({:nerves_uart, _, @serial_clear_to_send}, %{uart_pid: uart_pid, queue: queue} = state) do
+  def handle_info({:nerves_uart, _, @serial_clear_to_send}, %{queue: queue} = state) do
     Logger.debug("UART RECEIVED CTS")
     {head, rest} = :queue.out(queue)
     send_binary(state, head)

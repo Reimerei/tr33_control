@@ -1,15 +1,13 @@
 defmodule Tr33ControlWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :tr33_control
 
-  socket "/socket", Tr33ControlWeb.UserSocket
+  socket "/socket", Tr33ControlWeb.UserSocket, websocket: true
 
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phoenix.digest
   # when deploying your static files in production.
-  plug Plug.Static,
-    at: "/", from: :tr33_control, gzip: false,
-    only: ~w(css fonts images js favicon.ico robots.txt)
+  plug Plug.Static, at: "/", from: :tr33_control, gzip: false, only: ~w(css fonts images js favicon.ico robots.txt)
 
   # Code reloading can be explicitly enabled under the
   # :code_reloader configuration of your endpoint.

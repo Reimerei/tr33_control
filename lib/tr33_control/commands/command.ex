@@ -5,7 +5,7 @@ defmodule Tr33Control.Commands.Command do
   alias Tr33Control.Commands.{Command}
 
   @trunk_count 8
-  @branch_count 8
+  @branch_count 12
 
   defenum CommandType,
     disabled: 0,
@@ -15,9 +15,10 @@ defmodule Tr33Control.Commands.Command do
     ping_pong: 4,
     gravity: 5,
     sparkle: 6,
+    show_number: 7,
     rain: 8
 
-  @hidden_commands []
+  @hidden_commands [:show_number]
 
   @strip_index_values [
                         all: @trunk_count + @branch_count + 2,
@@ -33,8 +34,9 @@ defmodule Tr33Control.Commands.Command do
     # square: 0,
     sine: 1,
     comet: 2,
-    fill_top: 3,
-    fill_bottom: 4
+    nyan: 3,
+    fill_top: 4,
+    fill_bottom: 5
 
   @primary_key false
   embedded_schema do
@@ -142,6 +144,13 @@ defmodule Tr33Control.Commands.Command do
       {:slider, {"Width", 255}, 15},
       {:slider, {"Drops per second", 255}, 10},
       {:slider, {"Rate", 255}, 10}
+    ]
+  end
+
+  def properties(%Command{type: :show_number}) do
+    [
+      {:select, {"Strip Index", StripIndex}, strip_index(:all_branches)},
+      {:slider, {"Number", 255}, 23}
     ]
   end
 
