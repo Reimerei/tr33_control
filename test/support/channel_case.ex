@@ -25,13 +25,13 @@ defmodule Tr33ControlWeb.ChannelCase do
     end
   end
 
-
   setup tags do
     :ok = Ecto.Adapters.SQL.Sandbox.checkout(Tr33Control.Repo)
+
     unless tags[:async] do
       Ecto.Adapters.SQL.Sandbox.mode(Tr33Control.Repo, {:shared, self()})
     end
+
     :ok
   end
-
 end

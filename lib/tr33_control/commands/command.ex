@@ -40,9 +40,9 @@ defmodule Tr33Control.Commands.Command do
 
   @primary_key false
   embedded_schema do
-    field :index, :integer
-    field :type, CommandType
-    field :data, {:array, :integer}, default: []
+    field(:index, :integer)
+    field(:type, CommandType)
+    field(:data, {:array, :integer}, default: [])
   end
 
   def changeset(command, params) do
