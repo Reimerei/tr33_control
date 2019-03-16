@@ -5,7 +5,9 @@
 # is restricted to this project.
 use Mix.Config
 
-config :phoenix, :json_library, Jason
+config :phoenix,
+  json_library: Jason,
+  template_engines: [leex: Phoenix.LiveView.Engine]
 
 # General application configuration
 config :tr33_control,
@@ -21,7 +23,10 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
   url: [host: "localhost"],
   secret_key_base: "zZr2viMBYqxMGuXda+ebLv+fhZOlOZOWjdNWwaSpCMSeRk59ZWqJA18pZBnevauD",
   render_errors: [view: Tr33ControlWeb.ErrorView, accepts: ~w(html json)],
-  pubsub: [name: Tr33Control.PubSub, adapter: Phoenix.PubSub.PG2]
+  pubsub: [name: Tr33Control.PubSub, adapter: Phoenix.PubSub.PG2],
+  live_view: [
+    signing_salt: "Xlgy0uXmwlJ9gLdRfDIGFQFvjw3mO/51"
+  ]
 
 config :tr33_control, Tr33Control.Repo,
   adapter: Sqlite.Ecto2,

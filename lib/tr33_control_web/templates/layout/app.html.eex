@@ -8,17 +8,17 @@
     <meta name="author" content="">
 
     <title>Tr33</title>
-    <link rel="stylesheet" href="<%= static_path(@conn, "/css/app.css") %>">
+    <link rel="stylesheet" href="<%= Routes.static_path(@conn, "/css/app.css") %>">
   </head>
 
   <body>
     <div class="main">
       <div class="text-center mb-4">
-        <img class="mb-4" src="<%= static_path(@conn, "/images/xhain_logo_small.png") %>" alt="" width="256" height="256">
+        <img class="mb-4" src="<%= Routes.static_path(@conn, "/images/xhain_logo_small.png") %>" alt="" width="256" height="256">
         <h1 class="h3 mb-3 font-weight-normal">Tr33 Controller</h1>
       </div>
       <%= render @view_module, @view_template, assigns %>
     </div>
-    <script src="<%= static_path(@conn, "/js/app.js") %>"></script>
+    <script src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
   </body>
 </html>

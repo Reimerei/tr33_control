@@ -2,6 +2,7 @@ defmodule Tr33ControlWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :tr33_control
 
   socket "/socket", Tr33ControlWeb.UserSocket, websocket: true
+  socket "/live", Phoenix.LiveView.Socket
 
   # Serve at "/" the static files from "priv/static" directory.
   #
