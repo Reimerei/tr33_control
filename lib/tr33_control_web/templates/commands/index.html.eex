@@ -1,5 +1,3 @@
-
-
 <ul class="list-group">
 
   <li class="list-group-item list-group-item-secondary">
@@ -24,14 +22,25 @@
 </ul>
 
 <ul class="list-group">
+
   <li class="list-group-item list-group-item-secondary">
-    <h3>Commands</h3>
+    <div class="row">
+    <h3 class="col-2">Commands</h3>
+
+    <div class="btn-toolbar" role="toolbar" aria-label="Toolbar with button groups">
+
+      <div class="btn-group" role="group">
+        <div id="commands_title_add"></div>
+        <div id="commands_title_remove"></div>
+      </div>
+
+    </div>
+  </div>
   </li>
 
   <%= for index <- 0..31 do %>
-    <li class="list-group-item">
-      <div id="<%= index %>">
-      </div>
-    </li>
+    <div id="<%= index %>">
+    </div>
   <% end %>
+
 </ul>

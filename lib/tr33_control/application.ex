@@ -9,7 +9,8 @@ defmodule Tr33Control.Application do
       Tr33Control.Repo,
       Tr33ControlWeb.Endpoint,
       Tr33Control.Commands.UART,
-      Tr33Control.Commands.UdpServer
+      Tr33Control.Commands.UdpServer,
+      Tr33Control.Joystick
       # Tr33Control.Commands.Socket
     ]
 
@@ -48,7 +49,7 @@ defmodule Tr33Control.Application do
     migrations_path = Path.join([:code.priv_dir(:tr33_control), "repo", "migrations"])
     migrated = Ecto.Migrator.run(repo, migrations_path, :up, all: true)
 
-    pid && repo.stop(pid)
+    repo.stop(pid)
     Mix.Ecto.restart_apps_if_migrated(apps, migrated)
   end
 end

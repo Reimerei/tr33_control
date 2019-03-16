@@ -1,7 +1,6 @@
 defmodule Tr33Control.Commands.UART do
   use GenServer
   require Logger
-  alias Tr33Control.Commands
   alias Tr33Control.Commands.{Event, Command, Cache}
 
   @baudrate 230_400

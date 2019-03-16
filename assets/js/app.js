@@ -26,8 +26,12 @@ function on_msg(msg) {
     on_event(msg.id, "form_change");
   });
 
-  $(".listen_button_" + msg.id).on('click', function () {
+  $(".listen_form_button_" + msg.id).on('click', function () {
     on_event(msg.id, "button");
+  });
+
+  $(".listen_button_" + msg.id).on('click', function()  {
+    channel.push("button", {id: msg.id})
   });
 
   // enable sliders

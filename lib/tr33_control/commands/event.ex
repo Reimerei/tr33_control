@@ -5,7 +5,7 @@ defmodule Tr33Control.Commands.Event do
   alias Tr33Control.Commands.{Event}
 
   defenum EventType,
-    gravity_add_ball: 100,
+    gravity: 100,
     update_settings: 101
 
   defenum ColorPalette,
@@ -14,8 +14,12 @@ defmodule Tr33Control.Commands.Event do
     ocean: 2,
     party: 3,
     heat: 4,
-    spring_angel: 5,
-    scouty: 6
+    # spring_angel: 5,
+    scouty: 6,
+    purple_heat: 7,
+    parrot: 8,
+    saga: 9,
+    sage2: 10
 
   defenum ColorTemperature,
     none: 0,

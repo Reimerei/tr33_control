@@ -1,7 +1,6 @@
 defmodule Tr33Control.Commands.Socket do
   use GenServer
   require Logger
-  alias Tr33Control.Commands
   alias Tr33Control.Commands.{Event, Command, Cache}
 
   @host Application.fetch_env!(:tr33_control, :esp32_ip) |> to_charlist() |> :inet.parse_address() |> elem(1)
@@ -31,7 +30,7 @@ defmodule Tr33Control.Commands.Socket do
 
     state = %{
       socket: socket,
-      last_packet: System.os_time(:milliseconds),
+      last_packet: System.os_time(:millisecond),
       queue: queue_all_cache()
     }
 
@@ -41,9 +40,9 @@ defmodule Tr33Control.Commands.Socket do
   def handle_cast({:send, packet}, state) do
     %{socket: socket, last_packet: last_packet} = state
 
-    if System.os_time(:milliseconds) > last_packet + @silent_period_ms do
+    if System.os_time(:millisecond) > last_packet + @silent_period_ms do
       send_packet(packet, socket)
-      {:noreply, %{state | last_packet: System.os_time(:milliseconds)}, @idle_timeout_ms}
+      {:noreply, %{state | last_packet: System.os_time(:millisecond)}, @idle_timeout_ms}
     else
       {:noreply, state, @idle_timeout_ms}
     end

@@ -1,18 +1,15 @@
 defmodule Tr33Control.Commands.Cache do
   require Logger
-  alias Tr33Control.Commands
   alias Tr33Control.Commands.{Command, Event}
 
   @commands_ets :commands
   @events_ets :events
-  @max_index Application.fetch_env!(:tr33_control, :command_max_index)
 
   def init() do
     :ets.new(@commands_ets, [:named_table, :public])
     :ets.new(@events_ets, [:named_table, :public])
 
-    0..@max_index
-    |> Enum.map(&default_command/1)
+    [0]
     |> Enum.map(&Command.defaults/1)
     |> Enum.map(&insert/1)
 
@@ -21,6 +18,10 @@ defmodule Tr33Control.Commands.Cache do
     ]
     |> Enum.map(&Event.defaults/1)
     |> Enum.map(&insert/1)
+  end
+
+  def clear() do
+    :ets.delete_all_objects(@commands_ets)
   end
 
   def insert(%Command{index: index} = command) do
@@ -50,6 +51,10 @@ defmodule Tr33Control.Commands.Cache do
     |> Enum.map(fn {_, event} -> event end)
   end
 
+  def delete_command(index) do
+    :ets.delete(@commands_ets, index)
+  end
+
   def get_event(type) do
     case :ets.lookup(@events_ets, type) do
       [{^type, event = %Event{}}] -> event
@@ -61,6 +66,4 @@ defmodule Tr33Control.Commands.Cache do
     :ets.match_object(@events_ets, {:_, :_})
     |> Enum.map(fn {_, event} -> event end)
   end
-
-  defp default_command(index), do: %Command{index: index, type: :disabled}
 end

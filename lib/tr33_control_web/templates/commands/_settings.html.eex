@@ -19,7 +19,7 @@
             <%= render Tr33ControlWeb.CommandsView , "_slider_input.html", Map.merge(input_assigns, %{name: name, max: max}) %>
 
           <% {:button, {name}} -> %>
-            <%= render Tr33ControlWeb.CommandsView , "_button_input.html", Map.merge(input_assigns, %{name: name}) %>
+            <%= render Tr33ControlWeb.CommandsView , "_form_button.html", Map.merge(input_assigns, %{name: name}) %>
         <% end %>
       </div>
     <% end %>

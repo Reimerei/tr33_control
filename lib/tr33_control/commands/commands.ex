@@ -30,6 +30,16 @@ defmodule Tr33Control.Commands do
     |> Command.from_binary()
   end
 
+  def add_command() do
+    next_index =
+      case list_commands() |> Enum.reverse() do
+        [%Command{index: index} | _] -> index + 1
+        [] -> 0
+      end
+
+    send_command(Command.defaults(next_index))
+  end
+
   def send_command(%Command{index: index} = command) when index <= @max_index do
     command
     |> Cache.insert()
@@ -38,12 +48,26 @@ defmodule Tr33Control.Commands do
 
   def send_command(command), do: command
 
+  def update_command(index, update_params) do
+  end
+
   def list_commands() do
     Cache.all_commands()
   end
 
   def get_command(index) do
     Cache.get_command(index)
+  end
+
+  def delete_last_command() do
+    case Cache.all_commands() |> Enum.reverse() do
+      [%Command{index: index} | _] ->
+        Cache.delete_command(index)
+        index
+
+      [] ->
+        0
+    end
   end
 
   def new_event(params) do
@@ -94,6 +118,8 @@ defmodule Tr33Control.Commands do
 
   def load_preset(%Preset{commands: commands, events: events, name: name} = preset) do
     Application.put_env(:tr33_control, :current_preset, name)
+
+    Cache.clear()
 
     (commands ++ events)
     |> Enum.map(&Cache.insert/1)

@@ -16,8 +16,8 @@
       <input type="text" class="form-control" id="preset_name" name="name" value="<%= seleted_name(assigns) %>">
     </div>
 
-    <div class="form-group col-md-2">
-      <button id="button_presets" type="button" class="btn btn-primary listen_button_presets" style="margin-top: 2rem">Save Preset</button>
+    <div class="form-group col-md-2" style="margin-top: 2rem">
+      <%= render Tr33ControlWeb.CommandsView , "_form_button.html", %{name: "save", form_id: "presets"} %>
     </div>
   </div>
 </form>

@@ -2,11 +2,10 @@ defmodule Mix.Tasks.GravityProfile do
   use Mix.Task
 
   def run([file]) do
-    points =
-      File.read!(file)
-      |> String.split(" ")
-      |> Enum.map(&parse_point/1)
-      |> Enum.reject(&is_nil/1)
+    File.read!(file)
+    |> String.split(" ")
+    |> Enum.map(&parse_point/1)
+    |> Enum.reject(&is_nil/1)
   end
 
   defp parse_point(str) do

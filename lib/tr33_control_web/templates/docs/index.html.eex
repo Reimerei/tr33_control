@@ -16,7 +16,7 @@
     <%= for command <- @commands do %>
 
       <tr>
-        <td class="table-success">0-255</td>
+        <td class="table-success">0-<%= Application.fetch_env!(:tr33_control, :command_max_index) %></td>
         <td class="table-warning"><%= type_number(command) %> - <%= type_text(command) %> </td>
 
         <%= for data_text <- data_texts(command) do %>
@@ -27,7 +27,7 @@
     <%= for event <- @events do %>
 
       <tr>
-        <td class="table-success">ignored</td>
+        <td class="table-success">na</td>
         <td class="table-warning"><%= type_number(event) %> - <%= type_text(event) %> </td>
 
         <%= for data_text <- data_texts(event) do %>

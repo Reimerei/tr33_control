@@ -69,6 +69,10 @@ defmodule Tr33Control.Commands.Command do
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end
 
+  def defaults(index) when is_number(index) do
+    defaults(%Command{type: :disabled, index: index})
+  end
+
   def defaults(%Command{} = cmd) do
     data =
       properties(cmd)
@@ -124,6 +128,7 @@ defmodule Tr33Control.Commands.Command do
       {:slider, {"Color", 255}, 13},
       {:slider, {"Initial Speed", 255}, 0},
       {:slider, {"New Balls per 10 seconds", 100}, 5},
+      {:slider, {"Width", 255}, 70},
       {:button, {"Add Ball"}, 0}
     ]
   end

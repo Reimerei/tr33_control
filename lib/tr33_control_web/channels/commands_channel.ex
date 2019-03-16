@@ -3,9 +3,10 @@ defmodule Tr33ControlWeb.CommandsChannel do
   require Logger
 
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Command, Preset, Event}
+  alias Tr33Control.Commands.{Command, Preset}
 
   @channel_event_name "form"
+  @max_div 31
 
   def join("live_forms", msg, socket) do
     Logger.debug("Join in commands channel, msg: #{inspect(msg)}")
@@ -33,17 +34,17 @@ defmodule Tr33ControlWeb.CommandsChannel do
     socket = assign(socket, :preset_message, "Loaded preset #{name}")
 
     render_all(socket)
+    |> IO.inspect()
     |> Enum.each(&broadcast!(socket, @channel_event_name, &1))
 
     {:noreply, socket}
   end
 
   def handle_in("form_change", %{"form_type" => "settings"} = msg, socket) do
-    settings_event =
-      msg
-      |> normalize_data()
-      |> Commands.new_event!()
-      |> Commands.send_event()
+    msg
+    |> normalize_data()
+    |> Commands.new_event!()
+    |> Commands.send_event()
 
     msg = render_settings_form()
     broadcast_from!(socket, @channel_event_name, msg)
@@ -77,6 +78,30 @@ defmodule Tr33ControlWeb.CommandsChannel do
     {:noreply, socket}
   end
 
+  def handle_in("button", %{"id" => "commands_title_add"}, socket) do
+    msg =
+      Commands.add_command()
+      |> render_command_form
+
+    broadcast!(socket, @channel_event_name, msg)
+
+    {:noreply, socket}
+  end
+
+  def handle_in("button", %{"id" => "commands_title_remove"}, socket) do
+    msg =
+      Commands.delete_last_command()
+      |> render_empty()
+
+    broadcast!(socket, @channel_event_name, msg)
+    {:noreply, socket}
+  end
+
+  def handle_in(event, payload, socket) do
+    Logger.warn("Unhandled channel event: #{inspect(event)}, payload: #{inspect(payload)}")
+    {:noreply, socket}
+  end
+
   defp send_and_update_form(%Command{type: type} = command, %Command{type: type}, socket) do
     msg =
       command
@@ -99,11 +124,12 @@ defmodule Tr33ControlWeb.CommandsChannel do
   end
 
   defp render_all(socket) do
-    render_all_command_forms() ++ [render_presets_form(socket), render_settings_form()]
+    (render_all_command_forms() ++ [render_presets_form(socket), render_settings_form()] ++ render_commands_title())
+    |> add_render_empty()
   end
 
   defp render_all_command_forms() do
-    0..Application.fetch_env!(:tr33_control, :command_max_index)
+    Commands.list_commands()
     |> Enum.map(&render_command_form/1)
   end
 
@@ -141,6 +167,24 @@ defmodule Tr33ControlWeb.CommandsChannel do
     %{id: "settings", html: html}
   end
 
+  defp render_commands_title() do
+    [
+      render_button("+", "commands_title_add"),
+      render_button("-", "commands_title_remove")
+    ]
+  end
+
+  defp render_empty(index) do
+    %{id: "#{index}", html: ""}
+  end
+
+  defp render_button(name, id) do
+    assigns = %{name: name, id: id}
+    html = Phoenix.View.render_to_string(Tr33ControlWeb.CommandsView, "_button.html", assigns)
+
+    %{id: id, html: html}
+  end
+
   defp normalize_data(msg) do
     msg
     |> Enum.sort()
@@ -154,5 +198,16 @@ defmodule Tr33ControlWeb.CommandsChannel do
           Map.put(acc, key, value)
       end
     end)
+  end
+
+  defp add_render_empty(forms) do
+    ids = Enum.map(forms, fn %{id: id} -> id end)
+
+    empties =
+      0..@max_div
+      |> Enum.reject(&(to_string(&1) in ids))
+      |> Enum.map(&render_empty/1)
+
+    forms ++ empties
   end
 end

@@ -43,6 +43,7 @@ defmodule Tr33Control.Mixfile do
       {:sqlite_ecto2, "~> 2.3.1"},
       {:distillery, "~> 2.0", runtime: false},
       {:nerves_uart, "~> 1.2"},
+      {:input_event, "~> 0.4"},
       {:jason, "~> 1.0"},
       {:poison, "~> 3.0"}
     ]
