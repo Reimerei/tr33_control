@@ -4,16 +4,16 @@ defmodule Tr33ControlWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
-    plug :fetch_flash
     plug Phoenix.LiveView.Flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
+    plug :put_layout, {Tr33ControlWeb.LayoutView, :app}
   end
 
   scope "/", Tr33ControlWeb do
     pipe_through :browser
 
-    get "/", CommandsController, :index
+    live("/", CommandsLive)
     get "/docs", DocsController, :index
   end
 end

@@ -2,7 +2,7 @@ defmodule Tr33ControlWeb.UserSocket do
   use Phoenix.Socket
 
   ## Channels
-  channel "live_forms", Tr33ControlWeb.CommandsChannel
+  # channel "live_forms", Tr33ControlWeb.CommandsChannel
 
   # Socket params are passed from the client and can
   # be used to verify and authenticate a user. After

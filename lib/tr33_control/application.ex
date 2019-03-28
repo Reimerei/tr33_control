@@ -9,7 +9,7 @@ defmodule Tr33Control.Application do
       Tr33Control.Repo,
       Tr33ControlWeb.Endpoint,
       Tr33Control.Commands.UART,
-      Tr33Control.Commands.UdpServer,
+      Tr33Control.UdpServer,
       Tr33Control.Joystick
       # Tr33Control.Commands.Socket
     ]

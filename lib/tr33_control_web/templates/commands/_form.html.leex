@@ -1,0 +1,35 @@
+<form action="" phx-change="form_change">
+  <div class="form-row">
+    <input name="action" type="hidden" value="<%= action(@action) %>">
+    <input name="index" type="hidden" value="<%= index(@action) %>">
+
+    <%= if render_type_select(@action) do %>
+      <div class="form-group col-md-4">
+        <label><%= type_label(@action) %></label>
+        <select name="type" class="custom-select">
+          <%= for type <- types(@action) do %>
+            <option <%= if type == type(@action) do %>selected<% end %>><%= type %></option>
+          <% end %>
+        </select>
+      </div>
+    <% else %>
+      <input name="type" type="hidden" value="<%= type(@action) %>">
+    <% end %>
+
+    <%= for {input, input_assigns} <- data_inputs(@action) do %>
+      <div class="form-group col-md-4">
+        <%= case input do %>
+          <% {:select, {name, enum}} -> %>
+            <%= render Tr33ControlWeb.CommandsView , "_select_input.html", Map.merge(input_assigns, %{name: name, enum: enum}) %>
+
+          <% {:slider, {name, max}} -> %>
+            <%= render Tr33ControlWeb.CommandsView , "_slider_input.html", Map.merge(input_assigns, %{name: name, max: max}) %>
+
+          <% {:button, {name}} -> %>
+            <%= render Tr33ControlWeb.CommandsView , "_button.html", Map.merge(input_assigns, %{name: name, action: @action}) %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+
+</form>

@@ -1,9 +1,20 @@
 defmodule Tr33Control.Commands do
   import Ecto.Query, only: [from: 2]
+  alias Ecto.Changeset
   alias Tr33Control.Repo
   alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset}
 
   @max_index Application.fetch_env!(:tr33_control, :command_max_index)
+
+  @topic "inspect(__MODULE__)"
+
+  def subscribe do
+    Phoenix.PubSub.subscribe(Tr33Control.PubSub, @topic)
+  end
+
+  def update_subscribers() do
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, :update)
+  end
 
   def init() do
     Cache.init()
@@ -37,18 +48,8 @@ defmodule Tr33Control.Commands do
         [] -> 0
       end
 
-    send_command(Command.defaults(next_index))
-  end
-
-  def send_command(%Command{index: index} = command) when index <= @max_index do
-    command
-    |> Cache.insert()
-    |> UART.send()
-  end
-
-  def send_command(command), do: command
-
-  def update_command(index, update_params) do
+    Command.defaults(next_index)
+    |> send()
   end
 
   def list_commands() do
@@ -81,12 +82,6 @@ defmodule Tr33Control.Commands do
     |> raise_on_error()
   end
 
-  def send_event(%Event{} = event) do
-    event
-    |> maybe_insert()
-    |> UART.send()
-  end
-
   def get_event(type) do
     Cache.get_event(type)
   end
@@ -95,19 +90,33 @@ defmodule Tr33Control.Commands do
     Cache.all_events()
   end
 
-  def create_preset(params) do
+  def send(%Command{index: index} = command) when index <= @max_index do
+    command
+    |> Cache.insert()
+    |> UART.send()
+  end
+
+  def send(%Command{} = command), do: command
+
+  def send(%Event{} = event) do
+    event
+    |> maybe_insert()
+    |> UART.send()
+  end
+
+  def change_preset(preset, attrs \\ %{}) do
+    Preset.changeset(preset, attrs)
+  end
+
+  def create_preset(attrs) do
     commands = list_commands()
     events = list_events()
 
-    with {:ok, name} <- Map.fetch(params, "name"),
-         preset when not is_nil(preset) <- Repo.get_by(Preset, name: name) do
-      preset
-    else
-      _ -> %Preset{}
-    end
-    |> Preset.changeset(params, commands, events)
+    attrs
+    |> get_or_new_preset()
+    |> Changeset.put_change(:commands, commands)
+    |> Changeset.put_change(:events, events)
     |> Repo.insert_or_update()
-    |> update_current_preset()
   end
 
   def list_presets() do
@@ -117,8 +126,6 @@ defmodule Tr33Control.Commands do
   end
 
   def load_preset(%Preset{commands: commands, events: events, name: name} = preset) do
-    Application.put_env(:tr33_control, :current_preset, name)
-
     Cache.clear()
 
     (commands ++ events)
@@ -137,10 +144,6 @@ defmodule Tr33Control.Commands do
   def latest_preset() do
     query = from(p in Preset, order_by: [desc: p.updated_at], limit: 1)
     Repo.one(query)
-  end
-
-  def current_preset() do
-    Application.get_env(:tr33_control, :current_preset, "")
   end
 
   def command_types(), do: Command.types()
@@ -164,4 +167,19 @@ defmodule Tr33Control.Commands do
     if Event.persist?(event), do: Cache.insert(event)
     event
   end
+
+  defp get_or_new_preset(%{"name" => name} = attr) do
+    case Repo.get_by(Preset, name: name) do
+      nil -> change_preset(%Preset{}, attr)
+      preset = %Preset{} -> change_preset(preset)
+    end
+  end
+
+  defp notify_subscribers({:ok, result}, event) do
+    Phoenix.PubSub.broadcast(Demo.PubSub, @topic, {__MODULE__, event, result})
+    Phoenix.PubSub.broadcast(Demo.PubSub, @topic <> "#{result.id}", {__MODULE__, event, result})
+    {:ok, result}
+  end
+
+  defp notify_subscribers({:error, reason}, _event), do: {:error, reason}
 end

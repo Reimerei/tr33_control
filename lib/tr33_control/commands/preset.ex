@@ -11,11 +11,9 @@ defmodule Tr33Control.Commands.Preset do
     timestamps()
   end
 
-  def changeset(preset, params, commands, events) do
+  def changeset(preset, attrs) do
     preset
-    |> Changeset.cast(params, [:name])
-    |> Changeset.put_change(:commands, commands)
-    |> Changeset.put_change(:events, events)
+    |> Changeset.cast(attrs, [:name])
     |> Changeset.validate_required([:name])
     |> Changeset.validate_length(:name, min: 2)
     |> Changeset.validate_length(:name, max: 42)

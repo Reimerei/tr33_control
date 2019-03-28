@@ -12,10 +12,10 @@
   </head>
 
   <body>
-    <div class="main">
+    <div class="main p-3 container" style="max-width: 1400px">
       <div class="text-center mb-4">
-        <img class="mb-4" src="<%= Routes.static_path(@conn, "/images/xhain_logo_small.png") %>" alt="" width="256" height="256">
-        <h1 class="h3 mb-3 font-weight-normal">Tr33 Controller</h1>
+        <img class="" src="<%= Routes.static_path(@conn, "/images/xhain_logo_small.png") %>" alt="" width="256" height="256">
+        <h2>Tr33 Controller</h2>
       </div>
       <%= render @view_module, @view_template, assigns %>
     </div>

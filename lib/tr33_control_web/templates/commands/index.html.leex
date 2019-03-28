@@ -1,0 +1,43 @@
+<ul class="list-group pb-4">
+
+  <li class="list-group-item list-group-item-secondary">
+    <h3>Settings</h3>
+  </li>
+
+  <li class="list-group-item">
+    Receiving commands on <span class="font-weight-bold">UDP Port <%= Application.fetch_env!(:tr33_control, :udp_listen_port) %> </span>:
+    <a href="/docs">Documentation</a>
+  </li>
+
+  <li class="list-group-item">
+    <%= Tr33ControlWeb.CommandsView.render("_presets.html", assigns) %>
+  </li>
+
+  <li class="list-group-item">
+    <%= Tr33ControlWeb.CommandsView.render("_form.html", %{action: @settings_event}) %>
+  </li>
+</ul>
+
+<ul class="list-group">
+  <li class="list-group-item list-group-item-secondary">
+    <div class="row">
+    <h3 class="col-2">Commands</h3>
+
+    <div class="btn-toolbar" role="toolbar">
+
+      <div class="btn-group" role="group">
+        <button class="btn btn-secondary" phx-click="add_command">+</button>
+        <button class="btn btn-secondary" phx-click="delete_command">-</button>
+      </div>
+
+    </div>
+  </div>
+  </li>
+
+  <%= for command <- @commands do %>
+    <li class="list-group-item">
+      <%= Tr33ControlWeb.CommandsView.render("_form.html", %{action: command}) %>
+    </li>
+  <% end %>
+
+</ul>

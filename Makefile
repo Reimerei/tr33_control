@@ -1,6 +1,6 @@
 export SERIAL_PORT = ttyUSB0
 
-run:
+console:
 	iex -S mix phx.server
 
 deps-get:

@@ -1,6 +1,0 @@
-<label for="select_<%= @data_index %>"><%= @name %></label>
-<select id="select_<%= @data_index %>" name="data_<%= @data_index %>" class="custom-select listen_form_change_<%= @form_id %>">
-  <%= for {name, value} <- @enum.__enum_map__() do %>
-    <option value="<%= value %>" <%= if value == @data_value do %>selected<% end %> ><%= name %></option>
-  <% end %>
-</select>

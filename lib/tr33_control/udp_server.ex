@@ -1,4 +1,4 @@
-defmodule Tr33Control.Commands.UdpServer do
+defmodule Tr33Control.UdpServer do
   use GenServer
   require Logger
   alias Tr33Control.Commands

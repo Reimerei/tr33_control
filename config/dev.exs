@@ -21,7 +21,8 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
       ~r{priv/static/.*(js|css|png|jpeg|jpg|gif|svg)$},
       ~r{priv/gettext/.*(po)$},
       ~r{lib/tr33_control_web/views/.*(ex)$},
-      ~r{lib/tr33_control_web/templates/.*(eex)$}
+      ~r{lib/tr33_control_web/templates/.*(eex)$},
+      ~r{lib/tr33_control_web/live/.*(ex)$}
     ]
   ]
 
