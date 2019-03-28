@@ -16,9 +16,12 @@ defmodule Tr33Control.Joystick do
   end
 
   def handle_info({:input_event, @input_dev, [_, {:ev_key, :btn_trigger, 1}]}, state) do
-    event = Tr33Control.Commands.get_event(:update_settings)
+    event =
+      Tr33Control.Commands.get_event(:update_settings)
+      |> Map.update(:data, [], &iterate(&1, 0, Event.EventType))
+      |> Tr33Control.Commands.send()
 
-    Tr33Control.Commands.send_event(%Event{event | data: [Enum.random(0..10), 0]})
+    Tr33Control.Commands.update_subscribers()
 
     {:noreply, state}
   end
@@ -26,5 +29,16 @@ defmodule Tr33Control.Joystick do
   def handle_info({:input_event, @input_dev, msg}, state) do
     Logger.debug(inspect(msg))
     {:noreply, state}
+  end
+
+  defp iterate(data, index, enum) do
+    List.update_at(data, index, fn value ->
+      next = value + 1
+
+      case enum.__enum_map__() |> Keyword.values() |> Enum.member?(next) do
+        true -> next
+        false -> 0
+      end
+    end)
   end
 end

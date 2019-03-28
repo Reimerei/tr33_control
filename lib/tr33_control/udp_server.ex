@@ -28,7 +28,7 @@ defmodule Tr33Control.UdpServer do
 
     case Commands.new_command(data) do
       {:ok, command} ->
-        Commands.send_command(command)
+        Commands.send(command)
         Logger.debug("Valid command: #{inspect(command)}", label: @log_label)
 
       {:error, error} ->
