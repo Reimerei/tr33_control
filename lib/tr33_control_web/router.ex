@@ -13,7 +13,7 @@ defmodule Tr33ControlWeb.Router do
   scope "/", Tr33ControlWeb do
     pipe_through :browser
 
-    live "/", CommandsLive
+    live "/", IndexLive
     get "/docs", DocsController, :index
   end
 end

@@ -18,7 +18,7 @@ defmodule Tr33ControlWeb.DocsView do
   end
 
   def data_texts(command_or_event) do
-    Commands.data_inputs(command_or_event)
+    Commands.inputs(command_or_event)
     |> Enum.reject(fn {type, _} -> type in @rejected_data_input_types end)
     |> Enum.map(fn {_, {name, _}} -> name end)
   end

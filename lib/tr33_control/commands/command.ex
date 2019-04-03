@@ -2,7 +2,8 @@ defmodule Tr33Control.Commands.Command do
   use Ecto.Schema
   import EctoEnum
   alias Ecto.Changeset
-  alias Tr33Control.Commands.{Command}
+  alias __MODULE__
+  alias Tr33Control.Commands.Inputs.{Slider, Select, Button}
 
   @trunk_count 8
   @branch_count 12
@@ -45,6 +46,13 @@ defmodule Tr33Control.Commands.Command do
     field(:data, {:array, :integer}, default: [])
   end
 
+  def changeset(command, %{"type" => type} = params) when is_binary(type) do
+    case Integer.parse(type) do
+      {int, _} -> changeset(command, Map.put(params, "type", int))
+      _ -> changeset(command, params)
+    end
+  end
+
   def changeset(command, params) do
     command
     |> Changeset.cast(params, [:index, :type, :data])
@@ -73,17 +81,18 @@ defmodule Tr33Control.Commands.Command do
     defaults(%Command{type: :disabled, index: index})
   end
 
-  def defaults(%Command{} = cmd) do
+  def defaults(%Command{} = command) do
     data =
-      properties(cmd)
-      |> Enum.map(fn {_, _, value} -> value end)
+      input_def(command)
+      |> Enum.map(fn %{default: default} -> default end)
 
-    %Command{cmd | data: data}
+    %Command{command | data: data}
   end
 
-  def data_inputs(%Command{} = cmd) do
-    properties(cmd)
-    |> Enum.map(fn {type, properties, _} -> {type, properties} end)
+  def inputs(%Command{data: data} = command) do
+    input_def(command)
+    |> Enum.zip(data)
+    |> Enum.map(fn {input, value} -> Map.merge(input, %{value: value}) end)
   end
 
   def types() do
@@ -92,79 +101,78 @@ defmodule Tr33Control.Commands.Command do
     |> Enum.reject(fn type -> type in @hidden_commands end)
   end
 
-  def properties(%Command{type: :single_color}) do
+  defp input_def(%Command{type: :single_color}) do
     [
-      {:select, {"Strip Index", StripIndex}, strip_index(:all)},
-      {:slider, {"Color", 255}, 226},
-      {:slider, {"Brightness", 255}, 255}
+      %Select{name: "Strip Index", enum: StripIndex, default: strip_index(:all)},
+      %Slider{name: "Color", max: 255, default: 226},
+      %Slider{name: "Brightness", max: 255, default: 255}
     ]
   end
 
-  def properties(%Command{type: :rainbow_sine}) do
+  defp input_def(%Command{type: :rainbow_sine}) do
     [
-      {:select, {"Strip Index", StripIndex}, strip_index(:all)},
-      {:slider, {"BPM", 255}, 10},
-      {:slider, {"Wavelength [pixel]", 255}, 100},
-      {:slider, {"Rainbow Width [%]", 255}, 100},
-      {:slider, {"Max Brightness", 255}, 255}
+      %Select{name: "Strip Index", enum: StripIndex, default: strip_index(:all)},
+      %Slider{name: "BPM", max: 255, default: 10},
+      %Slider{name: "Wavelength [pixel]", max: 255, default: 100},
+      %Slider{name: "Rainbow Width [%]", max: 255, default: 100},
+      %Slider{name: "Max Brightness", max: 255, default: 255}
     ]
   end
 
-  def properties(%Command{type: :ping_pong}) do
+  defp input_def(%Command{type: :ping_pong}) do
     [
-      {:select, {"Strip Index", StripIndex}, strip_index(:all_trunks)},
-      {:select, {"Ball Type", BallType}, 1},
-      {:slider, {"Color", 255}, 65},
-      {:slider, {"Brightness", 255}, 255},
-      {:slider, {"Width", 255}, 90},
-      {:slider, {"BPM", 255}, 25},
-      {:slider, {"Offset", 100}, 0}
+      %Select{name: "Strip Index", enum: StripIndex, default: strip_index(:all_trunks)},
+      %Select{name: "Ball Type", enum: BallType, default: 1},
+      %Slider{name: "Color", max: 255, default: 65},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Width", max: 255, default: 90},
+      %Slider{name: "BPM", max: 255, default: 25},
+      %Slider{name: "Offset", max: 100, default: 0}
     ]
   end
 
-  def properties(%Command{type: :gravity}) do
+  defp input_def(%Command{type: :gravity}) do
     [
-      {:select, {"Strip Index", StripIndex}, strip_index(:all)},
-      {:slider, {"Color", 255}, 13},
-      {:slider, {"Initial Speed", 255}, 0},
-      {:slider, {"New Balls per 10 seconds", 100}, 5},
-      {:slider, {"Width", 255}, 70},
-      {:button, {"Add Ball"}, 0}
+      %Select{name: "Strip Index", enum: StripIndex, default: strip_index(:all)},
+      %Slider{name: "Color", max: 255, default: 13},
+      %Slider{name: "Initial Speed", max: 255, default: 0},
+      %Slider{name: "New Balls per 10 seconds", max: 100, default: 5},
+      %Slider{name: "Width", max: 255, default: 70},
+      %Button{name: "Add Ball", event: :gravity}
     ]
   end
 
-  def properties(%Command{type: :sparkle}) do
+  defp input_def(%Command{type: :sparkle}) do
     [
-      {:select, {"Strip Index", StripIndex}, strip_index(:all_branches)},
-      {:slider, {"Color", 255}, 1},
-      {:slider, {"Width", 255}, 15},
-      {:slider, {"Sparkles per second", 255}, 10}
+      %Select{name: "Strip Index", enum: StripIndex, default: strip_index(:all_branches)},
+      %Slider{name: "Color", max: 255, default: 1},
+      %Slider{name: "Width", max: 255, default: 15},
+      %Slider{name: "Sparkles per second", max: 255, default: 10}
     ]
   end
 
-  def properties(%Command{type: :rain}) do
+  defp input_def(%Command{type: :rain}) do
     [
-      {:select, {"Strip Index", StripIndex}, strip_index(:all_branches)},
-      {:slider, {"Color", 255}, 1},
-      {:slider, {"Width", 255}, 15},
-      {:slider, {"Drops per second", 255}, 10},
-      {:slider, {"Rate", 255}, 10}
+      %Select{name: "Strip Index", enum: StripIndex, default: strip_index(:all_branches)},
+      %Slider{name: "Color", max: 255, default: 1},
+      %Slider{name: "Width", max: 255, default: 15},
+      %Slider{name: "Drops per second", max: 255, default: 10},
+      %Slider{name: "Rate", max: 255, default: 10}
     ]
   end
 
-  def properties(%Command{type: :show_number}) do
+  defp input_def(%Command{type: :show_number}) do
     [
-      {:select, {"Strip Index", StripIndex}, strip_index(:all_branches)},
-      {:slider, {"Number", 255}, 23}
+      %Select{name: "Strip Index", enum: StripIndex, default: strip_index(:all_branches)},
+      %Slider{name: "Number", max: 255, default: 23}
     ]
   end
 
-  def properties(_), do: []
+  defp input_def(_), do: []
 
   def strip_index(type) do
     case StripIndex.dump(type) do
       {:ok, int} -> int
-      _ -> 0
     end
   end
 end

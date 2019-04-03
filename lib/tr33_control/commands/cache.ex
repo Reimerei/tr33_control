@@ -9,7 +9,7 @@ defmodule Tr33Control.Commands.Cache do
     :ets.new(@commands_ets, [:named_table, :public])
     :ets.new(@events_ets, [:named_table, :public])
 
-    [0]
+    0..Application.fetch_env!(:tr33_control, :command_max_index)
     |> Enum.map(&Command.defaults/1)
     |> Enum.map(&insert/1)
 

@@ -16,12 +16,12 @@ defmodule Tr33Control.Joystick do
   end
 
   def handle_info({:input_event, @input_dev, [_, {:ev_key, :btn_trigger, 1}]}, state) do
-    event =
-      Tr33Control.Commands.get_event(:update_settings)
-      |> Map.update(:data, [], &iterate(&1, 0, Event.EventType))
-      |> Tr33Control.Commands.send()
+    Tr33Control.Commands.get_event(:update_settings)
+    |> Map.update(:data, [], &iterate(&1, 0, Event.ColorPalette))
+    |> Tr33Control.Commands.send()
 
-    Tr33Control.Commands.update_subscribers()
+    Tr33Control.Commands.notify_subscribers(:command_update)
+    Tr33Control.Commands.notify_subscribers(:settings_update)
 
     {:noreply, state}
   end

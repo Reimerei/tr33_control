@@ -7,7 +7,6 @@ defmodule Tr33Control.Commands.Socket do
   @port Application.fetch_env!(:tr33_control, :esp32_port) |> String.to_integer()
   @silent_period_ms 0
   @idle_timeout_ms 250
-  @enable_log true
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -66,11 +65,9 @@ defmodule Tr33Control.Commands.Socket do
   defp send_packet(packet, socket) when is_binary(packet) do
     result = :gen_udp.send(socket, @host, @port, packet)
 
-    if @enable_log do
-      Logger.debug(
-        "Sending packet to #{inspect(@host)}:#{inspect(@port)} result: #{inspect(result)} content: #{inspect(packet)}"
-      )
-    end
+    Logger.debug(
+      "Sending packet to #{inspect(@host)}:#{inspect(@port)} result: #{inspect(result)} content: #{inspect(packet)}"
+    )
   end
 
   defp queue_all_cache() do

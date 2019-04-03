@@ -3,6 +3,7 @@ defmodule Tr33Control.Commands.Event do
   import EctoEnum
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Event}
+  alias Tr33Control.Commands.Inputs.Select
 
   defenum EventType,
     gravity: 100,
@@ -62,23 +63,24 @@ defmodule Tr33Control.Commands.Event do
 
   def defaults(%Event{} = event) do
     data =
-      properties(event)
-      |> Enum.map(fn {_, _, default} -> default end)
+      input_def(event)
+      |> Enum.map(fn %{default: default} -> default end)
 
     %Event{event | data: data}
   end
 
-  def data_inputs(%Event{} = event) do
-    properties(event)
-    |> Enum.map(fn {type, properties, _} -> {type, properties} end)
+  def inputs(%Event{data: data} = event) do
+    input_def(event)
+    |> Enum.zip(data)
+    |> Enum.map(fn {input, value} -> Map.merge(input, %{value: value}) end)
   end
 
-  def properties(%Event{type: :update_settings}) do
+  defp input_def(%Event{type: :update_settings}) do
     [
-      {:select, {"Color Palette", ColorPalette}, 0},
-      {:select, {"Color Temperature", ColorTemperature}, 0}
+      %Select{name: "Color Palette", enum: ColorPalette, default: 0},
+      %Select{name: "Color Temperature", enum: ColorTemperature, default: 0}
     ]
   end
 
-  def properties(_), do: []
+  defp input_def(_), do: []
 end

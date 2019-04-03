@@ -1,0 +1,51 @@
+<li class="list-group-item">
+  <div class="row">
+    <div class="col-md-4 pr-0">
+      <form action="#" phx-change="load_preset">
+        <div class="form-group">
+          <label>Load Preset</label>
+            <select name="name" class="custom-select">
+            <option disabled selected value></option>
+            <%= for preset <- @presets do %>
+              <option><%= preset.name %></option>
+            <% end %>
+          </select>
+        </div>
+      </form>
+    </div>
+
+    <div class="col-md-4">
+      <%= form_for @preset_changeset, "#", [phx_submit: :save_preset], fn f -> %>
+        <div class="form-row">
+          <div class="form-group col-md-10 p-0">
+            <%= label f, :name, "Save Preset" %>
+            <%= text_input f, :name , class: "form-control" %>
+            <%= error_tag f, :name %>
+          </div>
+
+          <div class="form-group col-md-2" style="margin-top: 2rem">
+            <%= submit "Save", phx_disable_with: "Saving...", class: "btn btn-secondary" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <%= if assigns[:preset_flash] do %>
+    <div class="text-muted">
+      <%= assigns[:preset_flash] %>
+    </div>
+  <% end %>
+</li>
+
+<li class="list-group-item">
+  <form action="" phx-change="settings_change">
+    <div class="form-row">
+      <%= for select <- @settings_selects do %>
+        <div class="form-group col-md-4">
+          <%= render("_select.html", %{select: select, variable: "data[]"}) %>
+        </div>
+      <% end %>
+    </div>
+  </form>
+</li>

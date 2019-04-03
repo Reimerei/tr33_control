@@ -1,0 +1,21 @@
+<form action="" phx-change="command_change">
+  <div class="form-row">
+    <input name="index" type="hidden" value="<%= @index %>">
+
+    <div class="form-group col-md-4">
+      <%= render("_select.html", select: @type_select, variable: "type") %>
+    </div>
+
+    <%= for select <- @selects do %>
+      <div class="form-group col-md-4">
+        <%= render("_select.html", %{select: select, variable: "data[]"}) %>
+      </div>
+    <% end %>
+
+    <%= for slider <- @sliders do %>
+      <div class="form-group col-md-4">
+        <%= render("_slider.html", %{slider: slider, variable: "data[]"}) %>
+      </div>
+    <% end %>
+  </div>
+</form>

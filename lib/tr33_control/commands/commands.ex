@@ -12,8 +12,8 @@ defmodule Tr33Control.Commands do
     Phoenix.PubSub.subscribe(Tr33Control.PubSub, @topic)
   end
 
-  def update_subscribers() do
-    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, :update)
+  def notify_subscribers(message) do
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, message)
   end
 
   def init() do
@@ -125,7 +125,7 @@ defmodule Tr33Control.Commands do
     Repo.all(query)
   end
 
-  def load_preset(%Preset{commands: commands, events: events, name: name} = preset) do
+  def load_preset(%Preset{commands: commands, events: events} = preset) do
     Cache.clear()
 
     (commands ++ events)
@@ -149,19 +149,12 @@ defmodule Tr33Control.Commands do
   def command_types(), do: Command.types()
   def event_types(), do: Event.types()
 
-  def data_inputs(%Event{} = event), do: Event.data_inputs(event)
-  def data_inputs(%Command{} = command), do: Command.data_inputs(command)
+  def inputs(%Event{} = event), do: Event.inputs(event)
+  def inputs(%Command{} = command), do: Command.inputs(command)
 
   defp raise_on_error({:ok, result}), do: result
 
   defp raise_on_error(error), do: raise(RuntimeError, message: "Could not create command: #{inspect(error)}")
-
-  defp update_current_preset({:ok, %Preset{name: name}} = result) do
-    Application.put_env(:tr33_control, :current_preset, name)
-    result
-  end
-
-  defp update_current_preset(result), do: result
 
   defp maybe_insert(%Event{} = event) do
     if Event.persist?(event), do: Cache.insert(event)
@@ -174,12 +167,4 @@ defmodule Tr33Control.Commands do
       preset = %Preset{} -> change_preset(preset)
     end
   end
-
-  defp notify_subscribers({:ok, result}, event) do
-    Phoenix.PubSub.broadcast(Demo.PubSub, @topic, {__MODULE__, event, result})
-    Phoenix.PubSub.broadcast(Demo.PubSub, @topic <> "#{result.id}", {__MODULE__, event, result})
-    {:ok, result}
-  end
-
-  defp notify_subscribers({:error, reason}, _event), do: {:error, reason}
 end

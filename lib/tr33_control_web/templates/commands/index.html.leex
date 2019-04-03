@@ -9,34 +9,17 @@
     <a href="/docs">Documentation</a>
   </li>
 
-  <li class="list-group-item">
-    <%= Tr33ControlWeb.CommandsView.render("_presets.html", assigns) %>
-  </li>
-
-  <li class="list-group-item">
-    <%= Tr33ControlWeb.CommandsView.render("_form.html", %{action: @settings_event}) %>
-  </li>
+  <%= live_render(@socket, Tr33ControlWeb.SettingsLive) %>
 </ul>
 
 <ul class="list-group">
   <li class="list-group-item list-group-item-secondary">
-    <div class="row">
     <h3 class="col-2">Commands</h3>
-
-    <div class="btn-toolbar" role="toolbar">
-
-      <div class="btn-group" role="group">
-        <button class="btn btn-secondary" phx-click="add_command">+</button>
-        <button class="btn btn-secondary" phx-click="delete_command">-</button>
-      </div>
-
-    </div>
-  </div>
   </li>
 
-  <%= for command <- @commands do %>
+  <%= for index <- 0..Application.fetch_env!(:tr33_control, :command_max_index) do %>
     <li class="list-group-item">
-      <%= Tr33ControlWeb.CommandsView.render("_form.html", %{action: command}) %>
+      <%= live_render(@socket, Tr33ControlWeb.CommandLive, session: %{index: index}, child_id: index) %>
     </li>
   <% end %>
 
