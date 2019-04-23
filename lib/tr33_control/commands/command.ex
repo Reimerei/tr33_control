@@ -91,8 +91,8 @@ defmodule Tr33Control.Commands.Command do
 
   def inputs(%Command{data: data} = command) do
     input_def(command)
-    |> Enum.zip(data)
-    |> Enum.map(fn {input, value} -> Map.merge(input, %{value: value}) end)
+    |> Enum.with_index()
+    |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
   end
 
   def types() do

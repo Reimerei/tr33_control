@@ -8,3 +8,6 @@ deps-get:
 
 deps-update:
 	mix deps.update --all
+
+assets-build:
+	npm --prefix assets run deploy && mix phx.digest

@@ -1,18 +1,21 @@
 defmodule Tr33Control.Commands.Cache do
   require Logger
-  alias Tr33Control.Commands.{Command, Event}
+  alias Tr33Control.Commands.{Command, Event, Preset}
 
-  @commands_ets :commands
-  @events_ets :events
+  @all_cache_keys [Command, Event, Preset]
+  @presets_persist_file Application.fetch_env!(:tr33_control, :cache_persist_dir) |> Path.join("presets.bin")
 
-  def init() do
-    :ets.new(@commands_ets, [:named_table, :public])
-    :ets.new(@events_ets, [:named_table, :public])
+  def init_all() do
+    Enum.map(@all_cache_keys, &init/1)
+  end
 
+  def init(Command) do
     0..Application.fetch_env!(:tr33_control, :command_max_index)
     |> Enum.map(&Command.defaults/1)
     |> Enum.map(&insert/1)
+  end
 
+  def init(Event) do
     [
       %Event{type: :update_settings}
     ]
@@ -20,50 +23,54 @@ defmodule Tr33Control.Commands.Cache do
     |> Enum.map(&insert/1)
   end
 
-  def clear() do
-    :ets.delete_all_objects(@commands_ets)
-  end
-
-  def insert(%Command{index: index} = command) do
-    :ets.insert(@commands_ets, {index, command})
-    command
-  end
-
-  def insert(%Event{type: type} = event) do
-    :ets.insert(@events_ets, {type, event})
-    event
-  end
-
-  def all() do
-    all_commands() ++ all_events()
-  end
-
-  def get_command(index) do
-    case :ets.lookup(@commands_ets, index) do
-      [{^index, command = %Command{}}] -> command
-      [] -> nil
+  def init(Preset) do
+    if File.exists?(@presets_persist_file) do
+      Logger.info("Loading persisted presets from #{inspect(@presets_persist_file)}")
+      File.read!(@presets_persist_file) |> :erlang.binary_to_term()
+      Cachex.load!(Preset, @presets_persist_file)
+    else
+      Logger.warn("No preset persist file found #{inspect(@presets_persist_file)}")
     end
   end
 
-  def all_commands() do
-    :ets.match_object(@commands_ets, {:_, :_})
-    |> Enum.sort_by(fn {index, _} -> index end)
-    |> Enum.map(fn {_, event} -> event end)
+  def clear_all() do
+    Enum.map(@all_cache_keys, &clear/1)
   end
 
-  def delete_command(index) do
-    :ets.delete(@commands_ets, index)
+  def clear(key) do
+    Cachex.clear!(key)
   end
 
-  def get_event(type) do
-    case :ets.lookup(@events_ets, type) do
-      [{^type, event = %Event{}}] -> event
-      [] -> nil
-    end
+  def insert(%{__struct__: cache} = struct) when cache in @all_cache_keys do
+    Cachex.put!(cache, cache_key(struct), struct)
+    maybe_persist(struct)
+    struct
   end
 
-  def all_events() do
-    :ets.match_object(@events_ets, {:_, :_})
-    |> Enum.map(fn {_, event} -> event end)
+  def get(cache, key) when cache in @all_cache_keys do
+    Cachex.get!(cache, key)
   end
+
+  def all(cache) when cache in @all_cache_keys do
+    query = Cachex.Query.create(true, :value)
+
+    cache
+    |> Cachex.stream!(query)
+    |> Enum.sort_by(&sort_fun/1)
+  end
+
+  def delete(cache, key) when cache in @all_cache_keys do
+    Cachex.take!(cache, key)
+  end
+
+  defp cache_key(%Command{index: index}), do: index
+  defp cache_key(%Event{type: type}), do: type
+  defp cache_key(%Preset{name: name}), do: name
+
+  defp sort_fun(%Command{index: index}), do: index
+  defp sort_fun(%Event{type: type}), do: type
+  defp sort_fun(%Preset{updated_at: updated_at}), do: NaiveDateTime.to_erl(updated_at)
+
+  defp maybe_persist(%Preset{}), do: Cachex.dump!(Preset, @presets_persist_file)
+  defp maybe_persist(_), do: :noop
 end

@@ -13,7 +13,7 @@ defmodule Tr33ControlWeb.DocsController do
       Commands.event_types()
       |> Enum.map(&%Event{type: &1})
 
-    enums = [Command.StripIndex, Event.ColorPalette, Event.ColorTemperature]
+    enums = [Event.DisplayMode, Command.StripIndex, Event.ColorPalette, Event.ColorTemperature]
 
     conn
     |> render("index.html", commands: commands, events: events, enums: enums)

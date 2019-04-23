@@ -31,8 +31,15 @@ defmodule Tr33Control.UdpServer do
         Commands.send(command)
         Logger.debug("Valid command: #{inspect(command)}", label: @log_label)
 
-      {:error, error} ->
-        Logger.debug("Inalid command: #{inspect(data)}, Error: #{inspect(error)}", label: @log_label)
+      {:error, _error} ->
+        case Commands.new_event(data) do
+          {:ok, event} ->
+            Commands.send(event)
+            Logger.debug("Valid event: #{inspect(event)}", label: @log_label)
+
+          {:error, error} ->
+            Logger.debug("Inalid command or event: #{inspect(data)}, Error: #{inspect(error)}", label: @log_label)
+        end
     end
 
     {:noreply, state}

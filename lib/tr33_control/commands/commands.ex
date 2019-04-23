@@ -1,12 +1,10 @@
 defmodule Tr33Control.Commands do
-  import Ecto.Query, only: [from: 2]
   alias Ecto.Changeset
-  alias Tr33Control.Repo
   alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset}
 
   @max_index Application.fetch_env!(:tr33_control, :command_max_index)
 
-  @topic "inspect(__MODULE__)"
+  @topic "#{inspect(__MODULE__)}"
 
   def subscribe do
     Phoenix.PubSub.subscribe(Tr33Control.PubSub, @topic)
@@ -17,12 +15,11 @@ defmodule Tr33Control.Commands do
   end
 
   def init() do
-    Cache.init()
+    Cache.init_all()
 
-    case latest_preset() do
-      %Preset{name: name} -> load_preset(name)
-      nil -> :noop
-    end
+    Cache.all(Preset)
+    |> List.last()
+    |> load_preset()
   end
 
   def new_command!(params) do
@@ -41,11 +38,11 @@ defmodule Tr33Control.Commands do
     |> Command.from_binary()
   end
 
-  def add_command() do
+  def append_empty_command() do
     next_index =
-      case list_commands() |> Enum.reverse() do
-        [%Command{index: index} | _] -> index + 1
-        [] -> 0
+      case list_commands() |> List.last() do
+        %Command{index: index} -> index + 1
+        nil -> 0
       end
 
     Command.defaults(next_index)
@@ -53,28 +50,33 @@ defmodule Tr33Control.Commands do
   end
 
   def list_commands() do
-    Cache.all_commands()
+    Cache.all(Command)
   end
 
   def get_command(index) do
-    Cache.get_command(index)
+    Cache.get(Command, index)
   end
 
   def delete_last_command() do
-    case Cache.all_commands() |> Enum.reverse() do
-      [%Command{index: index} | _] ->
-        Cache.delete_command(index)
+    case list_commands() |> List.last() do
+      %Command{index: index} ->
+        Cache.delete(Command, index)
         index
 
-      [] ->
+      nil ->
         0
     end
   end
 
-  def new_event(params) do
+  def new_event(params) when is_map(params) do
     %Event{}
     |> Event.changeset(params)
     |> Ecto.Changeset.apply_action(:insert)
+  end
+
+  def new_event(binary) when is_binary(binary) do
+    binary
+    |> Event.from_binary()
   end
 
   def new_event!(params) do
@@ -83,11 +85,11 @@ defmodule Tr33Control.Commands do
   end
 
   def get_event(type) do
-    Cache.get_event(type)
+    Cache.get(Event, type)
   end
 
   def list_events() do
-    Cache.all_events()
+    Cache.all(Event)
   end
 
   def send(%Command{index: index} = command) when index <= @max_index do
@@ -116,35 +118,32 @@ defmodule Tr33Control.Commands do
     |> get_or_new_preset()
     |> Changeset.put_change(:commands, commands)
     |> Changeset.put_change(:events, events)
-    |> Repo.insert_or_update()
+    |> Changeset.put_change(:updated_at, NaiveDateTime.utc_now())
+    |> Ecto.Changeset.apply_action(:insert)
+    |> maybe_insert()
   end
 
   def list_presets() do
-    query = from(p in Preset, order_by: [asc: p.name])
-
-    Repo.all(query)
+    Cache.all(Preset)
   end
 
   def load_preset(%Preset{commands: commands, events: events} = preset) do
-    Cache.clear()
+    Cache.clear(Command)
+    Cache.clear(Event)
 
     (commands ++ events)
     |> Enum.map(&Cache.insert/1)
 
     UART.resync()
-
     preset
   end
 
-  def load_preset(name) when is_binary(name) and not is_nil(name) do
-    Repo.get_by!(Preset, name: name)
+  def load_preset(name) when is_binary(name) do
+    Cache.get(Preset, name)
     |> load_preset()
   end
 
-  def latest_preset() do
-    query = from(p in Preset, order_by: [desc: p.updated_at], limit: 1)
-    Repo.one(query)
-  end
+  def load_preset(nil), do: :noop
 
   def command_types(), do: Command.types()
   def event_types(), do: Event.types()
@@ -154,15 +153,22 @@ defmodule Tr33Control.Commands do
 
   defp raise_on_error({:ok, result}), do: result
 
-  defp raise_on_error(error), do: raise(RuntimeError, message: "Could not create command: #{inspect(error)}")
+  defp raise_on_error(error), do: raise(RuntimeError, message: "Could not create: #{inspect(error)}")
 
   defp maybe_insert(%Event{} = event) do
     if Event.persist?(event), do: Cache.insert(event)
     event
   end
 
+  defp maybe_insert({:error, _} = response), do: response
+
+  defp maybe_insert({:ok, struct} = response) do
+    Cache.insert(struct)
+    response
+  end
+
   defp get_or_new_preset(%{"name" => name} = attr) do
-    case Repo.get_by(Preset, name: name) do
+    case Cache.get(Preset, name) do
       nil -> change_preset(%Preset{}, attr)
       preset = %Preset{} -> change_preset(preset)
     end

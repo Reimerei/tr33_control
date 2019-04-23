@@ -1,16 +1,22 @@
 defmodule Tr33Control.Application do
   use Application
   alias Tr33Control.Commands
+  alias Tr33Control.Commands.{Command, Event, Preset}
 
   def start(_type, _args) do
-    setup_db!()
+    import Supervisor.Spec
+
+    Application.fetch_env!(:tr33_control, :cache_persist_dir)
+    |> File.mkdir_p!()
 
     children = [
-      Tr33Control.Repo,
       Tr33ControlWeb.Endpoint,
       Tr33Control.Commands.UART,
       Tr33Control.UdpServer,
-      Tr33Control.Joystick
+      worker(Cachex, [Command, []], id: :cachex_commands),
+      worker(Cachex, [Event, []], id: :cachex_events),
+      worker(Cachex, [Preset, []], id: :cachex_presets)
+      # Tr33Control.Joystick
       # Tr33Control.Commands.Socket
     ]
 
@@ -25,31 +31,5 @@ defmodule Tr33Control.Application do
   def config_change(changed, _new, removed) do
     Tr33ControlWeb.Endpoint.config_change(changed, removed)
     :ok
-  end
-
-  defp setup_db!() do
-    [repo] = Application.fetch_env!(:tr33_control, :ecto_repos)
-
-    setup_repo!(repo)
-    migrate_repo!(repo)
-  end
-
-  defp setup_repo!(repo) do
-    db_file = Application.fetch_env!(:tr33_control, repo)[:database]
-
-    unless File.exists?(db_file) do
-      :ok = repo.__adapter__.storage_up(repo.config)
-    end
-  end
-
-  defp migrate_repo!(repo) do
-    opts = [all: true]
-    {:ok, pid, apps} = Mix.Ecto.ensure_started(repo, opts)
-
-    migrations_path = Path.join([:code.priv_dir(:tr33_control), "repo", "migrations"])
-    migrated = Ecto.Migrator.run(repo, migrations_path, :up, all: true)
-
-    repo.stop(pid)
-    Mix.Ecto.restart_apps_if_migrated(apps, migrated)
   end
 end

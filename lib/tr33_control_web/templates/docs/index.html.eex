@@ -2,7 +2,7 @@
   UDP Port: <%= Application.fetch_env!(:tr33_control, :udp_listen_port) %>
 </div>
 
-<h2> Commands [10 bytes] </h2>
+<h2> Commands - packet format [10 bytes] </h2>
 
 <table class="table table-bordered">
   <thead>
@@ -17,7 +17,7 @@
 
       <tr>
         <td class="table-success">0-<%= Application.fetch_env!(:tr33_control, :command_max_index) %></td>
-        <td class="table-warning"><%= type_number(command) %> - <%= type_text(command) %> </td>
+        <td class="table-warning"><%= type_text(command) %> </td>
 
         <%= for data_text <- data_texts(command) do %>
           <td class="table-primary"><%= data_text %> </td>
@@ -27,8 +27,8 @@
     <%= for event <- @events do %>
 
       <tr>
-        <td class="table-success">na</td>
-        <td class="table-warning"><%= type_number(event) %> - <%= type_text(event) %> </td>
+        <td class="table-success">0</td>
+        <td class="table-warning"><%= type_text(event) %> </td>
 
         <%= for data_text <- data_texts(event) do %>
           <td class="table-primary"><%= data_text %> </td>

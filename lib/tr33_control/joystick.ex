@@ -10,8 +10,8 @@ defmodule Tr33Control.Joystick do
   end
 
   def init(_) do
-    {:ok, _} = InputEvent.start_link(@input_dev)
-
+    result = InputEvent.start_link(@input_dev)
+    Logger.info("Tried to listen on #{@input_dev} for joystick commands, result: #{inspect(result)}")
     {:ok, %{}}
   end
 

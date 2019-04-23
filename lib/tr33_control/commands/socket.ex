@@ -1,7 +1,9 @@
 defmodule Tr33Control.Commands.Socket do
   use GenServer
   require Logger
-  alias Tr33Control.Commands.{Event, Command, Cache}
+  alias Tr33Control.Commands.{Event, Command}
+
+  # this is outdated by now. Needs to be redone to work properly
 
   @host Application.fetch_env!(:tr33_control, :esp32_ip) |> to_charlist() |> :inet.parse_address() |> elem(1)
   @port Application.fetch_env!(:tr33_control, :esp32_port) |> String.to_integer()
@@ -71,7 +73,7 @@ defmodule Tr33Control.Commands.Socket do
   end
 
   defp queue_all_cache() do
-    Cache.all_commands() ++ Cache.all_events()
+    # Cache.all_commands() ++ Cache.all_events()
   end
 
   def to_packet(%Command{} = command), do: Command.to_binary(command)

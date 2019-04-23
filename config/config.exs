@@ -16,7 +16,8 @@ config :tr33_control,
   esp32_ip: "192.168.0.42",
   esp32_port: "1337",
   serial_port: System.get_env("SERIAL_PORT") || "ttyAMA0",
-  udp_listen_port: 1337
+  udp_listen_port: 1337,
+  cache_persist_dir: "/opt/tr33/cache_persist"
 
 # Configures the endpoint
 config :tr33_control, Tr33ControlWeb.Endpoint,
@@ -27,10 +28,6 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
   live_view: [
     signing_salt: "Xlgy0uXmwlJ9gLdRfDIGFQFvjw3mO/51"
   ]
-
-config :tr33_control, Tr33Control.Repo,
-  adapter: Sqlite.Ecto2,
-  database: "/opt/tr33/tr33_db.sqlite3"
 
 # Import environment specific config. This must remain at the bottom
 # of this file so it overrides the configuration defined above.

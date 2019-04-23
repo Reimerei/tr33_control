@@ -7,7 +7,10 @@ defmodule Tr33Control.Commands.Event do
 
   defenum EventType,
     gravity: 100,
-    update_settings: 101
+    update_settings: 101,
+    # beat: 102,
+    pixel: 103,
+    pixel_rgb: 104
 
   defenum ColorPalette,
     rainbow: 0,
@@ -15,10 +18,10 @@ defmodule Tr33Control.Commands.Event do
     ocean: 2,
     party: 3,
     heat: 4,
-    # spring_angel: 5,
+    spring_angel: 5,
     scouty: 6,
     purple_heat: 7,
-    parrot: 8,
+    # parrot: 8,
     saga: 9,
     sage2: 10
 
@@ -32,6 +35,12 @@ defmodule Tr33Control.Commands.Event do
     t_5400K: 6,
     t_6000K: 7,
     t_7000K: 8
+
+  defenum DisplayMode,
+    commands: 0,
+    stream: 1
+
+  # game:    2
 
   @persisted_events [:update_settings]
 
@@ -54,6 +63,16 @@ defmodule Tr33Control.Commands.Event do
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end
 
+  def from_binary(<<index::size(8), type::size(8), data_bin::binary>>) do
+    data = for <<element::size(8) <- data_bin>>, do: element
+
+    %Event{}
+    |> changeset(%{index: index, type: type, data: data})
+    |> Ecto.Changeset.apply_action(:insert)
+  end
+
+  def from_binary(_), do: {:error, :invalid_binary_format}
+
   def persist?(%Event{type: type}), do: type in @persisted_events
 
   def types() do
@@ -71,16 +90,23 @@ defmodule Tr33Control.Commands.Event do
 
   def inputs(%Event{data: data} = event) do
     input_def(event)
-    |> Enum.zip(data)
-    |> Enum.map(fn {input, value} -> Map.merge(input, %{value: value}) end)
+    |> Enum.with_index()
+    |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
   end
 
   defp input_def(%Event{type: :update_settings}) do
     [
       %Select{name: "Color Palette", enum: ColorPalette, default: 0},
-      %Select{name: "Color Temperature", enum: ColorTemperature, default: 0}
+      %Select{name: "Color Temperature", enum: ColorTemperature, default: 0},
+      %Select{name: "Display Mode", enum: DisplayMode, default: 0}
     ]
   end
+
+  # defp input_dev(%Event{type: :pixel}) do
+  #   [
+  #     %
+  #   ]
+  # end
 
   defp input_def(_), do: []
 end

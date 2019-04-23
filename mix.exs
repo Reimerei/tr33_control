@@ -35,18 +35,19 @@ defmodule Tr33Control.Mixfile do
     [
       {:phoenix_pubsub, "~> 1.0"},
       {:phoenix_html, "~> 2.10"},
-      {:phoenix_live_reload, "~> 1.0", only: :dev},
-      {:phoenix_ecto, "~> 3.0"},
+      {:phoenix_ecto, "~> 4.0"},
       {:gettext, "~> 0.11"},
       {:plug_cowboy, "~> 2.0"},
+      {:ecto, "~> 3.0"},
       {:ecto_enum, "~> 1.0"},
-      {:sqlite_ecto2, "~> 2.3.1"},
-      {:distillery, "~> 2.0", runtime: false},
       {:nerves_uart, "~> 1.2"},
       {:input_event, "~> 0.4"},
       {:jason, "~> 1.0"},
-      {:poison, "~> 3.0"},
-      {:phoenix_live_view, github: "phoenixframework/phoenix_live_view"}
+      {:cachex, "~> 3.1"},
+      {:phoenix_live_reload, "~> 1.0", only: :dev},
+      {:distillery, "~> 2.0", runtime: false},
+      {:phoenix_live_view,
+       github: "phoenixframework/phoenix_live_view", ref: "c7ea73ba9223e2cf285fb970cd9090f92183ed80"}
     ]
   end
 

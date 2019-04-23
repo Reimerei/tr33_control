@@ -26,13 +26,7 @@ defmodule Tr33ControlWeb.ConnCase do
     end
   end
 
-  setup tags do
-    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Tr33Control.Repo)
-
-    unless tags[:async] do
-      Ecto.Adapters.SQL.Sandbox.mode(Tr33Control.Repo, {:shared, self()})
-    end
-
+  setup _tags do
     {:ok, conn: Phoenix.ConnTest.build_conn()}
   end
 end
