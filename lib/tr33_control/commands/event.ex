@@ -3,7 +3,7 @@ defmodule Tr33Control.Commands.Event do
   import EctoEnum
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Event}
-  alias Tr33Control.Commands.Inputs.Select
+  alias Tr33Control.Commands.Inputs.{Select, Slider}
 
   defenum EventType,
     gravity: 100,
@@ -99,6 +99,24 @@ defmodule Tr33Control.Commands.Event do
       %Select{name: "Color Palette", enum: ColorPalette, default: 0},
       %Select{name: "Color Temperature", enum: ColorTemperature, default: 0},
       %Select{name: "Display Mode", enum: DisplayMode, default: 0}
+    ]
+  end
+
+  defp input_def(%Event{type: :pixel}) do
+    [
+      %Select{name: "StripIndex", enum: StripIndex, default: 0},
+      %Slider{name: "LedIndex", max: 100, default: 0},
+      %Slider{name: "ColorIndex", max: 255, default: 13}
+    ]
+  end
+
+  defp input_def(%Event{type: :pixel_rgb}) do
+    [
+      %Select{name: "StripIndex", enum: StripIndex, default: 0},
+      %Slider{name: "LedIndex", max: 100, default: 0},
+      %Slider{name: "Red", max: 255, default: 13},
+      %Slider{name: "Green", max: 255, default: 13},
+      %Slider{name: "Blue", max: 255, default: 13}
     ]
   end
 

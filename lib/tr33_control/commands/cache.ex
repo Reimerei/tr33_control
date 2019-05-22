@@ -43,7 +43,7 @@ defmodule Tr33Control.Commands.Cache do
 
   def insert(%{__struct__: cache} = struct) when cache in @all_cache_keys do
     Cachex.put!(cache, cache_key(struct), struct)
-    maybe_persist(struct)
+    maybe_persist_cache(struct)
     struct
   end
 
@@ -71,6 +71,6 @@ defmodule Tr33Control.Commands.Cache do
   defp sort_fun(%Event{type: type}), do: type
   defp sort_fun(%Preset{updated_at: updated_at}), do: NaiveDateTime.to_erl(updated_at)
 
-  defp maybe_persist(%Preset{}), do: Cachex.dump!(Preset, @presets_persist_file)
-  defp maybe_persist(_), do: :noop
+  defp maybe_persist_cache(%Preset{}), do: Cachex.dump!(Preset, @presets_persist_file)
+  defp maybe_persist_cache(_), do: :noop
 end

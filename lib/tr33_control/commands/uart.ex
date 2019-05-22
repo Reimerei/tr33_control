@@ -6,14 +6,14 @@ defmodule Tr33Control.Commands.UART do
   @serial_port Application.fetch_env!(:tr33_control, :serial_port)
 
   # these values have to match with the config in the firmware
-  @baudrate 230_400
+  @baudrate 2_000_000
   @serial_header 42
   @serial_ready_to_send "AA" |> Base.decode16!()
   @serial_clear_to_send "BB" |> Base.decode16!()
   @serial_request_resync "CC" |> Base.decode16!()
   @command_data_bytes 8
   @command_batch_max_byte_size 1024
-  @command_batch_max_command_count min((@command_batch_max_byte_size - 2) / (@command_data_bytes + 2), 256)
+  @command_batch_max_command_count min(floor((@command_batch_max_byte_size - 2) / (@command_data_bytes + 2)), 256)
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -23,6 +23,10 @@ defmodule Tr33Control.Commands.UART do
     binary = to_binary(struct)
     GenServer.cast(__MODULE__, {:send, binary})
     struct
+  end
+
+  def send_rts() do
+    GenServer.cast(__MODULE__, :send_rts)
   end
 
   def resync() do
@@ -45,16 +49,21 @@ defmodule Tr33Control.Commands.UART do
 
     state = %{
       uart_pid: uart_pid,
-      queue: :queue.new()
+      queue: :queue.new(),
+      rts_pending: false
     }
 
     {:ok, state}
   end
 
   def handle_cast({:send, binary}, %{queue: queue} = state) do
-    # TODO: rate limit rts
-    send_rts(state)
+    state = send_rts(state)
     {:noreply, %{state | queue: :queue.in(binary, queue)}}
+  end
+
+  def handle_cast(:send_rts, state) do
+    send_rts(%{state | rts_pending: false})
+    {:noreply, state}
   end
 
   def handle_cast({:resync, binaries}, state) do
@@ -64,6 +73,7 @@ defmodule Tr33Control.Commands.UART do
 
   def handle_info({:nerves_uart, _, @serial_clear_to_send}, %{queue: queue} = state) do
     Logger.debug("UART RECEIVED CTS")
+    state = %{state | rts_pending: false}
 
     command_count = min(:queue.len(queue), @command_batch_max_command_count)
     {queue_send, queue_rest} = :queue.split(command_count, queue)
@@ -77,7 +87,11 @@ defmodule Tr33Control.Commands.UART do
     packet = :erlang.iolist_to_binary([header | command_binaries])
     send_packet(state, packet)
 
-    if :queue.len(queue_rest) > 0, do: send_rts(state)
+    state =
+      case :queue.len(queue_rest) do
+        0 -> state
+        _ -> send_rts(state)
+      end
 
     {:noreply, %{state | queue: queue_rest}}
   end
@@ -112,8 +126,11 @@ defmodule Tr33Control.Commands.UART do
     <<binary::binary, 0::size(padding_size)>>
   end
 
-  defp send_rts(%{uart_pid: uart_pid}) do
+  defp send_rts(%{rts_pending: true} = state), do: state
+
+  defp send_rts(%{uart_pid: uart_pid} = state) do
     Logger.debug("UART SENDING RTS")
     Nerves.UART.write(uart_pid, @serial_ready_to_send)
+    %{state | rts_pending: true}
   end
 end
