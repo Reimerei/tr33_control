@@ -7,7 +7,7 @@
             <select name="name" class="custom-select">
             <option disabled selected value></option>
             <%= for preset <- @presets do %>
-              <option><%= preset.name %></option>
+              <option value="<%= preset.name %>"><%= preset.name %></option>
             <% end %>
           </select>
         </div>

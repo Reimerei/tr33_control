@@ -44,6 +44,8 @@ defmodule Tr33ControlWeb.SettingsLive do
         |> reply_and_notify
 
       {:error, changeset} ->
+        Logger.error("Error creating preset' #{inspect(changeset)}")
+
         socket
         |> assign(:preset_flash, "Error writing preset")
         |> assign(:preset_changeset, changeset)
