@@ -17,7 +17,8 @@ defmodule Tr33Control.Commands.Command do
     gravity: 5,
     sparkle: 6,
     show_number: 7,
-    rain: 8
+    rain: 8,
+    mapped_swipe: 10
 
   @hidden_commands [:show_number]
 
@@ -38,6 +39,12 @@ defmodule Tr33Control.Commands.Command do
     nyan: 3,
     fill_top: 4,
     fill_bottom: 5
+
+  defenum SwipeDirection,
+    top_bottom: 0,
+    bottom_top: 1,
+    left_right: 2,
+    right_left: 3
 
   @primary_key false
   embedded_schema do
@@ -165,6 +172,14 @@ defmodule Tr33Control.Commands.Command do
     [
       %Select{name: "Strip Index", enum: StripIndex, default: strip_index(:all_branches)},
       %Slider{name: "Number", max: 255, default: 23}
+    ]
+  end
+
+  defp input_def(%Command{type: :mapped_swipe}) do
+    [
+      %Select{name: "Swipe Direction", enum: SwipeDirection, default: 0},
+      %Slider{name: "Color", max: 255, default: 100},
+      %Slider{name: "Rate", max: 255, default: 100}
     ]
   end
 

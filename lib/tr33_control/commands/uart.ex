@@ -3,10 +3,8 @@ defmodule Tr33Control.Commands.UART do
   require Logger
   alias Tr33Control.Commands.{Event, Command, Cache}
 
-  @serial_port Application.fetch_env!(:tr33_control, :serial_port)
-
   # these values have to match with the config in the firmware
-  @baudrate 2_000_000
+  @baudrate 1_000_000
   @serial_header 42
   @serial_ready_to_send "AA" |> Base.decode16!()
   @serial_clear_to_send "BB" |> Base.decode16!()
@@ -42,8 +40,9 @@ defmodule Tr33Control.Commands.UART do
   def init(_) do
     {:ok, uart_pid} = Nerves.UART.start_link()
 
-    result = Nerves.UART.open(uart_pid, @serial_port, speed: @baudrate, active: true)
-    Logger.info("Connection to serial port #{@serial_port}, baudrate: #{@baudrate}. Result: #{inspect(result)}")
+    serial_port = Application.fetch_env!(:tr33_control, :serial_port)
+    result = Nerves.UART.open(uart_pid, serial_port, speed: @baudrate, active: true)
+    Logger.info("Connection to serial port #{serial_port}, baudrate: #{@baudrate}. Result: #{inspect(result)}")
 
     :ok = Nerves.UART.configure(uart_pid, framing: Nerves.UART.Framing.None)
 
