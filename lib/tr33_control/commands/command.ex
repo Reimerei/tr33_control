@@ -18,7 +18,8 @@ defmodule Tr33Control.Commands.Command do
     sparkle: 6,
     show_number: 7,
     rain: 8,
-    mapped_swipe: 10
+    mapped_swipe: 10,
+    mapped_shape: 11
 
   @hidden_commands [:show_number]
 
@@ -45,6 +46,11 @@ defmodule Tr33Control.Commands.Command do
     bottom_top: 1,
     left_right: 2,
     right_left: 3
+
+  defenum MappedShape,
+    square: 0,
+    hollow_square: 1,
+    circle: 2
 
   @primary_key false
   embedded_schema do
@@ -180,6 +186,16 @@ defmodule Tr33Control.Commands.Command do
       %Select{name: "Swipe Direction", enum: SwipeDirection, default: 0},
       %Slider{name: "Color", max: 255, default: 100},
       %Slider{name: "Rate", max: 255, default: 100}
+    ]
+  end
+
+  defp input_def(%Command{type: :mapped_shape}) do
+    [
+      %Select{name: "Shape", enum: MappedShape, default: 0},
+      %Slider{name: "Color Index", max: 255, default: 50},
+      %Slider{name: "x", max: 255, default: 100},
+      %Slider{name: "y", max: 255, default: 100},
+      %Slider{name: "size", max: 255, default: 50}
     ]
   end
 

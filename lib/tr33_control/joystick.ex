@@ -1,7 +1,8 @@
 defmodule Tr33Control.Joystick do
   use GenServer
   require Logger
-  alias Tr33Control.Commands.Event
+  alias Tr33Control.Commands.{Event, Command}
+  alias Tr33Control.Commands
 
   @input_dev "/dev/input/event0"
 
@@ -12,24 +13,43 @@ defmodule Tr33Control.Joystick do
   def init(_) do
     result = InputEvent.start_link(@input_dev)
     Logger.info("Tried to listen on #{@input_dev} for joystick commands, result: #{inspect(result)}")
+    Process.flag(:trap_exit, true)
     {:ok, %{}}
   end
 
-  def handle_info({:input_event, @input_dev, [_, {:ev_key, :btn_trigger, 1}]}, state) do
-    Tr33Control.Commands.get_event(:update_settings)
+  def handle_info({:input_event, @input_dev, joystick_events}, state) when is_list(joystick_events) do
+    Enum.each(joystick_events, &handle_joystick_event/1)
+    {:noreply, state}
+  end
+
+  def handle_info(_, state) do
+    {:noreply, state}
+  end
+
+  defp handle_joystick_event({:ev_key, :btn_trigger, 1}) do
+    Commands.get_event(:update_settings)
     |> Map.update(:data, [], &iterate(&1, 0, Event.ColorPalette))
-    |> Tr33Control.Commands.send()
+    |> Commands.send()
 
-    Tr33Control.Commands.notify_subscribers(:command_update)
-    Tr33Control.Commands.notify_subscribers(:settings_update)
-
-    {:noreply, state}
+    Commands.notify_subscribers(:settings_update)
+    Commands.notify_subscribers(:command_update)
   end
 
-  def handle_info({:input_event, @input_dev, msg}, state) do
-    Logger.debug(inspect(msg))
-    {:noreply, state}
+  defp handle_joystick_event({:ev_abs, name, value})
+       when name in [:abs_rudder, :abs_throttle, :abs_hat0x, :abs_hat0y] do
+    case Commands.list_commands() |> Enum.find(fn %Command{type: type} -> type == :mapped_shape end) do
+      nil ->
+        :noop
+
+      command ->
+        Map.update(command, :data, [], &update_mapped_shape_data(&1, name, value))
+        |> Commands.send()
+
+        Commands.notify_subscribers(:command_update)
+    end
   end
+
+  defp handle_joystick_event(event), do: Logger.debug(inspect(event))
 
   defp iterate(data, index, enum) do
     List.update_at(data, index, fn value ->
@@ -41,4 +61,39 @@ defmodule Tr33Control.Joystick do
       end
     end)
   end
+
+  defp interate_num(data, index, incr) when incr > 0 do
+    List.update_at(data, index, fn
+      v when v > 255 - incr -> 0
+      v -> v + incr
+    end)
+  end
+
+  defp interate_num(data, index, incr) when incr < 0 do
+    List.update_at(data, index, fn
+      v when v < 0 - incr -> 255
+      v -> v + incr
+    end)
+  end
+
+  defp interate_num(data, _, _), do: data
+
+  defp update_mapped_shape_data(data, :abs_hat0x, joystick_value) do
+    interate_num(data, 1, joystick_value * 15)
+  end
+
+  defp update_mapped_shape_data(data, :abs_rudder, joystick_value) do
+    List.update_at(data, 2, &smooth_jitter(&1, joystick_value))
+  end
+
+  defp update_mapped_shape_data(data, :abs_throttle, joystick_value) do
+    List.update_at(data, 3, &smooth_jitter(&1, joystick_value))
+  end
+
+  defp update_mapped_shape_data(data, :abs_hat0y, joystick_value) do
+    interate_num(data, 4, joystick_value * -10)
+  end
+
+  defp smooth_jitter(current, new) when abs(new - current) > 1, do: new
+  defp smooth_jitter(current, _), do: current
 end

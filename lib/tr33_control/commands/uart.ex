@@ -66,7 +66,7 @@ defmodule Tr33Control.Commands.UART do
   end
 
   def handle_cast({:resync, binaries}, state) do
-    send_rts(state)
+    state = send_rts(%{state | rts_pending: false})
     {:noreply, %{state | queue: :queue.from_list(binaries)}}
   end
 

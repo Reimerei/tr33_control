@@ -23,12 +23,12 @@ defmodule Tr33Control.Commands.Cache do
   end
 
   def init(Preset) do
-    if File.exists?(presets_persist_file) do
-      Logger.info("Loading persisted presets from #{inspect(presets_persist_file)}")
-      File.read!(presets_persist_file) |> :erlang.binary_to_term()
-      Cachex.load!(Preset, presets_persist_file)
+    if File.exists?(presets_persist_file()) do
+      Logger.info("Loading persisted presets from #{inspect(presets_persist_file())}")
+      File.read!(presets_persist_file()) |> :erlang.binary_to_term()
+      Cachex.load!(Preset, presets_persist_file())
     else
-      Logger.warn("No preset persist file found #{inspect(presets_persist_file)}")
+      Logger.warn("No preset persist file found #{inspect(presets_persist_file())}")
     end
   end
 
@@ -70,7 +70,7 @@ defmodule Tr33Control.Commands.Cache do
   defp sort_fun(%Event{type: type}), do: type
   defp sort_fun(%Preset{updated_at: updated_at}), do: NaiveDateTime.to_erl(updated_at)
 
-  defp maybe_persist_cache(%Preset{}), do: Cachex.dump!(Preset, presets_persist_file)
+  defp maybe_persist_cache(%Preset{}), do: Cachex.dump!(Preset, presets_persist_file())
   defp maybe_persist_cache(_), do: :noop
 
   defp presets_persist_file() do
