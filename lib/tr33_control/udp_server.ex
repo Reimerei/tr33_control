@@ -23,7 +23,7 @@ defmodule Tr33Control.UdpServer do
     {:ok, state}
   end
 
-  def handle_info({:udp, _socket, address, port, data}, state) do
+  def handle_info({:udp, _socket, _address, _port, data}, state) do
     # Logger.debug("Incoming command: #{inspect(data)}, from: #{inspect(address)}:#{inspect(port)}", label: @log_label)
 
     case Commands.new_command(data) do

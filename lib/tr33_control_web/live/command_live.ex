@@ -43,6 +43,42 @@ defmodule Tr33ControlWeb.CommandLive do
     reply(socket)
   end
 
+  def handle_event("command_up", _params, %Socket{assigns: %{index: index}} = socket) do
+    Commands.get_command(index)
+    |> Commands.swap_commands(index - 1)
+
+    Commands.notify_subscribers(:command_update)
+
+    reply(socket)
+  end
+
+  def handle_event("command_down", _params, %Socket{assigns: %{index: index}} = socket) do
+    Commands.get_command(index)
+    |> Commands.swap_commands(index + 1)
+
+    Commands.notify_subscribers(:command_update)
+
+    reply(socket)
+  end
+
+  def handle_event("command_clone", _params, %Socket{assigns: %{index: index}} = socket) do
+    Commands.get_command(index)
+    |> Commands.clone_command(index + 1)
+
+    Commands.notify_subscribers(:command_update)
+
+    reply(socket)
+  end
+
+  def handle_event("command_reset", _params, %Socket{assigns: %{index: index}} = socket) do
+    Commands.Command.defaults(index)
+    |> Commands.send()
+
+    Commands.notify_subscribers(:command_update)
+
+    reply(socket)
+  end
+
   def handle_event(event, data, socket) do
     Logger.warn("Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     reply(socket)

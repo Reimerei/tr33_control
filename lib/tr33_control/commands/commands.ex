@@ -68,6 +68,25 @@ defmodule Tr33Control.Commands do
     end
   end
 
+  def swap_commands(%Command{index: index} = command, new_index) when new_index >= 0 and new_index <= @max_index do
+    swapped_command = get_command(new_index)
+
+    %Command{swapped_command | index: index}
+    |> send()
+
+    %Command{command | index: new_index}
+    |> send()
+  end
+
+  def swap_commands(%Command{} = command, _), do: command
+
+  def clone_command(%Command{} = command, new_index) when new_index >= 0 and new_index <= @max_index do
+    %Command{command | index: new_index}
+    |> send()
+  end
+
+  def clone_command(%Command{} = command, _), do: command
+
   def new_event(params) when is_map(params) do
     %Event{}
     |> Event.changeset(params)
