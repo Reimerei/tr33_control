@@ -3,6 +3,7 @@ defmodule Tr33Control.Commands.Command do
   import EctoEnum
   alias Ecto.Changeset
   alias __MODULE__
+  alias Tr33Control.Commands.Modifier
   alias Tr33Control.Commands.Inputs.{Slider, Select, Button}
 
   @trunk_count 8
@@ -57,6 +58,8 @@ defmodule Tr33Control.Commands.Command do
     field(:index, :integer)
     field(:type, CommandType)
     field(:data, {:array, :integer}, default: [])
+
+    embeds_many :modifiers, Modifier
   end
 
   def changeset(command, %{"type" => type} = params) when is_binary(type) do
@@ -102,10 +105,22 @@ defmodule Tr33Control.Commands.Command do
     %Command{command | data: data}
   end
 
-  def inputs(%Command{data: data} = command) do
-    input_def(command)
-    |> Enum.with_index()
-    |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
+  def inputs(%Command{data: data, type: type} = command) do
+    data_inputs =
+      input_def(command)
+      |> Enum.map(fn input -> Map.put(input, :variable_name, "data[]") end)
+      |> Enum.with_index()
+      |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
+
+    type_input = %Select{
+      value: CommandType.__enum_map__()[type],
+      enum: CommandType,
+      name: "Effect",
+      variable_name: "type",
+      default: :disabled
+    }
+
+    [type_input | data_inputs]
   end
 
   def types() do

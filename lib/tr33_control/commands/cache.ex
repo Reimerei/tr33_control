@@ -27,6 +27,7 @@ defmodule Tr33Control.Commands.Cache do
       Logger.info("Loading persisted presets from #{inspect(presets_persist_file())}")
       File.read!(presets_persist_file()) |> :erlang.binary_to_term()
       Cachex.load!(Preset, presets_persist_file())
+      Enum.map(@all_cache_keys, &migrate/1)
     else
       Logger.warn("No preset persist file found #{inspect(presets_persist_file())}")
     end
@@ -76,4 +77,15 @@ defmodule Tr33Control.Commands.Cache do
   defp presets_persist_file() do
     Application.fetch_env!(:tr33_control, :cache_persist_dir) |> Path.join("presets.bin")
   end
+
+  defp migrate(Preset = cache) do
+    all(cache)
+    |> Enum.map(fn %Preset{commands: commands} = preset ->
+      commands = Enum.map(commands, &struct!(Command, Map.delete(&1, :__struct__)))
+      %Preset{preset | commands: commands}
+    end)
+    |> Enum.map(&insert/1)
+  end
+
+  defp migrate(_), do: :noop
 end

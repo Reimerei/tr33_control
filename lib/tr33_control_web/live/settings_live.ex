@@ -5,7 +5,6 @@ defmodule Tr33ControlWeb.SettingsLive do
 
   alias Tr33Control.Commands
   alias Tr33Control.Commands.{Preset}
-  alias Tr33Control.Commands.Inputs.{Select}
 
   def render(assigns) do
     Tr33ControlWeb.CommandsView.render("_settings.html", assigns)
@@ -65,7 +64,7 @@ defmodule Tr33ControlWeb.SettingsLive do
   end
 
   def handle_event(event, data, socket) do
-    Logger.warn("Unhandled event #{inspect(event)} Data: #{inspect(data)}")
+    Logger.warn("SettingsLive: Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     reply(socket)
   end
 
@@ -78,15 +77,14 @@ defmodule Tr33ControlWeb.SettingsLive do
   def handle_info(_, socket), do: reply(socket)
 
   defp fetch(socket) do
-    settings_event = Commands.get_event(:update_settings)
-    inputs = Commands.inputs(settings_event)
-
-    settings_selects = for %Select{} = input <- inputs, do: input
+    settings_inputs =
+      Commands.get_event(:update_settings)
+      |> Commands.inputs()
 
     socket
     |> assign(:presets, Commands.list_presets())
     |> assign(:preset_changeset, Commands.change_preset(%Preset{}))
-    |> assign(:settings_selects, settings_selects)
+    |> assign(:settings_inputs, settings_inputs)
   end
 
   defp reply_and_notify(socket) do

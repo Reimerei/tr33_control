@@ -1,6 +1,6 @@
 defmodule Tr33Control.Commands do
   alias Ecto.Changeset
-  alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset}
+  alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset, Modifier}
 
   @max_index Application.fetch_env!(:tr33_control, :command_max_index)
 
@@ -86,6 +86,15 @@ defmodule Tr33Control.Commands do
   end
 
   def clone_command(%Command{} = command, _), do: command
+
+  def add_modifier(%Command{modifiers: modifiers} = command) do
+    command
+    |> Changeset.change()
+    |> Changeset.put_embed(:modifiers, modifiers ++ [Modifier.defaults()])
+    |> Ecto.Changeset.apply_action(:insert)
+    |> raise_on_error()
+    |> Cache.insert()
+  end
 
   def new_event(params) when is_map(params) do
     %Event{}

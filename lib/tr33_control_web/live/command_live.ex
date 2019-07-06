@@ -25,7 +25,11 @@ defmodule Tr33ControlWeb.CommandLive do
 
   def handle_event("command_change", params, %Socket{assigns: %{index: index}} = socket) do
     Logger.debug("command_change: #{inspect(params)}")
-    new_command = Commands.new_command!(params)
+
+    new_command =
+      params
+      |> Map.put("index", index)
+      |> Commands.new_command!()
 
     %Command{type: new_type} = new_command
     %Command{type: old_type} = Commands.get_command(index)
@@ -79,8 +83,17 @@ defmodule Tr33ControlWeb.CommandLive do
     reply(socket)
   end
 
+  def handle_event("command_add_modifier", _params, %Socket{assigns: %{index: index}} = socket) do
+    Commands.get_command(index)
+    |> Commands.add_modifier()
+
+    Commands.notify_subscribers(:command_update)
+
+    reply(socket)
+  end
+
   def handle_event(event, data, socket) do
-    Logger.warn("Unhandled event #{inspect(event)} Data: #{inspect(data)}")
+    Logger.warn("CommandLive: Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     reply(socket)
   end
 
@@ -93,25 +106,10 @@ defmodule Tr33ControlWeb.CommandLive do
   def handle_info(_, socket), do: reply(socket)
 
   defp fetch(%Socket{assigns: %{index: index}} = socket) do
-    command = %Command{type: type} = Commands.get_command(index)
-    inputs = Commands.inputs(command)
-
-    selects = for %Select{} = input <- inputs, do: input
-    sliders = for %Slider{} = input <- inputs, do: input
-    buttons = for %Button{} = input <- inputs, do: input
-
-    type_select = %Select{
-      value: Command.CommandType.__enum_map__()[type],
-      enum: Command.CommandType,
-      name: "Effect",
-      default: :disabled
-    }
+    command = Commands.get_command(index)
 
     socket
-    |> assign(:selects, selects)
-    |> assign(:sliders, sliders)
-    |> assign(:buttons, buttons)
-    |> assign(:type_select, type_select)
+    |> assign(:inputs, Commands.inputs(command))
   end
 
   defp reply(socket), do: {:noreply, socket}

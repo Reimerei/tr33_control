@@ -11,7 +11,7 @@ defmodule Tr33ControlWeb.IndexLive do
   end
 
   def handle_event(event, data, socket) do
-    Logger.warn("Unhandled event #{inspect(event)} Data: #{inspect(data)}")
+    Logger.warn("IndexLive: Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     reply(socket)
   end
 

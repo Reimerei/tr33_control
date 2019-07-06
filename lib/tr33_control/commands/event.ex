@@ -90,6 +90,7 @@ defmodule Tr33Control.Commands.Event do
 
   def inputs(%Event{data: data} = event) do
     input_def(event)
+    |> Enum.map(fn input -> Map.put(input, :variable_name, "data[]") end)
     |> Enum.with_index()
     |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
   end

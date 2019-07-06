@@ -1,29 +1,8 @@
 <div class="row">
-  <%# </div> %>
-
   <div class="col-md-11">
-    <form action="" phx-change="command_change">
-      <div class="form-row">
-        <input name="index" type="hidden" value="<%= @index %>">
-
-        <div class="form-group col-md-4">
-          <%= render("_select.html", select: @type_select, variable: "type") %>
-        </div>
-
-        <%= for select <- @selects do %>
-          <div class="form-group col-md-4">
-            <%= render("_select.html", %{select: select, variable: "data[]"}) %>
-          </div>
-        <% end %>
-
-        <%= for slider <- @sliders do %>
-          <div class="form-group col-md-4">
-            <%= render("_slider.html", %{slider: slider, variable: "data[]"}) %>
-          </div>
-        <% end %>
-      </div>
-    </form>
+    <%= render("_input_form.html", %{inputs: @inputs, event_name: "command_change"}) %>
   </div>
+
   <div class="col-md-1 ">
     <div class="btn-group pt-2" role="group">
       <button type="button" class="btn btn-outline-secondary" phx-click="command_up">↑</button>
@@ -34,6 +13,10 @@
       <button type="button" class="btn btn-outline-secondary" phx-click="command_clone">+</button>
       <button type="button" class="btn btn-outline-secondary" phx-click="command_reset">-</button>
     </div>
-  </div>
 
+    <div class="btn-group  pt-2" role="group">
+      <button type="button" class="btn btn-outline-secondary" phx-click="command_add_modifier">m</button>
+    </div>
+
+  </div>
 </div>

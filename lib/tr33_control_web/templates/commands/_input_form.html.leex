@@ -1,0 +1,26 @@
+<form action="" phx-change=<%= @event_name %>>
+  <div class="form-row">
+    <%= for input <- @inputs do %>
+      <div class="form-group col-md-4">        
+        <%= case input do %>
+
+          <% %Select{name: name, variable_name: variable_name, value: value, enum: enum} -> %>
+            <label><%= name %></label>
+            <select name="<%= variable_name %>" class="custom-select">
+              <%= for {option_name, option_value} <- enum.__enum_map__() do %>
+                <option value="<%= option_value %>" <%= if option_value == value do %>selected<% end %> ><%= option_name %></option>
+              <% end %>
+            </select>
+
+          <% %Slider{name: name, variable_name: variable_name, value: value, max: max} -> %>
+            <label><%= name %>: <%= value %></label>
+            <input type="range" name="<%= variable_name %>" class="custom-range" min="0" max="<%= max %>" value="<%= value %>">
+
+          <% %Button{} -> %> 
+            todo
+
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</form>

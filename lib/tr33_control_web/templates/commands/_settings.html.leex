@@ -39,13 +39,5 @@
 </li>
 
 <li class="list-group-item">
-  <form action="" phx-change="settings_change">
-    <div class="form-row">
-      <%= for select <- @settings_selects do %>
-        <div class="form-group col-md-4">
-          <%= render("_select.html", %{select: select, variable: "data[]"}) %>
-        </div>
-      <% end %>
-    </div>
-  </form>
+  <%= render("_input_form.html", %{inputs: @settings_inputs, event_name: "settings_change"}) %>
 </li>

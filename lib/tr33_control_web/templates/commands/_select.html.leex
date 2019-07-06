@@ -1,6 +1,0 @@
-<label><%= @select.name %></label>
-<select name="<%= @variable %>" class="custom-select">
-  <%= for {name, value} <- @select.enum.__enum_map__() do %>
-    <option value="<%= value %>" <%= if value == @select.value do %>selected<% end %> ><%= name %></option>
-  <% end %>
-</select>
