@@ -12,7 +12,7 @@
   </head>
 
   <body>
-    <div class="main p-3 container" style="max-width: 1400px">
+    <div class="main p-3 container" style="max-width: 100%">
       <div class="text-center mb-4">
         <img class="" src="<%= Routes.static_path(@conn, "/images/xhain_logo_small.png") %>" alt="" width="256" height="256">
         <h2>Tr33 Controller</h2>

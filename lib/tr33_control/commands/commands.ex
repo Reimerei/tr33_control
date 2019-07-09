@@ -30,7 +30,7 @@ defmodule Tr33Control.Commands do
   def new_command(params) when is_map(params) do
     %Command{}
     |> Command.changeset(params)
-    |> Ecto.Changeset.apply_action(:insert)
+    |> Changeset.apply_action(:insert)
   end
 
   def new_command(binary) when is_binary(binary) do
@@ -55,6 +55,13 @@ defmodule Tr33Control.Commands do
 
   def get_command(index) do
     Cache.get(Command, index)
+  end
+
+  def edit_command!(%Command{} = command, params) do
+    command
+    |> Command.changeset(params)
+    |> Changeset.apply_action(:update)
+    |> raise_on_error()
   end
 
   def delete_last_command() do
@@ -88,11 +95,18 @@ defmodule Tr33Control.Commands do
   def clone_command(%Command{} = command, _), do: command
 
   def add_modifier(%Command{modifiers: modifiers} = command) do
-    command
-    |> Changeset.change()
-    |> Changeset.put_embed(:modifiers, modifiers ++ [Modifier.defaults()])
-    |> Ecto.Changeset.apply_action(:insert)
-    |> raise_on_error()
+    %Command{command | modifiers: modifiers ++ [Modifier.new()]}
+    |> Cache.insert()
+  end
+
+  def update_modifier!(%Command{modifiers: modifiers} = command, index, params) when is_number(index) do
+    modifier =
+      %Modifier{}
+      |> Modifier.changeset(params)
+      |> Ecto.Changeset.apply_action(:insert)
+      |> raise_on_error()
+
+    %Command{command | modifiers: List.replace_at(modifiers, index, modifier)}
     |> Cache.insert()
   end
 

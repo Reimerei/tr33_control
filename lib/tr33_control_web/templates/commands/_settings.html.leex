@@ -1,6 +1,6 @@
 <li class="list-group-item">
   <div class="row">
-    <div class="col-md-4 pr-0">
+    <div class="col-md-3 pr-0">
       <form action="#" phx-change="load_preset">
         <div class="form-group">
           <label>Load Preset</label>
@@ -14,7 +14,7 @@
       </form>
     </div>
 
-    <div class="col-md-4">
+    <div class="col-md-3">
       <%= form_for @preset_changeset, "#", [phx_submit: :save_preset], fn f -> %>
         <div class="form-row">
           <div class="form-group col-md-10 p-0">

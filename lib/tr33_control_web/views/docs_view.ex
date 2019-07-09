@@ -24,6 +24,7 @@ defmodule Tr33ControlWeb.DocsView do
 
   def data_texts(command_or_event) do
     Commands.inputs(command_or_event)
+    |> Enum.reject(&(&1.variable_name == "type"))
     |> Enum.reject(fn %{__struct__: struct} -> struct in @excluded_inputs end)
     |> Enum.map(&data_text/1)
   end

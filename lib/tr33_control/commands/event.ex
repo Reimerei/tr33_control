@@ -107,7 +107,7 @@ defmodule Tr33Control.Commands.Event do
     [
       %Select{name: "StripIndex", enum: StripIndex, default: 0},
       %Slider{name: "LedIndex", max: 100, default: 0},
-      %Slider{name: "ColorIndex", max: 255, default: 13}
+      %Slider{name: "Color", max: 255, default: 13}
     ]
   end
 

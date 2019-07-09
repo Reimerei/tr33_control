@@ -75,6 +75,7 @@ defmodule Tr33Control.Commands.Command do
     |> Changeset.validate_required([:index, :type])
     |> Changeset.validate_number(:index, less_than: 256)
     |> Changeset.validate_length(:data, max: 8)
+    |> Changeset.cast_embed(:modifiers)
   end
 
   def from_binary(<<index::size(8), type::size(8), data_bin::binary>>) do
@@ -115,7 +116,7 @@ defmodule Tr33Control.Commands.Command do
     type_input = %Select{
       value: CommandType.__enum_map__()[type],
       enum: CommandType,
-      name: "Effect",
+      name: "Type ",
       variable_name: "type",
       default: :disabled
     }
@@ -207,7 +208,7 @@ defmodule Tr33Control.Commands.Command do
   defp input_def(%Command{type: :mapped_shape}) do
     [
       %Select{name: "Shape", enum: MappedShape, default: 0},
-      %Slider{name: "Color Index", max: 255, default: 50},
+      %Slider{name: "Color", max: 255, default: 50},
       %Slider{name: "x", max: 255, default: 100},
       %Slider{name: "y", max: 255, default: 100},
       %Slider{name: "size", max: 255, default: 50}

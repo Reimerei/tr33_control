@@ -4,8 +4,7 @@ defmodule Tr33ControlWeb.CommandLive do
   require Logger
 
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Command}
-  alias Tr33Control.Commands.Inputs.{Slider, Select, Button}
+  alias Tr33Control.Commands.{Command, Modifier}
   alias Phoenix.LiveView.Socket
 
   def render(assigns) do
@@ -27,9 +26,8 @@ defmodule Tr33ControlWeb.CommandLive do
     Logger.debug("command_change: #{inspect(params)}")
 
     new_command =
-      params
-      |> Map.put("index", index)
-      |> Commands.new_command!()
+      Commands.get_command(index)
+      |> Commands.edit_command!(Map.put(params, "index", index))
 
     %Command{type: new_type} = new_command
     %Command{type: old_type} = Commands.get_command(index)
@@ -92,6 +90,19 @@ defmodule Tr33ControlWeb.CommandLive do
     reply(socket)
   end
 
+  def handle_event("modifier_change", params, %Socket{assigns: %{index: index}} = socket) do
+    modifier_index =
+      Map.fetch!(params, "index")
+      |> String.to_integer()
+
+    Commands.get_command(index)
+    |> Commands.update_modifier!(modifier_index, params)
+
+    Commands.notify_subscribers(:command_update)
+
+    reply(socket)
+  end
+
   def handle_event(event, data, socket) do
     Logger.warn("CommandLive: Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     reply(socket)
@@ -106,10 +117,11 @@ defmodule Tr33ControlWeb.CommandLive do
   def handle_info(_, socket), do: reply(socket)
 
   defp fetch(%Socket{assigns: %{index: index}} = socket) do
-    command = Commands.get_command(index)
+    command = %Command{modifiers: modifiers} = Commands.get_command(index)
 
     socket
     |> assign(:inputs, Commands.inputs(command))
+    |> assign(:modifiers, Enum.map(modifiers, &Modifier.inputs/1))
   end
 
   defp reply(socket), do: {:noreply, socket}

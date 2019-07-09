@@ -1,7 +1,8 @@
 <form action="" phx-change=<%= @event_name %>>
   <div class="form-row">
+    <input name="index" type="hidden" value="<%= assigns[:index] || 0 %>">
     <%= for input <- @inputs do %>
-      <div class="form-group col-md-4">        
+      <div class="form-group col-md-3">        
         <%= case input do %>
 
           <% %Select{name: name, variable_name: variable_name, value: value, enum: enum} -> %>
