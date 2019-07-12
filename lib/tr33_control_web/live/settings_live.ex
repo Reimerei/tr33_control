@@ -24,12 +24,11 @@ defmodule Tr33ControlWeb.SettingsLive do
   def handle_event("load_preset", %{"name" => name}, socket) do
     Logger.debug("load_preset: #{inspect(name)}")
     Commands.load_preset(name)
-    Commands.notify_subscribers(:command_update)
 
     socket
     |> assign(:preset_current, name)
     |> assign(:preset_flash, "Preset #{inspect(name)} loaded")
-    |> reply_and_notify
+    |> reply()
   end
 
   def handle_event("save_preset", %{"preset" => params}, socket) do
@@ -40,7 +39,7 @@ defmodule Tr33ControlWeb.SettingsLive do
         socket
         |> assign(:preset_flash, "Preset #{inspect(name)} written")
         |> assign(:preset_changeset, Commands.change_preset(%Preset{}))
-        |> reply_and_notify
+        |> reply()
 
       {:error, changeset} ->
         Logger.error("Error creating preset' #{inspect(changeset)}")
@@ -48,7 +47,7 @@ defmodule Tr33ControlWeb.SettingsLive do
         socket
         |> assign(:preset_flash, "Error writing preset")
         |> assign(:preset_changeset, changeset)
-        |> reply_and_notify
+        |> reply()
     end
   end
 
@@ -60,7 +59,7 @@ defmodule Tr33ControlWeb.SettingsLive do
     |> Commands.new_event!()
     |> Commands.send()
 
-    reply_and_notify(socket)
+    reply(socket)
   end
 
   def handle_event(event, data, socket) do
@@ -68,13 +67,22 @@ defmodule Tr33ControlWeb.SettingsLive do
     reply(socket)
   end
 
-  def handle_info(:settings_update, socket) do
+  def handle_info({:event_update, :update_settings}, socket) do
     socket
     |> fetch
     |> reply
   end
 
-  def handle_info(_, socket), do: reply(socket)
+  def handle_info({:preset_update, _}, socket) do
+    socket
+    |> fetch
+    |> reply
+  end
+
+  def handle_info(data, socket) do
+    # Logger.debug("SettingsLive: Unhandled info #{inspect(data)}")
+    reply(socket)
+  end
 
   defp fetch(socket) do
     settings_inputs =
@@ -85,11 +93,6 @@ defmodule Tr33ControlWeb.SettingsLive do
     |> assign(:presets, Commands.list_presets())
     |> assign(:preset_changeset, Commands.change_preset(%Preset{}))
     |> assign(:settings_inputs, settings_inputs)
-  end
-
-  defp reply_and_notify(socket) do
-    Commands.notify_subscribers(:settings_update)
-    reply(socket)
   end
 
   defp reply(socket), do: {:noreply, socket}

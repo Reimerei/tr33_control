@@ -1,6 +1,7 @@
 defmodule Tr33Control.Commands.UART do
   use GenServer
   require Logger
+  alias Tr33Control.Commands
   alias Tr33Control.Commands.{Event, Command, Cache}
 
   # these values have to match with the config in the firmware
@@ -29,7 +30,7 @@ defmodule Tr33Control.Commands.UART do
 
   def resync() do
     binaries =
-      (Cache.all(Command) ++ Cache.all(Event))
+      (Commands.list_commands() ++ Commands.list_events())
       |> Enum.map(&to_binary/1)
 
     GenServer.cast(__MODULE__, {:resync, binaries})

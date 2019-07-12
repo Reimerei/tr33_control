@@ -30,9 +30,6 @@ defmodule Tr33Control.Joystick do
     Commands.get_event(:update_settings)
     |> Map.update(:data, [], &iterate(&1, 0, Event.ColorPalette))
     |> Commands.send()
-
-    Commands.notify_subscribers(:settings_update)
-    Commands.notify_subscribers(:command_update)
   end
 
   defp handle_joystick_event({:ev_abs, name, value})
@@ -44,8 +41,6 @@ defmodule Tr33Control.Joystick do
       command ->
         Map.update(command, :data, [], &update_mapped_shape_data(&1, name, value))
         |> Commands.send()
-
-        Commands.notify_subscribers(:command_update)
     end
   end
 

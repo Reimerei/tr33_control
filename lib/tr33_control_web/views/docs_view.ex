@@ -29,8 +29,8 @@ defmodule Tr33ControlWeb.DocsView do
     |> Enum.map(&data_text/1)
   end
 
-  def data_text(%Select{enum: enum}) do
-    "#{enum_name(enum)}"
+  def data_text(%Select{name: name}) do
+    "#{name}"
   end
 
   def data_text(%Slider{name: name}) do

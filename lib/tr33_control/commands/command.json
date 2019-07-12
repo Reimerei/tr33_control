@@ -1,0 +1,31 @@
+[
+  null,
+  null,
+  "lv:phx-yrcP+3+VTr33ControlWeb.CommandLive0",
+  "diff",
+  {
+    "2": "0",
+    "3": {
+      "dynamics": [
+        [
+          "            <label>Type</label>\n            <select name=\"type\" class=\"custom-select\">\n                <option value=\"0\"  >disabled</option>\n                <option value=\"1\"  >single_color</option>\n                <option value=\"2\"  >white</option>\n                <option value=\"3\"  >rainbow_sine</option>\n                <option value=\"4\"  >ping_pong</option>\n                <option value=\"5\"  >gravity</option>\n                <option value=\"6\"  >sparkle</option>\n                <option value=\"7\"  >show_number</option>\n                <option value=\"8\"  >rain</option>\n                <option value=\"10\"  >mapped_swipe</option>\n                <option value=\"11\" selected >mapped_shape</option>\n            </select>\n\n"
+        ],
+        [
+          "            <label>Shape</label>\n            <select name=\"data[]\" class=\"custom-select\">\n                <option value=\"0\"  >square</option>\n                <option value=\"1\"  >hollow_square</option>\n                <option value=\"2\" selected >circle</option>\n            </select>\n\n"
+        ],
+        [
+          "            <label>Color: 100</label>\n            <div class=\"pt-2\">\n              <input type=\"range\" name=\"data[]\" class=\"custom-range\" min=\"0\" max=\"255\" step=\"1\" value=\"100\">\n            </div>\n"
+        ],
+        [
+          "            <label>x: 78</label>\n            <div class=\"pt-2\">\n              <input type=\"range\" name=\"data[]\" class=\"custom-range\" min=\"0\" max=\"255\" step=\"1\" value=\"78\">\n            </div>\n"
+        ],
+        [
+          "            <label>y: 50</label>\n            <div class=\"pt-2\">\n              <input type=\"range\" name=\"data[]\" class=\"custom-range\" min=\"0\" max=\"255\" step=\"1\" value=\"50\">\n            </div>\n"
+        ],
+        [
+          "            <label>size: 187</label>\n            <div class=\"pt-2\">\n              <input type=\"range\" name=\"data[]\" class=\"custom-range\" min=\"0\" max=\"255\" step=\"1\" value=\"187\">\n            </div>\n"
+        ]
+      ]
+    }
+  }
+]

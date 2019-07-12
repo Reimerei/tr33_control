@@ -40,16 +40,12 @@ defmodule Tr33ControlWeb.CommandLive do
     end
     |> Commands.send()
 
-    Commands.notify_subscribers(:command_update)
-
     reply(socket)
   end
 
   def handle_event("command_up", _params, %Socket{assigns: %{index: index}} = socket) do
     Commands.get_command(index)
     |> Commands.swap_commands(index - 1)
-
-    Commands.notify_subscribers(:command_update)
 
     reply(socket)
   end
@@ -58,16 +54,12 @@ defmodule Tr33ControlWeb.CommandLive do
     Commands.get_command(index)
     |> Commands.swap_commands(index + 1)
 
-    Commands.notify_subscribers(:command_update)
-
     reply(socket)
   end
 
   def handle_event("command_clone", _params, %Socket{assigns: %{index: index}} = socket) do
     Commands.get_command(index)
     |> Commands.clone_command(index + 1)
-
-    Commands.notify_subscribers(:command_update)
 
     reply(socket)
   end
@@ -76,16 +68,12 @@ defmodule Tr33ControlWeb.CommandLive do
     Commands.Command.defaults(index)
     |> Commands.send()
 
-    Commands.notify_subscribers(:command_update)
-
     reply(socket)
   end
 
   def handle_event("command_add_modifier", _params, %Socket{assigns: %{index: index}} = socket) do
     Commands.get_command(index)
     |> Commands.add_modifier()
-
-    Commands.notify_subscribers(:command_update)
 
     reply(socket)
   end
@@ -98,7 +86,12 @@ defmodule Tr33ControlWeb.CommandLive do
     Commands.get_command(index)
     |> Commands.update_modifier!(modifier_index, params)
 
-    Commands.notify_subscribers(:command_update)
+    reply(socket)
+  end
+
+  def handle_event("modifier_delete", modifier_index, %Socket{assigns: %{index: index}} = socket) do
+    Commands.get_command(index)
+    |> Commands.delete_modifier(String.to_integer(modifier_index))
 
     reply(socket)
   end
@@ -108,20 +101,25 @@ defmodule Tr33ControlWeb.CommandLive do
     reply(socket)
   end
 
-  def handle_info(:command_update, socket) do
+  def handle_info({:command_update, index}, %Socket{assigns: %{index: index}} = socket) do
     socket
     |> fetch
     |> reply
   end
 
-  def handle_info(_, socket), do: reply(socket)
+  def handle_info(_data, socket) do
+    # Logger.debug("CommandLive: Unhandled info #{inspect(data)}")
+    reply(socket)
+  end
 
   defp fetch(%Socket{assigns: %{index: index}} = socket) do
-    command = %Command{modifiers: modifiers} = Commands.get_command(index)
+    command = Commands.get_command(index)
+    command_inputs = Commands.inputs(command)
 
-    socket
-    |> assign(:inputs, Commands.inputs(command))
-    |> assign(:modifiers, Enum.map(modifiers, &Modifier.inputs/1))
+    Enum.reduce(0..9, socket, fn index, socket_acc ->
+      assign(socket_acc, String.to_atom("input_#{index}"), Enum.at(command_inputs, index))
+    end)
+    |> assign(:modifier_inputs, Commands.modifier_inputs(command))
   end
 
   defp reply(socket), do: {:noreply, socket}

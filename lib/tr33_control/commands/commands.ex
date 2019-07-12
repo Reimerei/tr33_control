@@ -3,6 +3,7 @@ defmodule Tr33Control.Commands do
   alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset, Modifier}
 
   @max_index Application.fetch_env!(:tr33_control, :command_max_index)
+  @pubsub_silent_period_ms 100
 
   @topic "#{inspect(__MODULE__)}"
 
@@ -11,7 +12,13 @@ defmodule Tr33Control.Commands do
   end
 
   def notify_subscribers(message) do
-    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, message)
+    now = System.os_time(:millisecond)
+    last_notify = Application.get_env(:tr33_control, :pubsub_last_notify, 0)
+
+    if now - last_notify > @pubsub_silent_period_ms do
+      Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, message)
+      Application.put_env(:tr33_control, :pubsub_last_notify, now)
+    end
   end
 
   def init() do
@@ -99,6 +106,11 @@ defmodule Tr33Control.Commands do
     |> Cache.insert()
   end
 
+  def delete_modifier(%Command{modifiers: modifiers} = command, index) when is_integer(index) do
+    %Command{command | modifiers: List.delete_at(modifiers, index)}
+    |> Cache.insert()
+  end
+
   def update_modifier!(%Command{modifiers: modifiers} = command, index, params) when is_number(index) do
     modifier =
       %Modifier{}
@@ -108,6 +120,11 @@ defmodule Tr33Control.Commands do
 
     %Command{command | modifiers: List.replace_at(modifiers, index, modifier)}
     |> Cache.insert()
+  end
+
+  def apply_modifiers(%Command{modifiers: modifiers} = command) do
+    Enum.reduce(modifiers, command, &Modifier.apply/2)
+    |> send()
   end
 
   def new_event(params) when is_map(params) do
@@ -192,6 +209,8 @@ defmodule Tr33Control.Commands do
 
   def inputs(%Event{} = event), do: Event.inputs(event)
   def inputs(%Command{} = command), do: Command.inputs(command)
+
+  def modifier_inputs(%Command{} = command), do: Modifier.inputs(command)
 
   defp raise_on_error({:ok, result}), do: result
 

@@ -16,7 +16,8 @@ defmodule Tr33Control.Application do
       worker(Cachex, [Command, []], id: :cachex_commands),
       worker(Cachex, [Event, []], id: :cachex_events),
       worker(Cachex, [Preset, []], id: :cachex_presets),
-      Tr33Control.Joystick
+      Tr33Control.Joystick,
+      Tr33Control.Commands.Updater
       # Tr33Control.Commands.Socket
     ]
 

@@ -3,6 +3,7 @@ defmodule Tr33Control.Commands.Event do
   import EctoEnum
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Event}
+  alias Tr33Control.Commands.Command.StripIndex
   alias Tr33Control.Commands.Inputs.{Select, Slider}
 
   defenum EventType,
@@ -46,8 +47,8 @@ defmodule Tr33Control.Commands.Event do
 
   @primary_key false
   embedded_schema do
-    field(:type, EventType)
-    field(:data, {:array, :integer}, default: [])
+    field :type, EventType
+    field :data, {:array, :integer}, default: []
   end
 
   def changeset(event, params) do
@@ -97,15 +98,15 @@ defmodule Tr33Control.Commands.Event do
 
   defp input_def(%Event{type: :update_settings}) do
     [
-      %Select{name: "Color Palette", enum: ColorPalette, default: 0},
-      %Select{name: "Color Temperature", enum: ColorTemperature, default: 0},
-      %Select{name: "Display Mode", enum: DisplayMode, default: 0}
+      %Select{name: "Color Palette", options: ColorPalette.__enum_map__(), default: 0},
+      %Select{name: "Color Temperature", options: ColorTemperature.__enum_map__(), default: 0},
+      %Select{name: "Display Mode", options: DisplayMode.__enum_map__(), default: 0}
     ]
   end
 
   defp input_def(%Event{type: :pixel}) do
     [
-      %Select{name: "StripIndex", enum: StripIndex, default: 0},
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 0},
       %Slider{name: "LedIndex", max: 100, default: 0},
       %Slider{name: "Color", max: 255, default: 13}
     ]
@@ -113,7 +114,7 @@ defmodule Tr33Control.Commands.Event do
 
   defp input_def(%Event{type: :pixel_rgb}) do
     [
-      %Select{name: "StripIndex", enum: StripIndex, default: 0},
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 0},
       %Slider{name: "LedIndex", max: 100, default: 0},
       %Slider{name: "Red", max: 255, default: 13},
       %Slider{name: "Green", max: 255, default: 13},
