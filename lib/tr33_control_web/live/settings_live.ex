@@ -89,8 +89,12 @@ defmodule Tr33ControlWeb.SettingsLive do
       Commands.get_event(:update_settings)
       |> Commands.inputs()
 
+    presets =
+      Commands.list_presets()
+      |> Enum.sort_by(fn %Preset{name: name} -> name end)
+
     socket
-    |> assign(:presets, Commands.list_presets())
+    |> assign(:presets, presets)
     |> assign(:preset_changeset, Commands.change_preset(%Preset{}))
     |> assign(:settings_inputs, settings_inputs)
   end

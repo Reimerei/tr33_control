@@ -2,28 +2,7 @@
   <div class="form-row">
     <input name="index" type="hidden" value="<%= assigns[:index] || 0 %>">
     <%= for input <- @inputs do %>
-      <div class="form-group col-md-3">        
-        <%= case input do %>
-
-          <% %Select{name: name, variable_name: variable_name, value: value, options: options} -> %>
-            <label><%= name %></label>
-            <select name="<%= variable_name %>" class="custom-select">
-              <%= for {option_name, option_value} <- options do %>
-                <option value="<%= option_value %>" <%= if option_value == value do %>selected<% end %> ><%= option_name %></option>
-              <% end %>
-            </select>
-
-          <% %Slider{name: name, variable_name: variable_name, value: value, max: max, step: step} -> %>
-            <label><%= name %>: <%= format(value) %></label>
-            <div class="pt-2">
-              <input type="range" name="<%= variable_name %>" class="custom-range" min="0" max="<%= max %>" step="<%= step %>" value="<%= value %>">
-            </div>
-          
-          <% %Button{name: name, event: event, data: data} -> %> 
-            <button type="button" class="btn btn-secondary m-4" phx-click="<%= event %>" phx-value="<%= data %>"><%= name %></button>            
-
-        <% end %>
-      </div>
+      <%= render("_input.html", %{input: input}) %>
     <% end %>
   </div>
 </form>

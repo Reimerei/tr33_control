@@ -11,10 +11,15 @@
           <button type="button" class="btn btn-secondary" phx-click="command_up">↑</button>
           <button type="button" class="btn btn-secondary" phx-click="command_down">↓</button>
           <button type="button" class="btn btn-secondary" phx-click="command_clone">clone</button>
-          <button type="button" class="btn btn-secondary" phx-click="command_delete">delete</button>
-          <button type="button" class="btn btn-secondary" phx-click="command_add_modifier">add modifier</button>
+          <button type="button" class="btn btn-secondary" phx-click="command_reset">disable</button>
+          <%= if length(@modifier_inputs) > 0 do %>
+            <button type="button" class="btn btn-secondary" phx-click="disable_modifiers">disable modifiers</button>
+          <%= else %>
+            <button type="button" class="btn btn-secondary" phx-click="enable_modifiers">enable modifiers</button>
+          <% end %>
         </div>
       </div>
+    </div>
   </li>
 
   <li class="list-group-item">
@@ -34,15 +39,19 @@
     </form>
   </li>
 
-  <%= if length(@modifier_inputs) > 0 do %>
-    <li class="list-group-item list-group-item-secondary">
-      <p class="h5 mb-0">Modifiers</p>
-    </li>
-  <% end %>
-
-  <%= for {inputs, index} <- Enum.with_index(@modifier_inputs) do %>
+  <%= for {{inputs, field}, index} <- Enum.with_index(@modifier_inputs) do %>
     <li class="list-group-item">
-      <%= render("_input_form.html", %{inputs: inputs, event_name: "modifier_change", index: index}) %>
+      <p class="h4 mb-0">Modifier - <%= field %></p>
+    </li>
+    <li class="list-group-item">
+      <form action="" phx-change="modifier_change">
+        <div class="form-row">
+          <input name="index" type="hidden" value="<%= index %>">
+          <%= for input <- inputs do %>
+            <%= render("_input.html", %{input: input}) %>
+          <% end %>
+        </div>
+      </form>
     </li>
   <% end %>
 </ul>

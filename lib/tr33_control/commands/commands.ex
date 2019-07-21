@@ -3,7 +3,7 @@ defmodule Tr33Control.Commands do
   alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset, Modifier}
 
   @max_index Application.fetch_env!(:tr33_control, :command_max_index)
-  @pubsub_silent_period_ms 100
+  @pubsub_silent_period_ms 50
 
   @topic "#{inspect(__MODULE__)}"
 
@@ -11,11 +11,11 @@ defmodule Tr33Control.Commands do
     Phoenix.PubSub.subscribe(Tr33Control.PubSub, @topic)
   end
 
-  def notify_subscribers(message) do
+  def notify_subscribers(message, force \\ false) do
     now = System.os_time(:millisecond)
     last_notify = Application.get_env(:tr33_control, :pubsub_last_notify, 0)
 
-    if now - last_notify > @pubsub_silent_period_ms do
+    if force or now - last_notify > @pubsub_silent_period_ms do
       Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, message)
       Application.put_env(:tr33_control, :pubsub_last_notify, now)
     end
@@ -24,7 +24,8 @@ defmodule Tr33Control.Commands do
   def init() do
     Cache.init_all()
 
-    Cache.all(Preset)
+    list_presets()
+    |> Enum.sort_by(fn %Preset{updated_at: updated_at} -> NaiveDateTime.to_erl(updated_at) end)
     |> List.last()
     |> load_preset()
   end
@@ -57,7 +58,9 @@ defmodule Tr33Control.Commands do
   end
 
   def list_commands() do
-    Cache.all(Command)
+    0..@max_index
+    |> Enum.map(&get_command/1)
+    |> Enum.reject(&is_nil/1)
   end
 
   def get_command(index) do
@@ -101,14 +104,14 @@ defmodule Tr33Control.Commands do
 
   def clone_command(%Command{} = command, _), do: command
 
-  def add_modifier(%Command{modifiers: modifiers} = command) do
-    %Command{command | modifiers: modifiers ++ [Modifier.new()]}
-    |> Cache.insert()
+  def enable_modifiers(%Command{} = command) do
+    %Command{command | modifiers: Modifier.for_command(command)}
+    |> Cache.insert(true)
   end
 
-  def delete_modifier(%Command{modifiers: modifiers} = command, index) when is_integer(index) do
-    %Command{command | modifiers: List.delete_at(modifiers, index)}
-    |> Cache.insert()
+  def disable_modifiers(%Command{} = command) do
+    %Command{command | modifiers: []}
+    |> Cache.insert(true)
   end
 
   def update_modifier!(%Command{modifiers: modifiers} = command, index, params) when is_number(index) do
@@ -122,9 +125,13 @@ defmodule Tr33Control.Commands do
     |> Cache.insert()
   end
 
-  def apply_modifiers(%Command{modifiers: modifiers} = command) do
+  def apply_modifiers(%Command{modifiers: modifiers} = command) when length(modifiers) > 0 do
     Enum.reduce(modifiers, command, &Modifier.apply/2)
     |> send()
+  end
+
+  def apply_modifiers(%Command{} = command) do
+    command
   end
 
   def new_event(params) when is_map(params) do
@@ -210,7 +217,11 @@ defmodule Tr33Control.Commands do
   def inputs(%Event{} = event), do: Event.inputs(event)
   def inputs(%Command{} = command), do: Command.inputs(command)
 
-  def modifier_inputs(%Command{} = command), do: Modifier.inputs(command)
+  def modifier_inputs(%Command{modifiers: modifiers}) do
+    for modifier <- modifiers do
+      Modifier.inputs(modifier)
+    end
+  end
 
   defp raise_on_error({:ok, result}), do: result
 

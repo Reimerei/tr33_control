@@ -1,7 +1,7 @@
 defmodule Tr33ControlWeb.CommandsView do
   use Tr33ControlWeb, :view
 
-  alias Tr33Control.Commands.Inputs.{Select, Slider, Button}
+  alias Tr33Control.Commands.Inputs.{Select, Slider, Button, Hidden}
 
   def format(int) when is_integer(int) and int < 1000 do
     to_string(int)

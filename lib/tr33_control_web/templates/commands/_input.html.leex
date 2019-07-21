@@ -22,6 +22,9 @@
     <div class="form-group col-md-3">        
       <button type="button" class="btn btn-secondary m-4" phx-click="<%= event %>" phx-value="<%= data %>"><%= name %></button>            
     </div>
+
+  <% %Hidden{variable_name: variable_name, value: value} -> %>
+    <input name="<%= variable_name %>" type="hidden" value="<%= value %>">
   
   <% _ -> %>
 

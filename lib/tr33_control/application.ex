@@ -22,7 +22,7 @@ defmodule Tr33Control.Application do
     ]
 
     opts = [strategy: :one_for_one, name: Tr33Control.Supervisor]
-    sup = Supervisor.start_link(children, opts)
+    sup = {:ok, _} = Supervisor.start_link(children, opts)
 
     Commands.init()
 

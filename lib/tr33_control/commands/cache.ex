@@ -42,10 +42,10 @@ defmodule Tr33Control.Commands.Cache do
     Cachex.clear!(key)
   end
 
-  def insert(%{__struct__: cache} = struct) when cache in @all_cache_keys do
+  def insert(%{__struct__: cache} = struct, force \\ false) when cache in @all_cache_keys do
     Cachex.put!(cache, cache_key(struct), struct)
     maybe_persist_cache(struct)
-    maybe_notify(struct)
+    maybe_notify(struct, force)
     struct
   end
 
@@ -58,8 +58,7 @@ defmodule Tr33Control.Commands.Cache do
 
     cache
     |> Cachex.stream!(query)
-
-    # |> Enum.sort_by(&sort_fun/1)
+    |> Enum.into([])
   end
 
   def delete(cache, key) when cache in @all_cache_keys do
@@ -81,9 +80,9 @@ defmodule Tr33Control.Commands.Cache do
     Application.fetch_env!(:tr33_control, :cache_persist_dir) |> Path.join("presets.bin")
   end
 
-  defp maybe_notify(%Command{index: index}), do: Commands.notify_subscribers({:command_update, index})
-  defp maybe_notify(%Event{type: type}), do: Commands.notify_subscribers({:event_update, type})
-  defp maybe_notify(%Preset{name: name}), do: Commands.notify_subscribers({:preset_update, name})
+  defp maybe_notify(%Command{index: index}, force), do: Commands.notify_subscribers({:command_update, index}, force)
+  defp maybe_notify(%Event{type: type}, force), do: Commands.notify_subscribers({:event_update, type}, force)
+  defp maybe_notify(%Preset{name: name}, force), do: Commands.notify_subscribers({:preset_update, name}, force)
 
   defp migrate(Preset = cache) do
     all(cache)

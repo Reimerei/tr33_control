@@ -71,9 +71,16 @@ defmodule Tr33ControlWeb.CommandLive do
     reply(socket)
   end
 
-  def handle_event("command_add_modifier", _params, %Socket{assigns: %{index: index}} = socket) do
+  def handle_event("enable_modifiers", _params, %Socket{assigns: %{index: index}} = socket) do
     Commands.get_command(index)
-    |> Commands.add_modifier()
+    |> Commands.enable_modifiers()
+
+    reply(socket)
+  end
+
+  def handle_event("disable_modifiers", _params, %Socket{assigns: %{index: index}} = socket) do
+    Commands.get_command(index)
+    |> Commands.disable_modifiers()
 
     reply(socket)
   end
@@ -85,13 +92,6 @@ defmodule Tr33ControlWeb.CommandLive do
 
     Commands.get_command(index)
     |> Commands.update_modifier!(modifier_index, params)
-
-    reply(socket)
-  end
-
-  def handle_event("modifier_delete", modifier_index, %Socket{assigns: %{index: index}} = socket) do
-    Commands.get_command(index)
-    |> Commands.delete_modifier(String.to_integer(modifier_index))
 
     reply(socket)
   end

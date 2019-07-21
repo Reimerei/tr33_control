@@ -22,6 +22,8 @@ defmodule Tr33Control.Commands.Command do
     mapped_swipe: 10,
     mapped_shape: 11
 
+  @command_type_map CommandType.__enum_map__() |> Enum.into(%{})
+
   @hidden_commands [:show_number]
 
   @strip_index_values [
@@ -89,7 +91,7 @@ defmodule Tr33Control.Commands.Command do
   def from_binary(_), do: {:error, :invalid_binary_format}
 
   def to_binary(%Command{index: index, type: type, data: data}) do
-    type_bin = CommandType.__enum_map__() |> Keyword.get(type)
+    type_bin = Map.fetch!(@command_type_map, type)
     data_bin = Enum.map(data, fn int -> <<int::size(8)>> end) |> Enum.join()
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end

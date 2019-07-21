@@ -4,7 +4,7 @@ defmodule Tr33Control.Commands.Updater do
 
   alias Tr33Control.Commands
 
-  @update_interval_ms 15
+  @update_interval_ms 30
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, [])
@@ -20,9 +20,9 @@ defmodule Tr33Control.Commands.Updater do
     {:noreply, state}
   end
 
-  defp do_update() do
-    # Commands.list_commands()
-    # |> Enum.each(&Commands.apply_modifiers/1)
+  def do_update() do
+    Commands.list_commands()
+    |> Enum.each(&Commands.apply_modifiers/1)
 
     Process.send_after(self(), :update, @update_interval_ms)
   end
