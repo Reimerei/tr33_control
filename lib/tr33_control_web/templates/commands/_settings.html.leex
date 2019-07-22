@@ -1,7 +1,7 @@
 <li class="list-group-item">
   <div class="row">
     <div class="col-md-3 pr-0">
-      <form action="#" phx-change="load_preset">
+      <form action="#" phx-change="preset_load">
         <div class="form-group">
           <label>Load Preset</label>
             <select name="name" class="custom-select">
@@ -14,17 +14,21 @@
       </form>
     </div>
 
-    <div class="col-md-3">
-      <%= form_for @preset_changeset, "#", [phx_submit: :save_preset], fn f -> %>
+    <div class="col-md-6">
+      <%= form_for @preset_changeset, "#", [phx_submit: :preset_save, phx_change: :preset_validate], fn f -> %>
         <div class="form-row">
-          <div class="form-group col-md-10 p-0">
-            <%= label f, :name, "Save Preset" %>
+          <div class="form-group col-md-6">
+            <%= label f, :name, "Preset Name" %>
             <%= text_input f, :name , class: "form-control" %>
             <%= error_tag f, :name %>
           </div>
 
-          <div class="form-group col-md-2" style="margin-top: 2rem">
-            <%= submit "Save", phx_disable_with: "Saving...", class: "btn btn-secondary" %>
+          <div class="form-group col-md-6" style="margin-top: 2rem">
+            <div class="btn-group" role="group">
+              <%= submit "Save", phx_disable_with: "Saving...", class: "btn btn-secondary" %>
+              <button type="button" class="btn btn-secondary" phx-click="preset_delete">Delete</button>
+              <button type="button" class="btn btn-secondary" phx-click="preset_set_default">Set as default</button>
+            </div>
           </div>
         </div>
       <% end %>
@@ -39,5 +43,12 @@
 </li>
 
 <li class="list-group-item">
-  <%= render("_input_form.html", %{inputs: @settings_inputs, event_name: "settings_change"}) %>
+  <form action="" phx-change="settings_change">
+    <div class="form-row">
+      <input name="index" type="hidden" value="<%= assigns[:index] || 0 %>">
+      <%= for input <- @settings_inputs do %>
+        <%= render("_input.html", %{input: input}) %>
+      <% end %>
+    </div>
+  </form>
 </li>

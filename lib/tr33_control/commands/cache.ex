@@ -82,6 +82,7 @@ defmodule Tr33Control.Commands.Cache do
 
   defp migrate(Preset = cache) do
     all(cache)
+    |> Enum.map(&struct!(Preset, Map.delete(&1, :__struct__)))
     |> Enum.map(fn %Preset{commands: commands} = preset ->
       commands = Enum.map(commands, &struct!(Command, Map.delete(&1, :__struct__)))
       %Preset{preset | commands: commands}

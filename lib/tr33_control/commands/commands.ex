@@ -189,6 +189,7 @@ defmodule Tr33Control.Commands do
     |> Changeset.put_change(:updated_at, NaiveDateTime.utc_now())
     |> Ecto.Changeset.apply_action(:insert)
     |> maybe_insert()
+    |> maybe_set_current_preset()
   end
 
   def list_presets() do
@@ -196,6 +197,8 @@ defmodule Tr33Control.Commands do
   end
 
   def load_preset(%Preset{commands: commands, events: events} = preset) do
+    set_current_preset(preset)
+
     Cache.clear(Command)
     Cache.clear(Event)
 
@@ -212,6 +215,15 @@ defmodule Tr33Control.Commands do
   end
 
   def load_preset(nil), do: :noop
+
+  def get_current_preset() do
+    name = Application.get_env(:tr33_control, :current_preset)
+    Cache.get(Preset, name) || %Preset{}
+  end
+
+  def set_current_preset(%Preset{name: name}) do
+    Application.put_env(:tr33_control, :current_preset, name)
+  end
 
   def command_types(), do: Command.types()
   def event_types(), do: Event.types()
@@ -238,6 +250,13 @@ defmodule Tr33Control.Commands do
     Cache.insert(struct)
     response
   end
+
+  defp maybe_set_current_preset({:ok, preset} = response) do
+    set_current_preset(preset)
+    response
+  end
+
+  defp maybe_set_current_preset({:error, _} = response), do: response
 
   defp get_or_new_preset(%{"name" => name} = attr) do
     case Cache.get(Preset, name) do
