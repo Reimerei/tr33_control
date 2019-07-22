@@ -105,7 +105,7 @@ defmodule Tr33Control.Commands.Command do
       input_def(command)
       |> Enum.map(fn %{default: default} -> default end)
 
-    %Command{command | data: data}
+    %Command{command | data: data, modifiers: []}
   end
 
   def inputs(%Command{data: data, type: type} = command) do

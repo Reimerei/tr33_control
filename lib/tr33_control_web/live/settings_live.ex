@@ -79,7 +79,7 @@ defmodule Tr33ControlWeb.SettingsLive do
     |> reply
   end
 
-  def handle_info(data, socket) do
+  def handle_info(_data, socket) do
     # Logger.debug("SettingsLive: Unhandled info #{inspect(data)}")
     reply(socket)
   end

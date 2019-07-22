@@ -5,7 +5,7 @@
       <label><%= name %></label>
       <select name="<%= variable_name %>" class="custom-select">
         <%= for {option_name, option_value} <- options do %>
-          <option value="<%= option_value %>" <%= if option_value == value do %>selected<% end %> ><%= option_name %></option>
+          <option value="<%= option_value %>" <%= if option_value == value or option_name == value do %>selected<% end %> ><%= "[#{option_value}] #{option_name}" %></option>
         <% end %>
       </select>
     </div>

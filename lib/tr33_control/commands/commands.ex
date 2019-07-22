@@ -105,7 +105,7 @@ defmodule Tr33Control.Commands do
   def clone_command(%Command{} = command, _), do: command
 
   def enable_modifiers(%Command{} = command) do
-    %Command{command | modifiers: Modifier.for_command(command)}
+    %Command{command | modifiers: Modifier.defaults_for_command(command)}
     |> Cache.insert(true)
   end
 
@@ -126,8 +126,10 @@ defmodule Tr33Control.Commands do
   end
 
   def apply_modifiers(%Command{modifiers: modifiers} = command) when length(modifiers) > 0 do
-    Enum.reduce(modifiers, command, &Modifier.apply/2)
-    |> send()
+    if Enum.any?(modifiers, fn %Modifier{period: period} -> period > 0 end) do
+      Enum.reduce(modifiers, command, &Modifier.apply/2)
+      |> send()
+    end
   end
 
   def apply_modifiers(%Command{} = command) do
@@ -217,10 +219,8 @@ defmodule Tr33Control.Commands do
   def inputs(%Event{} = event), do: Event.inputs(event)
   def inputs(%Command{} = command), do: Command.inputs(command)
 
-  def modifier_inputs(%Command{modifiers: modifiers}) do
-    for modifier <- modifiers do
-      Modifier.inputs(modifier)
-    end
+  def modifier_inputs(%Command{} = command) do
+    Modifier.inputs_for_command(command)
   end
 
   defp raise_on_error({:ok, result}), do: result

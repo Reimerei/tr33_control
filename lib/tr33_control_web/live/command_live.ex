@@ -4,7 +4,7 @@ defmodule Tr33ControlWeb.CommandLive do
   require Logger
 
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Command, Modifier}
+  alias Tr33Control.Commands.{Command}
   alias Phoenix.LiveView.Socket
 
   def render(assigns) do

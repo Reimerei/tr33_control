@@ -69,10 +69,6 @@ defmodule Tr33Control.Commands.Cache do
   defp cache_key(%Event{type: type}), do: type
   defp cache_key(%Preset{name: name}), do: name
 
-  defp sort_fun(%Command{index: index}), do: index
-  defp sort_fun(%Event{type: type}), do: type
-  defp sort_fun(%Preset{updated_at: updated_at}), do: NaiveDateTime.to_erl(updated_at)
-
   defp maybe_persist_cache(%Preset{}), do: Cachex.dump!(Preset, presets_persist_file())
   defp maybe_persist_cache(_), do: :noop
 

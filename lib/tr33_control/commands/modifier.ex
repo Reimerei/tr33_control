@@ -9,7 +9,6 @@ defmodule Tr33Control.Commands.Modifier do
   # todo
   # handle enums
   # fix flickering controls on update
-  # missing modifier types
 
   defenum ModifierType,
     linear: 0,
@@ -21,17 +20,11 @@ defmodule Tr33Control.Commands.Modifier do
   @primary_key false
   embedded_schema do
     field :field_index, :integer
-    field :field_name, :string
     field :type, ModifierType
     field :period, :integer
     field :offset, :integer
     field :max, :integer
     field :min, :integer
-  end
-
-  def new() do
-    %__MODULE__{}
-    |> defaults()
   end
 
   def changeset(command, %{"type" => type} = params) when is_binary(type) do
@@ -43,7 +36,7 @@ defmodule Tr33Control.Commands.Modifier do
 
   def changeset(modifier, params) do
     modifier
-    |> Changeset.cast(params, [:field_index, :field_name, :type, :period, :offset, :max, :min])
+    |> Changeset.cast(params, [:field_index, :type, :period, :offset, :max, :min])
   end
 
   def apply(%__MODULE__{period: 0}, %Command{} = command), do: command
@@ -54,49 +47,53 @@ defmodule Tr33Control.Commands.Modifier do
     %Command{command | data: List.replace_at(data, field_index, value)}
   end
 
-  def defaults(%__MODULE__{} = modifier) do
+  def inputs_for_command(%Command{modifiers: modifiers} = command) do
+    command_inputs = data_inputs(command)
+
+    for %__MODULE__{field_index: index} = modifier <- modifiers do
+      command_input = Enum.at(command_inputs, index)
+      {inputs(modifier, input_max(command_input)), input_name(command_input)}
+    end
+  end
+
+  def defaults_for_command(%Command{} = command) do
+    command
+    |> data_inputs
+    |> Enum.with_index()
+    |> Enum.filter(&supported_input?/1)
+    |> Enum.map(fn {input, index} ->
+      %__MODULE__{}
+      |> defaults(input_max(input))
+      |> Map.put(:field_index, index)
+    end)
+  end
+
+  defp inputs(%__MODULE__{} = modifier, max) do
+    input_def(max)
+    |> Enum.map(fn {key, input} ->
+      input
+      |> Map.put(:value, Map.fetch!(modifier, key))
+      |> Map.put(:variable_name, Atom.to_string(key))
+    end)
+  end
+
+  defp defaults(%__MODULE__{} = modifier, max) do
     defaults =
-      input_def()
+      input_def(max)
       |> Enum.map(fn {key, %{default: default}} -> {key, default} end)
       |> Enum.into(%{})
 
     Map.merge(modifier, defaults)
   end
 
-  def inputs(%__MODULE__{field_name: field_name} = modifier) do
-    inputs =
-      input_def()
-      |> Enum.map(fn {key, input} ->
-        input
-        |> Map.put(:value, Map.fetch!(modifier, key))
-        |> Map.put(:variable_name, Atom.to_string(key))
-      end)
-
-    {inputs, field_name}
-  end
-
-  def for_command(%Command{} = command) do
-    Command.inputs(command)
-    |> Enum.reject(&match?(%{name: "Type"}, &1))
-    |> Enum.with_index()
-    |> Enum.filter(&match?({%Slider{}, _}, &1))
-    |> Enum.map(fn {%Slider{name: name}, index} ->
-      %__MODULE__{}
-      |> defaults
-      |> Map.put(:field_index, index)
-      |> Map.put(:field_name, name)
-    end)
-  end
-
-  defp input_def() do
+  defp input_def(max) do
     [
       field_index: %Hidden{},
-      field_name: %Hidden{},
-      type: %Select{name: "Type", options: ModifierType.__enum_map__(), default: :linear},
+      type: %Select{name: "Type", options: ModifierType.__enum_map__(), default: 0},
       period: %Slider{name: "Period [s]", max: 600, default: 0},
       offset: %Slider{name: "Offset [s]", max: 600, default: 0},
-      min: %Slider{name: "Min value", max: 255, default: 0},
-      max: %Slider{name: "Max value", max: 255, default: 255}
+      min: %Slider{name: "Min value", max: max, default: 0},
+      max: %Slider{name: "Max value", max: max, default: max}
     ]
   end
 
@@ -113,7 +110,10 @@ defmodule Tr33Control.Commands.Modifier do
   end
 
   defp fraction(%__MODULE__{type: :sine, period: period, offset: offset}) do
-    (:math.sin((System.os_time(:millisecond) - offset * 1000) * 2 * :math.pi() / period * 1000) + 1) / 2
+    period = period * 1000
+    offset = offset * 1000
+
+    (:math.sin((System.os_time(:millisecond) - offset) * 2 * :math.pi() / period) + 1) / 2
   end
 
   defp fraction(%__MODULE__{type: :sawtooth, period: period, offset: offset}) do
@@ -122,4 +122,22 @@ defmodule Tr33Control.Commands.Modifier do
 
     rem(System.os_time(:millisecond) + offset, period) / period
   end
+
+  defp data_inputs(%Command{} = command) do
+    Command.inputs(command)
+    |> Enum.filter(&(input_variable_name(&1) == "data[]"))
+  end
+
+  defp supported_input?({%Slider{}, _}), do: true
+  defp supported_input?({%Select{}, _}), do: true
+  defp supported_input?(_), do: false
+
+  defp input_name(%Slider{name: name}), do: name
+  defp input_name(%Select{name: name}), do: name
+
+  defp input_variable_name(%Slider{variable_name: name}), do: name
+  defp input_variable_name(%Select{variable_name: name}), do: name
+
+  defp input_max(%Slider{max: max}), do: max
+  defp input_max(%Select{options: options}), do: Enum.max_by(options, fn {_key, value} -> value end) |> elem(1)
 end
