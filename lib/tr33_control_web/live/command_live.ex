@@ -107,6 +107,12 @@ defmodule Tr33ControlWeb.CommandLive do
     |> reply
   end
 
+  def handle_info({:preset_load, _}, socket) do
+    socket
+    |> fetch
+    |> reply
+  end
+
   def handle_info(_data, socket) do
     # Logger.debug("CommandLive: Unhandled info #{inspect(data)}")
     reply(socket)

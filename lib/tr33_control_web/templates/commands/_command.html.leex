@@ -14,7 +14,7 @@
           <button type="button" class="btn btn-secondary" phx-click="command_reset">disable</button>
           <%= if length(@modifier_inputs) > 0 do %>
             <button type="button" class="btn btn-secondary" phx-click="disable_modifiers">disable modifiers</button>
-          <%= else %>
+          <% else %>
             <button type="button" class="btn btn-secondary" phx-click="enable_modifiers">enable modifiers</button>
           <% end %>
         </div>

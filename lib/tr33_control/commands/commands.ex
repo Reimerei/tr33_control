@@ -11,7 +11,12 @@ defmodule Tr33Control.Commands do
     Phoenix.PubSub.subscribe(Tr33Control.PubSub, @topic)
   end
 
-  def notify_subscribers(message, force \\ false) do
+  def notify_subscribers(struct_or_message, force \\ false)
+  def notify_subscribers({Command, key}, force), do: notify_subscribers({:preset_update, key}, force)
+  def notify_subscribers({Event, key}, force), do: notify_subscribers({:preset_update, key}, force)
+  def notify_subscribers({Preset, key}, force), do: notify_subscribers({:preset_update, key}, force)
+
+  def notify_subscribers(message, force) do
     now = System.os_time(:millisecond)
     last_notify = Application.get_env(:tr33_control, :pubsub_last_notify, 0)
 
@@ -24,11 +29,25 @@ defmodule Tr33Control.Commands do
   def init() do
     Cache.init_all()
 
-    list_presets()
-    |> Enum.sort_by(fn %Preset{updated_at: updated_at} -> NaiveDateTime.to_erl(updated_at) end)
-    |> List.last()
-    |> load_preset()
+    default_preset()
+    |> load_preset
   end
+
+  def send(%Command{index: index} = command) when index <= @max_index do
+    command
+    |> Cache.insert()
+    |> UART.send()
+  end
+
+  def send(%Command{} = command), do: command
+
+  def send(%Event{} = event) do
+    event
+    |> maybe_insert()
+    |> UART.send()
+  end
+
+  ### Commands ###############################################################################################
 
   def new_command!(params) do
     new_command(params)
@@ -104,6 +123,8 @@ defmodule Tr33Control.Commands do
 
   def clone_command(%Command{} = command, _), do: command
 
+  ### Modifiers ###############################################################################################
+
   def enable_modifiers(%Command{} = command) do
     %Command{command | modifiers: Modifier.defaults_for_command(command)}
     |> Cache.insert(true)
@@ -136,6 +157,8 @@ defmodule Tr33Control.Commands do
     command
   end
 
+  ### Events ###############################################################################################
+
   def new_event(params) when is_map(params) do
     %Event{}
     |> Event.changeset(params)
@@ -160,19 +183,7 @@ defmodule Tr33Control.Commands do
     Cache.all(Event)
   end
 
-  def send(%Command{index: index} = command) when index <= @max_index do
-    command
-    |> Cache.insert()
-    |> UART.send()
-  end
-
-  def send(%Command{} = command), do: command
-
-  def send(%Event{} = event) do
-    event
-    |> maybe_insert()
-    |> UART.send()
-  end
+  ### Presets ###############################################################################################
 
   def change_preset(preset, attrs \\ %{}) do
     Preset.changeset(preset, attrs)
@@ -192,11 +203,23 @@ defmodule Tr33Control.Commands do
     |> maybe_set_current_preset()
   end
 
+  def update_preset!(preset, attrs) do
+    preset
+    |> change_preset(attrs)
+    |> Ecto.Changeset.apply_action(:update)
+    |> maybe_insert()
+    |> raise_on_error()
+  end
+
+  def get_preset(name) do
+    Cache.get(Preset, name)
+  end
+
   def list_presets() do
     Cache.all(Preset)
   end
 
-  def load_preset(%Preset{commands: commands, events: events} = preset) do
+  def load_preset(%Preset{commands: commands, events: events, name: name} = preset) do
     set_current_preset(preset)
 
     Cache.clear(Command)
@@ -206,6 +229,8 @@ defmodule Tr33Control.Commands do
     |> Enum.map(&Cache.insert/1)
 
     UART.resync()
+    notify_subscribers({:preset_load, name}, true)
+
     preset
   end
 
@@ -224,6 +249,34 @@ defmodule Tr33Control.Commands do
   def set_current_preset(%Preset{name: name}) do
     Application.put_env(:tr33_control, :current_preset, name)
   end
+
+  def delete_preset(name) do
+    Cache.delete(Preset, name)
+  end
+
+  def default_preset() do
+    presets = list_presets()
+
+    case Enum.find(presets, fn %Preset{default: default} -> default end) do
+      %Preset{} = preset ->
+        preset
+
+      nil ->
+        Enum.sort_by(presets, fn %Preset{updated_at: updated_at} -> NaiveDateTime.to_erl(updated_at) end)
+        |> List.last()
+    end
+  end
+
+  def set_default_preset(name) do
+    default_preset() |> update_preset!(%{default: false})
+
+    case get_preset(name) do
+      nil -> nil
+      preset -> update_preset!(preset, %{default: true})
+    end
+  end
+
+  ### Misc (to be sorted) ###############################################################################################
 
   def command_types(), do: Command.types()
   def event_types(), do: Event.types()

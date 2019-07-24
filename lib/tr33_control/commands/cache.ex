@@ -45,7 +45,7 @@ defmodule Tr33Control.Commands.Cache do
   def insert(%{__struct__: cache} = struct, force \\ false) when cache in @all_cache_keys do
     Cachex.put!(cache, cache_key(struct), struct)
     maybe_persist_cache(struct)
-    maybe_notify(struct, force)
+    Commands.notify_subscribers(struct, force)
     struct
   end
 
@@ -62,7 +62,7 @@ defmodule Tr33Control.Commands.Cache do
   end
 
   def delete(cache, key) when cache in @all_cache_keys do
-    Cachex.take!(cache, key)
+    Cachex.take(cache, key)
   end
 
   defp cache_key(%Command{index: index}), do: index
@@ -75,10 +75,6 @@ defmodule Tr33Control.Commands.Cache do
   defp presets_persist_file() do
     Application.fetch_env!(:tr33_control, :cache_persist_dir) |> Path.join("presets.bin")
   end
-
-  defp maybe_notify(%Command{index: index}, force), do: Commands.notify_subscribers({:command_update, index}, force)
-  defp maybe_notify(%Event{type: type}, force), do: Commands.notify_subscribers({:event_update, type}, force)
-  defp maybe_notify(%Preset{name: name}, force), do: Commands.notify_subscribers({:preset_update, name}, force)
 
   defp migrate(Preset = cache) do
     all(cache)

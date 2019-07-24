@@ -15,7 +15,7 @@ defmodule Tr33ControlWeb.SettingsLive do
 
     socket =
       socket
-      |> fetch_current_preset()
+      |> current_preset_changeset()
       |> fetch()
 
     {:ok, socket}
@@ -26,36 +26,66 @@ defmodule Tr33ControlWeb.SettingsLive do
     %Preset{name: name} = Commands.load_preset(name)
 
     socket
-    |> fetch_current_preset()
+    |> current_preset_changeset()
     |> fetch("Preset #{inspect(name)} loaded")
     |> reply()
   end
 
-  # def handle_event("preset_save", %{"preset" => params}, socket) do
-  #   Logger.debug("preset_save: #{inspect(params)}")
+  def handle_event("preset_save", %{"preset" => params}, socket) do
+    case Commands.create_preset(params) do
+      {:ok, %Preset{name: name}} ->
+        socket
+        |> assign(:preset_flash, "Preset #{inspect(name)} saved")
+        |> current_preset_changeset()
+        |> fetch()
+        |> reply()
 
-  #   case Commands.create_preset(params) do
-  #     {:ok, %Preset{name: name}} ->
-  #       socket
-  #       |> assign(:preset_flash, "Preset #{inspect(name)} written")
-  #       |> fetch()
-  #       |> reply()
+      {:error, changeset} ->
+        Logger.error("Error creating preset' #{inspect(changeset)}")
 
-  #     {:error, changeset} ->
-  #       Logger.error("Error creating preset' #{inspect(changeset)}")
+        socket
+        |> assign(:preset_flash, "Error writing preset")
+        |> assign(:preset_changeset, changeset)
+        |> fetch()
+        |> reply()
+    end
+  end
 
-  #       socket
-  #       |> assign(:preset_flash, "Error writing preset")
-  #       |> fetch()
-  #       |> assign(:preset_changeset, changeset)
-  #       |> reply()
-  #   end
-  # end
+  def handle_event("preset_validate", %{"preset" => params}, socket) do
+    changeset =
+      %Preset{}
+      |> Commands.change_preset(params)
+      |> Map.put(:action, :insert)
 
-  def handle_event("preset_change", %{"preset" => params}, socket) do
-    Logger.debug("preset_change: #{inspect(params)}")
+    socket
+    |> assign(:preset_changeset, changeset)
+    |> fetch()
+    |> reply()
+  end
 
-    preset_changeset = Commands.change_preset(params)
+  def handle_event("preset_delete", name, socket) do
+    flash =
+      case Commands.delete_preset(name) do
+        {:ok, true} -> "Preset #{inspect(name)} deleted"
+        _ -> nil
+      end
+
+    socket
+    |> current_preset_changeset()
+    |> fetch(flash)
+    |> reply()
+  end
+
+  def handle_event("preset_set_default", name, socket) do
+    flash =
+      case Commands.set_default_preset(name) do
+        %Preset{name: name} -> "Set preset #{inspect(name)} as default"
+        nil -> nil
+      end
+
+    socket
+    |> fetch(flash)
+    |> reply
   end
 
   def handle_event("settings_change", params, socket) do
@@ -82,10 +112,16 @@ defmodule Tr33ControlWeb.SettingsLive do
     |> reply
   end
 
-  def handle_info({:preset_update, name}, socket) do
+  def handle_info({:preset_update, _name}, socket) do
     socket
-    |> fetch_current_preset()
-    |> fetch("Preset #{inspect(name)} loaded")
+    |> fetch
+    |> reply
+  end
+
+  def handle_info({:preset_load, name}, socket) do
+    socket
+    |> current_preset_changeset()
+    |> fetch("Preset #{name} loaded")
     |> reply
   end
 
@@ -94,7 +130,7 @@ defmodule Tr33ControlWeb.SettingsLive do
     reply(socket)
   end
 
-  defp fetch_current_preset(socket) do
+  defp current_preset_changeset(socket) do
     socket
     |> assign(:preset_changeset, Commands.get_current_preset() |> Commands.change_preset())
   end
@@ -109,11 +145,13 @@ defmodule Tr33ControlWeb.SettingsLive do
       |> Enum.sort_by(fn %Preset{name: name} -> name end)
 
     socket
-    |> assign(:preset_flash, preset_flash)
+    |> maybe_write_flash(preset_flash)
     |> assign(:presets, presets)
-    # |> assign(:preset_changeset, Commands.get_current_preset() |> Commands.change_preset())
     |> assign(:settings_inputs, settings_inputs)
   end
 
   defp reply(socket), do: {:noreply, socket}
+
+  defp maybe_write_flash(socket, nil), do: socket
+  defp maybe_write_flash(socket, flash), do: assign(socket, :preset_flash, flash)
 end
