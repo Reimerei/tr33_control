@@ -38,7 +38,7 @@ defmodule Tr33ControlWeb.CommandLive do
     else
       new_command
     end
-    |> Commands.send()
+    |> Commands.send(true)
 
     reply(socket)
   end

@@ -12,8 +12,8 @@ defmodule Tr33Control.Commands do
   end
 
   def notify_subscribers(struct_or_message, force \\ false)
-  def notify_subscribers({Command, key}, force), do: notify_subscribers({:preset_update, key}, force)
-  def notify_subscribers({Event, key}, force), do: notify_subscribers({:preset_update, key}, force)
+  def notify_subscribers({Command, key}, force), do: notify_subscribers({:command_update, key}, force)
+  def notify_subscribers({Event, key}, force), do: notify_subscribers({:event_update, key}, force)
   def notify_subscribers({Preset, key}, force), do: notify_subscribers({:preset_update, key}, force)
 
   def notify_subscribers(message, force) do
@@ -33,15 +33,17 @@ defmodule Tr33Control.Commands do
     |> load_preset
   end
 
-  def send(%Command{index: index} = command) when index <= @max_index do
+  def send(command, force \\ false)
+
+  def send(%Command{index: index} = command, force) when index <= @max_index do
     command
-    |> Cache.insert()
+    |> Cache.insert(force)
     |> UART.send()
   end
 
-  def send(%Command{} = command), do: command
+  def send(%Command{} = command, _), do: command
 
-  def send(%Event{} = event) do
+  def send(%Event{} = event, _) do
     event
     |> maybe_insert()
     |> UART.send()
@@ -127,12 +129,12 @@ defmodule Tr33Control.Commands do
 
   def enable_modifiers(%Command{} = command) do
     %Command{command | modifiers: Modifier.defaults_for_command(command)}
-    |> Cache.insert(true)
+    |> Cache.insert()
   end
 
   def disable_modifiers(%Command{} = command) do
     %Command{command | modifiers: []}
-    |> Cache.insert(true)
+    |> Cache.insert()
   end
 
   def update_modifier!(%Command{modifiers: modifiers} = command, index, params) when is_number(index) do

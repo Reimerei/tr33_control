@@ -125,9 +125,12 @@ defmodule Tr33Control.Commands.Modifier do
 
   defp data_inputs(%Command{} = command) do
     Command.inputs(command)
+    |> Enum.filter(&supported_input?/1)
     |> Enum.filter(&(input_variable_name(&1) == "data[]"))
   end
 
+  defp supported_input?(%Slider{}), do: true
+  defp supported_input?(%Select{}), do: true
   defp supported_input?({%Slider{}, _}), do: true
   defp supported_input?({%Select{}, _}), do: true
   defp supported_input?(_), do: false

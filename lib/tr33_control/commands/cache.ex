@@ -42,10 +42,10 @@ defmodule Tr33Control.Commands.Cache do
     Cachex.clear!(key)
   end
 
-  def insert(%{__struct__: cache} = struct, force \\ false) when cache in @all_cache_keys do
+  def insert(%{__struct__: cache} = struct, force \\ true) when cache in @all_cache_keys do
     Cachex.put!(cache, cache_key(struct), struct)
     maybe_persist_cache(struct)
-    Commands.notify_subscribers(struct, force)
+    Commands.notify_subscribers({cache, cache_key(struct)}, force)
     struct
   end
 
