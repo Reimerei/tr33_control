@@ -34,17 +34,23 @@ defmodule Tr33Control.Joystick do
 
   defp handle_joystick_event({:ev_abs, name, value})
        when name in [:abs_rudder, :abs_throttle, :abs_hat0x, :abs_hat0y] do
-    case Commands.list_commands() |> Enum.find(fn %Command{type: type} -> type == :mapped_shape end) do
-      nil ->
-        :noop
+    if Commands.get_current_preset_name() == "joystick" do
+      case Commands.list_commands() |> Enum.find(fn %Command{type: type} -> type == :mapped_shape end) do
+        nil ->
+          :noop
 
-      command ->
-        Map.update(command, :data, [], &update_mapped_shape_data(&1, name, value))
-        |> Commands.send()
+        command ->
+          Map.update(command, :data, [], &update_mapped_shape_data(&1, name, value))
+          |> Commands.send()
+      end
     end
   end
 
-  defp handle_joystick_event(event), do: Logger.debug(inspect(event))
+  defp handle_joystick_event({:ev_key, :btn_base5, 1}) do
+    Commands.load_preset("joystick")
+  end
+
+  defp handle_joystick_event(_event), do: :noop
 
   defp iterate(data, index, enum) do
     List.update_at(data, index, fn value ->

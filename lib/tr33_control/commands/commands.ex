@@ -243,8 +243,12 @@ defmodule Tr33Control.Commands do
 
   def load_preset(nil), do: :noop
 
+  def get_current_preset_name() do
+    Application.get_env(:tr33_control, :current_preset)
+  end
+
   def get_current_preset() do
-    name = Application.get_env(:tr33_control, :current_preset)
+    name = get_current_preset_name()
     Cache.get(Preset, name) || %Preset{}
   end
 
