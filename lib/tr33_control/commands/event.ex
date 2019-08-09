@@ -2,9 +2,8 @@ defmodule Tr33Control.Commands.Event do
   use Ecto.Schema
   import EctoEnum
   alias Ecto.Changeset
-  alias Tr33Control.Commands.{Event}
-  alias Tr33Control.Commands.Command.StripIndex
-  alias Tr33Control.Commands.Inputs.{Select, Slider}
+  alias Tr33Control.Commands.{Event, Inputs}
+  alias Tr33Control.Commands.Inputs.{Select, Slider, StripIndex}
 
   defenum EventType,
     gravity: 100,
@@ -12,34 +11,6 @@ defmodule Tr33Control.Commands.Event do
     # beat: 102,
     pixel: 103,
     pixel_rgb: 104
-
-  defenum ColorPalette,
-    rainbow: 0,
-    forest: 1,
-    ocean: 2,
-    party: 3,
-    heat: 4,
-    spring_angel: 5,
-    scouty: 6,
-    purple_heat: 7,
-    # parrot: 8,
-    saga: 9,
-    sage2: 10
-
-  defenum ColorTemperature,
-    none: 0,
-    t_1900K: 1,
-    t_2600K: 2,
-    t_2850K: 3,
-    t_3200K: 4,
-    t_5200K: 5,
-    t_5400K: 6,
-    t_6000K: 7,
-    t_7000K: 8
-
-  defenum DisplayMode,
-    commands: 0,
-    stream: 1
 
   # game:    2
 
@@ -78,55 +49,21 @@ defmodule Tr33Control.Commands.Event do
 
   def types() do
     Tr33Control.Commands.Event.EventType.__enum_map__()
-    |> Enum.map(fn {type, _} -> type end)
+    |> Enum.filter(fn {type, _} -> Inputs.input_def(%Event{type: type}) |> is_list() end)
   end
 
   def defaults(%Event{} = event) do
     data =
-      input_def(event)
+      Inputs.input_def(event)
       |> Enum.map(fn %{default: default} -> default end)
 
     %Event{event | data: data}
   end
 
   def inputs(%Event{data: data} = event) do
-    input_def(event)
+    Inputs.input_def(event)
     |> Enum.map(fn input -> Map.put(input, :variable_name, "data[]") end)
     |> Enum.with_index()
     |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
   end
-
-  defp input_def(%Event{type: :update_settings}) do
-    [
-      %Select{name: "Color Palette", options: ColorPalette.__enum_map__(), default: 0},
-      %Select{name: "Color Temperature", options: ColorTemperature.__enum_map__(), default: 0},
-      %Select{name: "Display Mode", options: DisplayMode.__enum_map__(), default: 0}
-    ]
-  end
-
-  defp input_def(%Event{type: :pixel}) do
-    [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 0},
-      %Slider{name: "LedIndex", max: 100, default: 0},
-      %Slider{name: "Color", max: 255, default: 13}
-    ]
-  end
-
-  defp input_def(%Event{type: :pixel_rgb}) do
-    [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 0},
-      %Slider{name: "LedIndex", max: 100, default: 0},
-      %Slider{name: "Red", max: 255, default: 13},
-      %Slider{name: "Green", max: 255, default: 13},
-      %Slider{name: "Blue", max: 255, default: 13}
-    ]
-  end
-
-  # defp input_dev(%Event{type: :pixel}) do
-  #   [
-  #     %
-  #   ]
-  # end
-
-  defp input_def(_), do: []
 end

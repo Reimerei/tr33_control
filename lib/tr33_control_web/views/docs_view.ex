@@ -19,7 +19,7 @@ defmodule Tr33ControlWeb.DocsView do
   end
 
   def type_text(%{type: type} = action) do
-    "#{type_number(action)} - #{type}"
+    "#{type_number(action)} (#{type})"
   end
 
   def data_texts(command_or_event) do

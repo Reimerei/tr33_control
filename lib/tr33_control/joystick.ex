@@ -50,7 +50,7 @@ defmodule Tr33Control.Joystick do
     Commands.load_preset("joystick")
   end
 
-  defp handle_joystick_event(_event), do: :noop
+  defp handle_joystick_event(event), do: Logger.debug(inspect(event))
 
   defp iterate(data, index, enum) do
     List.update_at(data, index, fn value ->
