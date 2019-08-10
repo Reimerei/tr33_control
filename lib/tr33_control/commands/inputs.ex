@@ -188,6 +188,14 @@ defmodule Tr33Control.Commands.Inputs do
 
   ### Dode #########################################################################################
 
+  defp input_def(%Command{type: :single_color}, :dode) do
+    [
+      %Hidden{default: 30},
+      %Slider{name: "Color", max: 255, default: 226},
+      %Slider{name: "Brightness", max: 255, default: 255}
+    ]
+  end
+
   defp input_def(%Command{type: :kaleidoscope}, :dode) do
     [
       %Slider{name: "Color", max: 255, default: 226},
@@ -200,6 +208,7 @@ defmodule Tr33Control.Commands.Inputs do
   defp input_def(%Command{type: :random_walk}, :dode) do
     [
       %Slider{name: "Color", max: 255, default: 0},
+      %Slider{name: "Brightness", max: 255, default: 255},
       %Slider{name: "Rate", max: 255, default: 5},
       %Slider{name: "Width", max: 255, default: 100},
       %Slider{name: "Ball Count", max: 16, default: 2}

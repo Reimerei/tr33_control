@@ -45,7 +45,6 @@ defmodule Tr33Control.Mixfile do
       {:jason, "~> 1.0"},
       {:cachex, "~> 3.1"},
       {:phoenix_live_reload, "~> 1.0", only: :dev},
-      {:distillery, "~> 2.0", runtime: false},
       {:phoenix_live_view, github: "phoenixframework/phoenix_live_view"}
     ]
   end

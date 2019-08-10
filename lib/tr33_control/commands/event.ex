@@ -3,7 +3,6 @@ defmodule Tr33Control.Commands.Event do
   import EctoEnum
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Event, Inputs}
-  alias Tr33Control.Commands.Inputs.{Select, Slider, StripIndex}
 
   defenum EventType,
     gravity: 100,
