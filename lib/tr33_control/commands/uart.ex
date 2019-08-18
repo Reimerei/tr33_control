@@ -5,7 +5,7 @@ defmodule Tr33Control.Commands.UART do
   alias Tr33Control.Commands.{Event, Command}
 
   # these values have to match with the config in the firmware
-  @baudrate 1_000_000
+  @baudrate 921_600
   @serial_header 42
   @serial_ready_to_send "AA" |> Base.decode16!()
   @serial_clear_to_send "BB" |> Base.decode16!()
