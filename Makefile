@@ -1,5 +1,5 @@
 export SERIAL_PORT = ttyUSB0
-export CACHE_PERSIST_DIR = /home/reimerei/tr33_cache.bin
+export CACHE_PERSIST_DIR = $home/.tr33_cache
 
 console:
 	iex -S mix phx.server
