@@ -1,5 +1,5 @@
 export SERIAL_PORT = ttyUSB0
-export CACHE_PERSIST_DIR = $home/.tr33_cache
+export CACHE_PERSIST_DIR = $(HOME)/.tr33_cache
 
 console:
 	iex -S mix phx.server
