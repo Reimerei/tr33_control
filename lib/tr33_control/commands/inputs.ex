@@ -21,9 +21,10 @@ defmodule Tr33Control.Commands.Inputs do
     # square: 0,
     sine: 1,
     comet: 2,
-    nyan: 3,
-    fill_top: 4,
-    fill_bottom: 5
+    nyan: 3
+
+  # fill_top: 4,
+  # fill_bottom: 5
 
   defenum SwipeDirection,
     top_bottom: 0,
@@ -190,7 +191,7 @@ defmodule Tr33Control.Commands.Inputs do
 
   defp input_def(%Command{type: :single_color}, :dode) do
     [
-      %Hidden{default: 30},
+      %Slider{name: "Strip Index", max: 30, default: 30},
       %Slider{name: "Color", max: 255, default: 226},
       %Slider{name: "Brightness", max: 255, default: 255}
     ]
@@ -211,7 +212,17 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Brightness", max: 255, default: 255},
       %Slider{name: "Rate", max: 255, default: 5},
       %Slider{name: "Width", max: 255, default: 100},
-      %Slider{name: "Ball Count", max: 16, default: 2}
+      %Slider{name: "Ball Count", max: 16, default: 2},
+      %Select{name: "Ball Type", options: BallType.__enum_map__(), default: 1}
+    ]
+  end
+
+  defp input_def(%Command{type: :sparkle}, :dode) do
+    [
+      %Hidden{default: 30},
+      %Slider{name: "Color", max: 255, default: 1},
+      %Slider{name: "Width", max: 255, default: 15},
+      %Slider{name: "Sparkles per second", max: 255, default: 10}
     ]
   end
 
