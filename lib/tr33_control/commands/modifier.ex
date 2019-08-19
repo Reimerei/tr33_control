@@ -6,16 +6,11 @@ defmodule Tr33Control.Commands.Modifier do
   alias Tr33Control.Commands.Command
   alias Tr33Control.Commands.Inputs.{Select, Slider, Hidden}
 
-  # todo
-  # handle enums
-  # fix flickering controls on update
-
   defenum ModifierType,
     linear: 0,
     sine: 1,
-    sawtooth: 2
-
-  # random: 3
+    sawtooth: 2,
+    random: 3
 
   @primary_key false
   embedded_schema do
@@ -121,6 +116,23 @@ defmodule Tr33Control.Commands.Modifier do
     offset = offset * 1000
 
     rem(System.os_time(:millisecond) + offset, period) / period
+  end
+
+  defp fraction(%__MODULE__{type: :random, period: period, offset: offset}) do
+    period = period * 1000
+    offset = offset * 1000
+
+    last_period = Application.get_env(:tr33_control, :modifier_random_last_period, 0)
+    current_period = div(System.os_time(:millisecond) + offset, period)
+
+    if current_period > last_period do
+      value = :random.uniform()
+      Application.put_env(:tr33_control, :modifier_random_last_value, value)
+      Application.put_env(:tr33_control, :modifier_random_last_period, current_period)
+      value
+    else
+      Application.get_env(:tr33_control, :modifier_random_last_value, 0)
+    end
   end
 
   defp data_inputs(%Command{} = command) do
