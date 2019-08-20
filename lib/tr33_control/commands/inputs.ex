@@ -226,6 +226,17 @@ defmodule Tr33Control.Commands.Inputs do
     ]
   end
 
+  defp input_def(%Command{type: :rotating_sectors}, :dode) do
+    [
+      %Slider{name: "Color", max: 255, default: 1},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Period [100ms]", max: 255, default: 100},
+      %Slider{name: "Offset", max: 255, default: 0},
+      %Slider{name: "Num Sectors", max: 255, default: 3},
+      %Slider{name: "Width", max: 255, default: 10}
+    ]
+  end
+
   defp input_def(_, _), do: :disabled
 
   defp strip_index(type) do

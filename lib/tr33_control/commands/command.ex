@@ -19,7 +19,8 @@ defmodule Tr33Control.Commands.Command do
     mapped_swipe: 10,
     mapped_shape: 11,
     kaleidoscope: 12,
-    random_walk: 13
+    random_walk: 13,
+    rotating_sectors: 16
 
   @command_type_map CommandType.__enum_map__() |> Enum.into(%{})
 
