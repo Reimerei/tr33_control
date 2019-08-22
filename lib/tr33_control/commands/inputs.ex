@@ -209,12 +209,7 @@ defmodule Tr33Control.Commands.Inputs do
   end
 
   defp input_def(%Command{type: :kaleidoscope}, :dode) do
-    [
-      %Slider{name: "Color", max: 255, default: 226},
-      %Slider{name: "Brightness", max: 255, default: 255},
-      %Slider{name: "Period [100ms]", max: 255, default: 60},
-      %Slider{name: "Offset [100ms]", max: 255, default: 0}
-    ]
+    []
   end
 
   defp input_def(%Command{type: :random_walk}, :dode) do
