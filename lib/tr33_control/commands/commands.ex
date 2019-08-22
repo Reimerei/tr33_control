@@ -33,7 +33,7 @@ defmodule Tr33Control.Commands do
     |> load_preset
   end
 
-  def send(command, force \\ false)
+  def send(command, force \\ true)
 
   def send(%Command{index: index} = command, force) when index <= @max_index do
     command
