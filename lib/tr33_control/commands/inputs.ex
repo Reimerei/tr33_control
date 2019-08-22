@@ -65,6 +65,12 @@ defmodule Tr33Control.Commands.Inputs do
     commands: 0,
     stream: 1
 
+  defenum PingPongType,
+    linear: 0,
+    sine: 1,
+    cosine: 2,
+    sawtooth: 3
+
   #  Public  ####################################################################################################
 
   def input_def(struct), do: input_def(struct, Application.fetch_env!(:tr33_control, :led_structure))
@@ -234,6 +240,17 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Offset", max: 255, default: 0},
       %Slider{name: "Num Sectors", max: 255, default: 3},
       %Slider{name: "Width", max: 255, default: 10}
+    ]
+  end
+
+  defp input_def(%Command{type: :ping_pong}, :dode) do
+    [
+      %Select{name: "Type", options: PingPongType.__enum_map__(), default: 1},
+      %Slider{name: "Color", max: 255, default: 65},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Width", max: 255, default: 20},
+      %Slider{name: "Period [100ms]", max: 255, default: 60},
+      %Slider{name: "Offset [100ms]", max: 255, default: 0}
     ]
   end
 
