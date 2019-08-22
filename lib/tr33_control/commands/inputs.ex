@@ -73,8 +73,8 @@ defmodule Tr33Control.Commands.Inputs do
 
   defenum FillType,
     ball: 0,
-    top: 1,
-    bottom: 2
+    fill_top: 1,
+    fill_bottom: 2
 
   #  Public  ####################################################################################################
 
@@ -250,13 +250,15 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Brightness", max: 255, default: 255},
       %Slider{name: "Width", max: 255, default: 20},
       %Slider{name: "Period [100ms]", max: 255, default: 60},
-      %Slider{name: "Offset [100ms]", max: 255, default: 0}
+      %Slider{name: "Offset [100ms]", max: 255, default: 0},
+      %Slider{name: "Max height", max: 255, default: 255},
+      %Select{name: "Fill Type", options: FillType.__enum_map__(), default: 0}
     ]
   end
 
   defp input_def(%Command{type: :fill}, :dode) do
     [
-      %Select{name: "Type", options: FillType.__enum_map__(), default: 0},
+      %Select{name: "Fill Type", options: FillType.__enum_map__(), default: 0},
       %Slider{name: "Color", max: 255, default: 210},
       %Slider{name: "Brightness", max: 255, default: 255},
       %Slider{name: "Position", max: 255, default: 20},
