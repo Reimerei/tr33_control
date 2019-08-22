@@ -13,6 +13,7 @@ defmodule Tr33Control.Commands.UART do
   @command_data_bytes 8
   @command_batch_max_byte_size 1024
   @command_batch_max_command_count min(floor((@command_batch_max_byte_size - 2) / (@command_data_bytes + 2)), 256)
+  @rts_max_wait_ms 100
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -50,30 +51,30 @@ defmodule Tr33Control.Commands.UART do
     state = %{
       uart_pid: uart_pid,
       queue: :queue.new(),
-      rts_pending: false
+      last_rts: 0
     }
 
     {:ok, state}
   end
 
   def handle_cast({:send, binary}, %{queue: queue} = state) do
-    state = send_rts(state)
+    state = send_rts(state, false)
     {:noreply, %{state | queue: :queue.in(binary, queue)}}
   end
 
   def handle_cast(:send_rts, state) do
-    send_rts(%{state | rts_pending: false})
+    send_rts(state, true)
     {:noreply, state}
   end
 
   def handle_cast({:resync, binaries}, state) do
-    state = send_rts(%{state | rts_pending: false})
+    state = send_rts(state, true)
     {:noreply, %{state | queue: :queue.from_list(binaries)}}
   end
 
   def handle_info({:nerves_uart, _, @serial_clear_to_send}, %{queue: queue} = state) do
     Logger.debug("UART RECEIVED CTS")
-    state = %{state | rts_pending: false}
+    state = %{state | last_rts: 0}
 
     command_count = min(:queue.len(queue), @command_batch_max_command_count)
     {queue_send, queue_rest} = :queue.split(command_count, queue)
@@ -90,7 +91,7 @@ defmodule Tr33Control.Commands.UART do
     state =
       case :queue.len(queue_rest) do
         0 -> state
-        _ -> send_rts(state)
+        _ -> send_rts(state, true)
       end
 
     {:noreply, %{state | queue: queue_rest}}
@@ -126,11 +127,19 @@ defmodule Tr33Control.Commands.UART do
     <<binary::binary, 0::size(padding_size)>>
   end
 
-  defp send_rts(%{rts_pending: true} = state), do: state
+  defp send_rts(state, true), do: do_send_rts(state)
 
-  defp send_rts(%{uart_pid: uart_pid} = state) do
+  defp send_rts(%{last_rts: last_rts} = state, false) do
+    if System.os_time(:millisecond) > last_rts + @rts_max_wait_ms do
+      do_send_rts(state)
+    else
+      state
+    end
+  end
+
+  defp do_send_rts(%{uart_pid: uart_pid} = state) do
     Logger.debug("UART SENDING RTS")
     Nerves.UART.write(uart_pid, @serial_ready_to_send)
-    %{state | rts_pending: true}
+    %{state | last_rts: System.os_time(:millisecond)}
   end
 end
