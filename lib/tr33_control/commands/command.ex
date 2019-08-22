@@ -29,6 +29,7 @@ defmodule Tr33Control.Commands.Command do
     field :index, :integer
     field :type, CommandType
     field :data, {:array, :integer}, default: []
+    field :enabled, :boolean, default: true
 
     embeds_many :modifiers, Modifier
   end
@@ -42,7 +43,7 @@ defmodule Tr33Control.Commands.Command do
 
   def changeset(command, params) do
     command
-    |> Changeset.cast(params, [:index, :type, :data])
+    |> Changeset.cast(params, [:index, :type, :data, :enabled])
     |> Changeset.validate_required([:index, :type])
     |> Changeset.validate_number(:index, less_than: 256)
     |> Changeset.validate_length(:data, max: 8)
@@ -58,6 +59,10 @@ defmodule Tr33Control.Commands.Command do
   end
 
   def from_binary(_), do: {:error, :invalid_binary_format}
+
+  def to_binary(%Command{enabled: false, index: index}) do
+    to_binary(%Command{type: :disabled, index: index})
+  end
 
   def to_binary(%Command{index: index, type: type, data: data}) do
     type_bin = Map.fetch!(@command_type_map, type)

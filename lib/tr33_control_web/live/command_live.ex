@@ -64,8 +64,11 @@ defmodule Tr33ControlWeb.CommandLive do
     reply(socket)
   end
 
-  def handle_event("command_reset", _params, %Socket{assigns: %{index: index}} = socket) do
-    Commands.Command.defaults(index)
+  def handle_event("command_toggle_enabled", _params, %Socket{assigns: %{index: index}} = socket) do
+    %Command{enabled: enabled} = command = Commands.get_command(index)
+
+    command
+    |> Commands.edit_command!(%{enabled: !enabled})
     |> Commands.send()
 
     reply(socket)
@@ -119,13 +122,14 @@ defmodule Tr33ControlWeb.CommandLive do
   end
 
   defp fetch(%Socket{assigns: %{index: index}} = socket) do
-    command = Commands.get_command(index)
+    command = %Command{enabled: enabled} = Commands.get_command(index)
     command_inputs = Commands.inputs(command)
 
     Enum.reduce(0..9, socket, fn index, socket_acc ->
       assign(socket_acc, String.to_atom("input_#{index}"), Enum.at(command_inputs, index))
     end)
     |> assign(:modifier_inputs, Commands.modifier_inputs(command))
+    |> assign(:command_enabled?, enabled)
   end
 
   defp reply(socket), do: {:noreply, socket}
