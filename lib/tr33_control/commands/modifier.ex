@@ -122,13 +122,16 @@ defmodule Tr33Control.Commands.Modifier do
     period = period * 1000
     offset = offset * 1000
 
-    last_period = Application.get_env(:tr33_control, :modifier_random_last_period, 0)
-    current_period = div(System.os_time(:millisecond) + offset, period)
+    last_update = Application.get_env(:tr33_control, :modifier_random_last_update, 0)
+    last_period = div(last_update + offset, period)
+
+    now = System.os_time(:millisecond)
+    current_period = div(now + offset, period)
 
     if current_period > last_period do
       value = :random.uniform()
       Application.put_env(:tr33_control, :modifier_random_last_value, value)
-      Application.put_env(:tr33_control, :modifier_random_last_period, current_period)
+      Application.put_env(:tr33_control, :modifier_random_last_update, now)
       value
     else
       Application.get_env(:tr33_control, :modifier_random_last_value, 0)
