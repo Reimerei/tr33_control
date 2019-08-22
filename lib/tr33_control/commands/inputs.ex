@@ -71,6 +71,11 @@ defmodule Tr33Control.Commands.Inputs do
     cosine: 2,
     sawtooth: 3
 
+  defenum FillType,
+    ball: 0,
+    top: 1,
+    bottom: 2
+
   #  Public  ####################################################################################################
 
   def input_def(struct), do: input_def(struct, Application.fetch_env!(:tr33_control, :led_structure))
@@ -251,6 +256,16 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Width", max: 255, default: 20},
       %Slider{name: "Period [100ms]", max: 255, default: 60},
       %Slider{name: "Offset [100ms]", max: 255, default: 0}
+    ]
+  end
+
+  defp input_def(%Command{type: :fill}, :dode) do
+    [
+      %Select{name: "Type", options: FillType.__enum_map__(), default: 0},
+      %Slider{name: "Color", max: 255, default: 210},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Position", max: 255, default: 20},
+      %Slider{name: "Width", max: 255, default: 20}
     ]
   end
 
