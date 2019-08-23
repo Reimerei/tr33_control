@@ -32,6 +32,11 @@ defmodule Tr33Control.Commands.Inputs do
     left_right: 2,
     right_left: 3
 
+  defenum SwipeDirection,
+    swipe_x: 0,
+    swipe_y: 1,
+    swipe_z: 2
+
   defenum MappedShape,
     square: 0,
     hollow_square: 1,
@@ -263,6 +268,17 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Brightness", max: 255, default: 255},
       %Slider{name: "Position", max: 255, default: 20},
       %Slider{name: "Width", max: 255, default: 20}
+    ]
+  end
+
+  defp input_def(%Command{type: :mapped_swipe}, :dode) do
+    [
+      %Slider{name: "Color", max: 255, default: 210},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Position [100ms]", max: 255, default: 40},
+      %Slider{name: "Offset [100ms]", max: 255, default: 0},
+      %Slider{name: "Width", max: 255, default: 40},
+      %Select{name: "Direction", options: SwipeDirection.__enum_map__(), default: 0}
     ]
   end
 

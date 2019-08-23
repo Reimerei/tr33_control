@@ -119,22 +119,24 @@ defmodule Tr33Control.Commands.Modifier do
   end
 
   defp fraction(%__MODULE__{type: :random, period: period, offset: offset}) do
+    key_value = period
     period = period * 1000
     offset = offset * 1000
 
-    last_update = Application.get_env(:tr33_control, :modifier_random_last_update, 0)
-    last_period = div(last_update + offset, period)
+    last_update_map = Application.get_env(:tr33_control, :modifier_random_last_update, %{})
+    last_value_map = Application.get_env(:tr33_control, :modifier_random_last_value, %{})
+    last_period = div(Map.get(last_update_map, key_value, 0) + offset, period)
 
     now = System.os_time(:millisecond)
     current_period = div(now + offset, period)
 
     if current_period > last_period do
       value = :random.uniform()
-      Application.put_env(:tr33_control, :modifier_random_last_value, value)
-      Application.put_env(:tr33_control, :modifier_random_last_update, now)
+      Application.put_env(:tr33_control, :modifier_random_last_value, Map.put(last_value_map, key_value, value))
+      Application.put_env(:tr33_control, :modifier_random_last_update, Map.put(last_update_map, key_value, now))
       value
     else
-      Application.get_env(:tr33_control, :modifier_random_last_value, 0)
+      Map.get(last_value_map, key_value, 0)
     end
   end
 
