@@ -1,7 +1,7 @@
 defmodule Tr33Control.Joystick do
   use GenServer
   require Logger
-  alias Tr33Control.Commands.{Event, Command}
+  alias Tr33Control.Commands.{Event, Command, Inputs}
   alias Tr33Control.Commands
 
   @input_dev "/dev/input/event0"
@@ -27,13 +27,27 @@ defmodule Tr33Control.Joystick do
   end
 
   defp handle_joystick_event({:ev_key, :btn_trigger, 1}) do
-    Commands.get_event(:update_settings)
-    |> Map.update(:data, [], &iterate(&1, 0, Event.ColorPalette))
-    |> Commands.send()
+    if Commands.get_current_preset_name() == "joystick" do
+      Commands.get_event(:update_settings)
+      |> Map.update(:data, [], &iterate(&1, 0, Inputs.ColorPalette))
+      |> Commands.send()
+    end
+
+    if Commands.get_current_preset_name() == "twang" do
+      Commands.new_event!(%{type: :joystick, data: [0, 160]})
+      |> Commands.send()
+    end
+  end
+
+  defp handle_joystick_event({:ev_key, :btn_trigger, 0}) do
+    if Commands.get_current_preset_name() == "twang" do
+      Commands.new_event!(%{type: :joystick, data: [0, 0]})
+      |> Commands.send()
+    end
   end
 
   defp handle_joystick_event({:ev_abs, name, value})
-       when name in [:abs_rudder, :abs_throttle, :abs_hat0x, :abs_hat0y] do
+       when name in [:abs_x, :abs_y, :abs_hat0x, :abs_hat0y] do
     if Commands.get_current_preset_name() == "joystick" do
       case Commands.list_commands() |> Enum.find(fn %Command{type: type} -> type == :mapped_shape end) do
         nil ->
@@ -44,13 +58,23 @@ defmodule Tr33Control.Joystick do
           |> Commands.send()
       end
     end
+
+    if Commands.get_current_preset_name() == "twang" do
+      twang_event(name, value)
+      |> Commands.send()
+    end
   end
 
   defp handle_joystick_event({:ev_key, :btn_base5, 1}) do
-    Commands.load_preset("joystick")
+    if Commands.get_current_preset_name() == "twang" do
+      Commands.load_preset("joystick")
+    else
+      Commands.load_preset("twang")
+    end
   end
 
   defp handle_joystick_event(event), do: Logger.debug(inspect(event))
+  # defp handle_joystick_event(_event), do: :ok
 
   defp iterate(data, index, enum) do
     List.update_at(data, index, fn value ->
@@ -83,17 +107,27 @@ defmodule Tr33Control.Joystick do
     interate_num(data, 1, joystick_value * 15)
   end
 
-  defp update_mapped_shape_data(data, :abs_rudder, joystick_value) do
+  defp update_mapped_shape_data(data, :abs_x, joystick_value) do
     List.update_at(data, 2, &smooth_jitter(&1, joystick_value))
   end
 
-  defp update_mapped_shape_data(data, :abs_throttle, joystick_value) do
+  defp update_mapped_shape_data(data, :abs_y, joystick_value) do
     List.update_at(data, 3, &smooth_jitter(&1, joystick_value))
   end
 
   defp update_mapped_shape_data(data, :abs_hat0y, joystick_value) do
     interate_num(data, 4, joystick_value * -10)
   end
+
+  defp twang_event(:abs_y, value) do
+    Commands.new_event!(%{type: :joystick, data: [round((value - 127) / 2) * -1, 0]})
+  end
+
+  # defp twang_event(:abs_hat0y, value) do
+  #   Commands.new_event!(%{type: :joystick, data: [max(value * -1, -126)]})
+  # end 
+
+  defp twang_event(_, _), do: %Event{type: :beat}
 
   defp smooth_jitter(current, new) when abs(new - current) > 1, do: new
   defp smooth_jitter(current, _), do: current

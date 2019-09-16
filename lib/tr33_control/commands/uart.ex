@@ -5,7 +5,8 @@ defmodule Tr33Control.Commands.UART do
   alias Tr33Control.Commands.{Event, Command}
 
   # these values have to match with the config in the firmware
-  @baudrate 921_600
+  # @baudrate 921_600
+  @baudrate 1_000_000
   @serial_header 42
   @serial_ready_to_send "AA" |> Base.decode16!()
   @serial_clear_to_send "BB" |> Base.decode16!()
@@ -14,6 +15,7 @@ defmodule Tr33Control.Commands.UART do
   @command_batch_max_byte_size 1024
   @command_batch_max_command_count min(floor((@command_batch_max_byte_size - 2) / (@command_data_bytes + 2)), 256)
   @rts_max_wait_ms 100
+  @debug_logs false
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -73,13 +75,19 @@ defmodule Tr33Control.Commands.UART do
   end
 
   def handle_info({:nerves_uart, _, @serial_clear_to_send}, %{queue: queue} = state) do
-    Logger.debug("UART RECEIVED CTS")
+    if @debug_logs do
+      Logger.debug("UART RECEIVED CTS")
+    end
+
     state = %{state | last_rts: 0}
 
     command_count = min(:queue.len(queue), @command_batch_max_command_count)
     {queue_send, queue_rest} = :queue.split(command_count, queue)
     header = <<@serial_header::size(8), command_count::size(8)>>
-    Logger.debug("UART SENDING BATCH WITH #{inspect(command_count)} COMMANDS")
+
+    if @debug_logs do
+      Logger.debug("UART SENDING BATCH WITH #{inspect(command_count)} COMMANDS")
+    end
 
     command_binaries =
       :queue.to_list(queue_send)
@@ -117,7 +125,10 @@ defmodule Tr33Control.Commands.UART do
   defp to_binary(%Event{} = event), do: Event.to_binary(event)
 
   defp send_packet(%{uart_pid: uart_pid}, paket) do
-    Logger.debug("UART SENDING #{inspect(paket)}")
+    if @debug_logs do
+      Logger.debug("UART SENDING #{inspect(paket)}")
+    end
+
     :ok = Nerves.UART.write(uart_pid, paket)
   end
 
@@ -138,7 +149,10 @@ defmodule Tr33Control.Commands.UART do
   end
 
   defp do_send_rts(%{uart_pid: uart_pid} = state) do
-    Logger.debug("UART SENDING RTS")
+    if @debug_logs do
+      Logger.debug("UART SENDING RTS")
+    end
+
     Nerves.UART.write(uart_pid, @serial_ready_to_send)
     %{state | last_rts: System.os_time(:millisecond)}
   end
