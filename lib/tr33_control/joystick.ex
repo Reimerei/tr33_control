@@ -69,7 +69,13 @@ defmodule Tr33Control.Joystick do
     if Commands.get_current_preset_name() == "twang" do
       Commands.load_preset("joystick")
     else
-      Commands.load_preset("twang")
+      if Commands.get_current_preset_name() == "joystick" do
+        Application.get_env(:tr33_control, :preset_before_joystick, "twang")
+        |> Commands.load_preset()
+      else
+        Application.put_env(:tr33_control, :preset_before_joystick, Commands.get_current_preset_name())
+        Commands.load_preset("twang")
+      end
     end
   end
 
