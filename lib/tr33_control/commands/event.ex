@@ -7,7 +7,7 @@ defmodule Tr33Control.Commands.Event do
   defenum EventType,
     gravity: 100,
     update_settings: 101,
-    # beat: 102,
+    beat: 102,
     pixel: 103,
     pixel_rgb: 104,
     joystick: 105

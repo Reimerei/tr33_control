@@ -26,8 +26,8 @@
           <div class="form-group col-md-6" style="margin-top: 2rem">
             <div class="btn-group" role="group">
               <%= submit "Save", phx_disable_with: "Saving...", class: "btn btn-secondary" %>
-              <button type="button" class="btn btn-secondary" phx-click="preset_delete" phx-value="<%= input_value(f, :name) %>">Delete</button>
-              <button type="button" class="btn btn-secondary" phx-click="preset_set_default" phx-value="<%= input_value(f, :name)%>">Set as default</button>
+              <button type="button" class="btn btn-secondary" phx-click="preset_delete" phx-value-name="<%= input_value(f, :name) %>">Delete</button>
+              <button type="button" class="btn btn-secondary" phx-click="preset_set_default" phx-value-name="<%= input_value(f, :name)%>">Set as default</button>
             </div>
           </div>
         </div>

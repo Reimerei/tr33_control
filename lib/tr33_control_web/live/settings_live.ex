@@ -63,7 +63,7 @@ defmodule Tr33ControlWeb.SettingsLive do
     |> reply()
   end
 
-  def handle_event("preset_delete", name, socket) do
+  def handle_event("preset_delete", %{"name" => name}, socket) do
     flash =
       case Commands.delete_preset(name) do
         {:ok, true} -> "Preset #{inspect(name)} deleted"
@@ -76,7 +76,7 @@ defmodule Tr33ControlWeb.SettingsLive do
     |> reply()
   end
 
-  def handle_event("preset_set_default", name, socket) do
+  def handle_event("preset_set_default", %{"name" => name}, socket) do
     flash =
       case Commands.set_default_preset(name) do
         %Preset{name: name} -> "Set preset #{inspect(name)} as default"

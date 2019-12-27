@@ -23,9 +23,6 @@ defmodule Tr33Control.Commands.Inputs do
     comet: 2,
     nyan: 3
 
-  # fill_top: 4,
-  # fill_bottom: 5
-
   defenum SwipeDirection,
     top_bottom: 0,
     bottom_top: 1,
@@ -90,6 +87,7 @@ defmodule Tr33Control.Commands.Inputs do
 
   defp input_def(%Command{type: :disabled}, _), do: []
   defp input_def(%Command{type: :white}, _), do: []
+  defp input_def(%Command{type: :twang}, _), do: []
 
   defp input_def(%Event{type: :update_settings}, _) do
     [
