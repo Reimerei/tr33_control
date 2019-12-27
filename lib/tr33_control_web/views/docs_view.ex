@@ -2,7 +2,7 @@ defmodule Tr33ControlWeb.DocsView do
   use Tr33ControlWeb, :view
   alias Tr33Control.Commands
   alias Tr33Control.Commands.{Command, Event}
-  alias Tr33Control.Commands.Inputs.{Button, Select, Slider}
+  alias Tr33Control.Commands.Inputs.{Button, Select, Slider, Hidden}
 
   @excluded_inputs [Button]
 
@@ -35,6 +35,10 @@ defmodule Tr33ControlWeb.DocsView do
 
   def data_text(%Slider{name: name}) do
     "#{name}"
+  end
+
+  def data_text(%Hidden{}) do
+    "-"
   end
 
   def enum_name(enum) do

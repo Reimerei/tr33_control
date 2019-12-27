@@ -35,7 +35,8 @@ defmodule Tr33Control.Commands.Inputs do
   defenum SwipeDirection,
     swipe_x: 0,
     swipe_y: 1,
-    swipe_z: 2
+    swipe_z: 2,
+    swipe_circle: 3
 
   defenum MappedShape,
     square: 0,
@@ -280,6 +281,21 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Width", max: 255, default: 40},
       %Select{name: "Direction", options: SwipeDirection.__enum_map__(), default: 0}
     ]
+  end
+
+  defp input_def(%Command{type: :rotating_plane}, :dode) do
+    [
+      %Slider{name: "Color", max: 255, default: 210},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Radius", max: 255, default: 128},
+      %Slider{name: "Phi", max: 255, default: 40},
+      %Slider{name: "Theta", max: 255, default: 120},
+      %Slider{name: "Width", max: 255, default: 40}
+    ]
+  end
+
+  defp input_def(%Command{type: :twang}, :dode) do
+    []
   end
 
   defp input_def(_, _), do: :disabled

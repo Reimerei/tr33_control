@@ -14,6 +14,7 @@ defmodule Tr33ControlWeb.Router do
     pipe_through :browser
 
     live "/", IndexLive
+    live "/twang", TwangLive
     get "/docs", DocsController, :index
   end
 end

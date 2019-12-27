@@ -10,7 +10,8 @@ defmodule Tr33Control.Commands.Modifier do
     linear: 0,
     sine: 1,
     sawtooth: 2,
-    random: 3
+    random: 3,
+    random_transitions: 4
 
   @primary_key false
   embedded_schema do
@@ -138,6 +139,41 @@ defmodule Tr33Control.Commands.Modifier do
     else
       Map.get(last_value_map, key_value, 0)
     end
+  end
+
+  defp fraction(%__MODULE__{type: :random_transitions, period: period, offset: offset} = modifier) do
+    key = :erlang.phash2(modifier)
+    period = period * 1000
+    offset = offset * 1000
+
+    state = Application.get_env(:tr33_control, :"modifier_random_transition_#{key}", %{})
+    last_update = Map.get(state, :last_update, 0)
+    current_value = Map.get(state, :current_value, 0)
+    next_value = Map.get(state, :next_value, 0)
+
+    now = System.os_time(:millisecond)
+    current_period = div(now + offset, period)
+    last_period = div(Map.get(state, :last_update, 0) + offset, period)
+
+    {current_value, next_value, last_update} =
+      if current_period > last_period do
+        {next_value, :random.uniform(), now}
+      else
+        {current_value, next_value, last_update}
+      end
+
+    state =
+      state
+      |> Map.put(:last_update, last_update)
+      |> Map.put(:current_value, current_value)
+      |> Map.put(:next_value, next_value)
+
+    Application.put_env(:tr33_control, :"modifier_random_transition_#{key}", state)
+    ease(current_value, next_value, now - last_update, period)
+  end
+
+  defp ease(current, next, time_elapsed, period) do
+    Ease.ease_in_out_cubic(time_elapsed, current, next - current, period)
   end
 
   defp data_inputs(%Command{} = command) do
