@@ -4,7 +4,7 @@ defmodule Tr33Control.Joystick do
   alias Tr33Control.Commands.{Event, Command, Inputs}
   alias Tr33Control.Commands
 
-  @input_dev "/dev/input/event0"
+  @input_dev "/dev/input/event15"
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -131,7 +131,7 @@ defmodule Tr33Control.Joystick do
 
   # defp twang_event(:abs_hat0y, value) do
   #   Commands.new_event!(%{type: :joystick, data: [max(value * -1, -126)]})
-  # end 
+  # end
 
   defp twang_event(_, _), do: %Event{type: :beat}
 

@@ -66,7 +66,8 @@ defmodule Tr33Control.Commands.Inputs do
 
   defenum DisplayMode,
     commands: 0,
-    stream: 1
+    stream: 1,
+    artnet: 2
 
   defenum PingPongType,
     linear: 0,
@@ -232,7 +233,8 @@ defmodule Tr33Control.Commands.Inputs do
       %Hidden{default: 30},
       %Slider{name: "Color", max: 255, default: 1},
       %Slider{name: "Width", max: 255, default: 15},
-      %Slider{name: "Sparkles per second", max: 255, default: 10}
+      %Slider{name: "Sparkles per second", max: 255, default: 10},
+      %Slider{name: "Duration", max: 1280, default: 400}
     ]
   end
 
@@ -289,6 +291,15 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Phi", max: 255, default: 40},
       %Slider{name: "Theta", max: 255, default: 120},
       %Slider{name: "Width", max: 255, default: 40}
+    ]
+  end
+
+  defp input_def(%Command{type: :fireworks}, :dode) do
+    [
+      %Slider{name: "Color", max: 255, default: 210},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Rate", max: 255, default: 40},
+      %Slider{name: "Width", max: 255, default: 128}
     ]
   end
 
