@@ -234,7 +234,10 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Color", max: 255, default: 1},
       %Slider{name: "Width", max: 255, default: 15},
       %Slider{name: "Sparkles per second", max: 255, default: 10},
-      %Slider{name: "Duration", max: 1280, default: 400}
+      %Slider{name: "Duration", max: 255, default: 100},
+      %Slider{name: "Flicker enabled", max: 1, default: 0},
+      %Slider{name: "Flicker Delay", max: 255, default: 100},
+      %Slider{name: "Flicker Width", max: 100, default: 20}
     ]
   end
 
