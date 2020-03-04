@@ -235,9 +235,20 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Width", max: 255, default: 15},
       %Slider{name: "Sparkles per second", max: 255, default: 10},
       %Slider{name: "Duration", max: 255, default: 100},
-      %Slider{name: "Flicker enabled", max: 1, default: 0},
-      %Slider{name: "Flicker Delay", max: 255, default: 100},
-      %Slider{name: "Flicker Width", max: 100, default: 20}
+      %Slider{name: "Brightness", max: 100, default: 100}
+    ]
+  end
+
+  defp input_def(%Command{type: :flicker_sparkle}, :dode) do
+    [
+      %Hidden{default: 30},
+      %Slider{name: "Color", max: 255, default: 255},
+      %Slider{name: "Sparkle Width", max: 255, default: 90},
+      %Slider{name: "Sparkles per second", max: 255, default: 215},
+      %Slider{name: "Duration", max: 255, default: 8},
+      %Slider{name: "Flicker Delay", max: 255, default: 7},
+      %Slider{name: "Flicker Window", max: 255, default: 119},
+      %Slider{name: "Max Number of Flickers", max: 255, default: 80}
     ]
   end
 

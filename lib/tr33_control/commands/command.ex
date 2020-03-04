@@ -24,7 +24,8 @@ defmodule Tr33Control.Commands.Command do
     rotating_sectors: 16,
     fill: 17,
     rotating_plane: 18,
-    twang: 19
+    twang: 19,
+    flicker_sparkle: 20
 
   @command_type_map CommandType.__enum_map__() |> Enum.into(%{})
 
