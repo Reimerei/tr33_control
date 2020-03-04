@@ -317,8 +317,31 @@ defmodule Tr33Control.Commands.Inputs do
     ]
   end
 
-  defp input_def(%Command{type: :twang}, :dode) do
-    []
+  ### Keller #########################################################################################
+
+  defp input_def(%Command{type: :ping_pong}, :keller) do
+    [
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 10},
+      %Select{name: "Type", options: PingPongType.__enum_map__(), default: 1},
+      %Slider{name: "Color", max: 255, default: 65},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Width", max: 255, default: 20},
+      %Slider{name: "Period [100ms]", max: 255, default: 60},
+      %Slider{name: "Offset [100ms]", max: 255, default: 0},
+      %Slider{name: "Max height", max: 255, default: 255},
+      %Select{name: "Fill Type", options: FillType.__enum_map__(), default: 0}
+    ]
+  end
+
+  defp input_def(%Command{type: :fill}, :keller) do
+    [
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 10},
+      %Select{name: "Fill Type", options: FillType.__enum_map__(), default: 0},
+      %Slider{name: "Color", max: 255, default: 210},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Position", max: 255, default: 20},
+      %Slider{name: "Width", max: 255, default: 20}
+    ]
   end
 
   defp input_def(_, _), do: :disabled
