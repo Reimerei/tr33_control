@@ -9,7 +9,7 @@
     <tr>
       <th scope="col" class="table-dark">Index [1 byte]</th>
       <th scope="col" class="table-dark">Command Type [1 byte]</th>
-      <th scope="col" colspan="8" class="table-dark">Data [8 bytes]</th>
+      <th scope="col" colspan="10" class="table-dark">Data [10 bytes]</th>
     </tr>
   </thead>
   <tbody>
