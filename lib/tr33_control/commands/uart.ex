@@ -11,7 +11,7 @@ defmodule Tr33Control.Commands.UART do
   @serial_ready_to_send "AA" |> Base.decode16!()
   @serial_clear_to_send "BB" |> Base.decode16!()
   @serial_request_resync "CC" |> Base.decode16!()
-  @command_data_bytes 8
+  @command_data_bytes 10
   @command_batch_max_byte_size 1024
   @command_batch_max_command_count min(floor((@command_batch_max_byte_size - 2) / (@command_data_bytes + 2)), 256)
   @rts_max_wait_ms 100

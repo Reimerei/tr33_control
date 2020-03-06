@@ -5,17 +5,22 @@ defmodule Tr33Control.Commands.Inputs do
   alias Tr33Control.Commands.Command.{StripIndex, BallType}
   alias Tr33Control.Commands.Inputs.{Button, Slider, Select, Hidden}
 
-  @trunk_count 8
-  @branch_count 12
-  @strip_index_values [
-                        all: @trunk_count + @branch_count + 2,
-                        all_trunks: @trunk_count + @branch_count,
-                        all_branches: @trunk_count + @branch_count + 1
-                      ] ++
-                        Enum.map(0..(@trunk_count - 1), &{:"trunk_#{&1}", &1}) ++
-                        Enum.map(0..(@branch_count - 1), &{:"branch_#{&1}", &1 + @trunk_count})
+  # @trunk_count 8
+  # @branch_count 12
+  # @strip_index_values_tr33 [
+  #                            all: @trunk_count + @branch_count + 2,
+  #                            all_trunks: @trunk_count + @branch_count,
+  #                            all_branches: @trunk_count + @branch_count + 1
+  #                          ] ++
+  #                            Enum.map(0..(@trunk_count - 1), &{:"trunk_#{&1}", &1}) ++
+  #                            Enum.map(0..(@branch_count - 1), &{:"branch_#{&1}", &1 + @trunk_count})
+  @strip_count 10
+  @strip_index_values_keller [
+                               all: @strip_count
+                             ] ++
+                               Enum.map(0..(@strip_count - 1), &{:"strip_#{&1}", &1})
 
-  defenum StripIndex, @strip_index_values
+  defenum StripIndex, @strip_index_values_keller
 
   defenum BallType,
     # square: 0,
@@ -75,10 +80,13 @@ defmodule Tr33Control.Commands.Inputs do
     cosine: 2,
     sawtooth: 3
 
-  defenum FillType,
+  defenum RenderType,
     ball: 0,
-    fill_top: 1,
-    fill_bottom: 2
+    comet: 1,
+    comet_bounce: 2,
+    nyan: 3,
+    nyan_bounce: 4,
+    fill: 5
 
   #  Public  ####################################################################################################
 
@@ -88,19 +96,9 @@ defmodule Tr33Control.Commands.Inputs do
 
   defp input_def(%Command{type: :disabled}, _), do: []
   defp input_def(%Command{type: :white}, _), do: []
-  defp input_def(%Command{type: :twang}, _), do: []
+  # defp input_def(%Command{type: :twang}, _), do: []
 
-  defp input_def(%Event{type: :update_settings}, _) do
-    [
-      %Select{name: "Color Palette", options: ColorPalette.__enum_map__(), default: 0},
-      %Select{name: "Color Temperature", options: ColorTemperature.__enum_map__(), default: 0},
-      %Select{name: "Display Mode", options: DisplayMode.__enum_map__(), default: 0}
-    ]
-  end
-
-  #  Tr33  ###################################################################################################
-
-  defp input_def(%Command{type: :single_color}, :tr33) do
+  defp input_def(%Command{type: :single_color}, _) do
     [
       %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all)},
       %Slider{name: "Color", max: 255, default: 226},
@@ -108,7 +106,32 @@ defmodule Tr33Control.Commands.Inputs do
     ]
   end
 
-  defp input_def(%Command{type: :rainbow_sine}, :tr33) do
+  defp input_def(%Command{type: :ping_pong}, _) do
+    [
+      %Select{name: "Render Type", options: RenderType.__enum_map__(), default: 0},
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all)},
+      %Slider{name: "Color", max: 255, default: 65},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Width", max: 255, default: 20},
+      %Select{name: "PingPong Type", options: PingPongType.__enum_map__(), default: 1},
+      %Slider{name: "Period [100ms]", max: 255, default: 60},
+      %Slider{name: "Offset [100ms]", max: 255, default: 0},
+      %Slider{name: "Max height", max: 255, default: 255}
+    ]
+  end
+
+  defp input_def(%Command{type: :render}, _) do
+    [
+      %Select{name: "Render Type", options: RenderType.__enum_map__(), default: 0},
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all)},
+      %Slider{name: "Color", max: 255, default: 210},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "Position", max: 255, default: 20},
+      %Slider{name: "Width", max: 255, default: 20}
+    ]
+  end
+
+  defp input_def(%Command{type: :rainbow_sine}, _) do
     [
       %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all)},
       %Slider{name: "BPM", max: 255, default: 10},
@@ -118,17 +141,73 @@ defmodule Tr33Control.Commands.Inputs do
     ]
   end
 
-  defp input_def(%Command{type: :ping_pong}, :tr33) do
+  defp input_def(%Command{type: :sparkle}, _) do
     [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all_trunks)},
-      %Select{name: "Ball Type", options: BallType.__enum_map__(), default: 1},
-      %Slider{name: "Color", max: 255, default: 65},
-      %Slider{name: "Brightness", max: 255, default: 255},
-      %Slider{name: "Width", max: 255, default: 90},
-      %Slider{name: "Period [100ms]", max: 255, default: 60},
-      %Slider{name: "Offset [100ms]", max: 255, default: 0}
+      %Hidden{default: strip_index(:all)},
+      %Slider{name: "Color", max: 255, default: 1},
+      %Slider{name: "Width", max: 255, default: 15},
+      %Slider{name: "Sparkles per second", max: 255, default: 10},
+      %Slider{name: "Duration", max: 255, default: 100},
+      %Slider{name: "Brightness", max: 100, default: 100}
     ]
   end
+
+  defp input_def(%Command{type: :flicker_sparkle}, _) do
+    [
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all)},
+      %Slider{name: "Color", max: 255, default: 255},
+      %Slider{name: "Sparkle Width", max: 255, default: 90},
+      %Slider{name: "Sparkles per second", max: 255, default: 215},
+      %Slider{name: "Duration", max: 255, default: 8},
+      %Slider{name: "Flicker Delay", max: 255, default: 7},
+      %Slider{name: "Flicker Window", max: 255, default: 119},
+      %Slider{name: "Max Number of Flickers", max: 255, default: 80}
+    ]
+  end
+
+  defp input_def(%Command{type: :rain}, _) do
+    [
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all)},
+      %Slider{name: "Color", max: 255, default: 1},
+      %Slider{name: "Width", max: 255, default: 15},
+      %Slider{name: "Drops per second", max: 255, default: 10},
+      %Slider{name: "Rate", max: 255, default: 10}
+    ]
+  end
+
+  defp input_def(%Command{type: :kaleidoscope}, _) do
+    [
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all)}
+    ]
+  end
+
+  defp input_def(%Event{type: :update_settings}, _) do
+    [
+      %Select{name: "Color Palette", options: ColorPalette.__enum_map__(), default: 0},
+      %Select{name: "Color Temperature", options: ColorTemperature.__enum_map__(), default: 0},
+      %Select{name: "Display Mode", options: DisplayMode.__enum_map__(), default: 0}
+    ]
+  end
+
+  defp input_def(%Event{type: :pixel}, _) do
+    [
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 0},
+      %Slider{name: "LedIndex", max: 100, default: 0},
+      %Slider{name: "Color", max: 255, default: 13}
+    ]
+  end
+
+  defp input_def(%Event{type: :pixel_rgb}, _) do
+    [
+      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 0},
+      %Slider{name: "LedIndex", max: 100, default: 0},
+      %Slider{name: "Red", max: 255, default: 13},
+      %Slider{name: "Green", max: 255, default: 13},
+      %Slider{name: "Blue", max: 255, default: 13}
+    ]
+  end
+
+  #  Tr33  ###################################################################################################
 
   defp input_def(%Command{type: :gravity}, :tr33) do
     [
@@ -138,25 +217,6 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "New Balls per 10 seconds", max: 100, default: 5},
       %Slider{name: "Width", max: 255, default: 70},
       %Button{name: "Add Ball", event: :gravity}
-    ]
-  end
-
-  defp input_def(%Command{type: :sparkle}, :tr33) do
-    [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all_branches)},
-      %Slider{name: "Color", max: 255, default: 1},
-      %Slider{name: "Width", max: 255, default: 15},
-      %Slider{name: "Sparkles per second", max: 255, default: 10}
-    ]
-  end
-
-  defp input_def(%Command{type: :rain}, :tr33) do
-    [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: strip_index(:all_branches)},
-      %Slider{name: "Color", max: 255, default: 1},
-      %Slider{name: "Width", max: 255, default: 15},
-      %Slider{name: "Drops per second", max: 255, default: 10},
-      %Slider{name: "Rate", max: 255, default: 10}
     ]
   end
 
@@ -185,37 +245,7 @@ defmodule Tr33Control.Commands.Inputs do
     ]
   end
 
-  defp input_def(%Event{type: :pixel}, :tr33) do
-    [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 0},
-      %Slider{name: "LedIndex", max: 100, default: 0},
-      %Slider{name: "Color", max: 255, default: 13}
-    ]
-  end
-
-  defp input_def(%Event{type: :pixel_rgb}, :tr33) do
-    [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 0},
-      %Slider{name: "LedIndex", max: 100, default: 0},
-      %Slider{name: "Red", max: 255, default: 13},
-      %Slider{name: "Green", max: 255, default: 13},
-      %Slider{name: "Blue", max: 255, default: 13}
-    ]
-  end
-
   ### Dode #########################################################################################
-
-  defp input_def(%Command{type: :single_color}, :dode) do
-    [
-      %Slider{name: "Strip Index", max: 30, default: 30},
-      %Slider{name: "Color", max: 255, default: 226},
-      %Slider{name: "Brightness", max: 255, default: 255}
-    ]
-  end
-
-  defp input_def(%Command{type: :kaleidoscope}, :dode) do
-    []
-  end
 
   defp input_def(%Command{type: :random_walk}, :dode) do
     [
@@ -228,30 +258,6 @@ defmodule Tr33Control.Commands.Inputs do
     ]
   end
 
-  defp input_def(%Command{type: :sparkle}, :dode) do
-    [
-      %Hidden{default: 30},
-      %Slider{name: "Color", max: 255, default: 1},
-      %Slider{name: "Width", max: 255, default: 15},
-      %Slider{name: "Sparkles per second", max: 255, default: 10},
-      %Slider{name: "Duration", max: 255, default: 100},
-      %Slider{name: "Brightness", max: 100, default: 100}
-    ]
-  end
-
-  defp input_def(%Command{type: :flicker_sparkle}, :dode) do
-    [
-      %Hidden{default: 30},
-      %Slider{name: "Color", max: 255, default: 255},
-      %Slider{name: "Sparkle Width", max: 255, default: 90},
-      %Slider{name: "Sparkles per second", max: 255, default: 215},
-      %Slider{name: "Duration", max: 255, default: 8},
-      %Slider{name: "Flicker Delay", max: 255, default: 7},
-      %Slider{name: "Flicker Window", max: 255, default: 119},
-      %Slider{name: "Max Number of Flickers", max: 255, default: 80}
-    ]
-  end
-
   defp input_def(%Command{type: :rotating_sectors}, :dode) do
     [
       %Slider{name: "Color", max: 255, default: 1},
@@ -260,29 +266,6 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{name: "Offset", max: 255, default: 0},
       %Slider{name: "Num Sectors", max: 255, default: 3},
       %Slider{name: "Width", max: 255, default: 10}
-    ]
-  end
-
-  defp input_def(%Command{type: :ping_pong}, :dode) do
-    [
-      %Select{name: "Type", options: PingPongType.__enum_map__(), default: 1},
-      %Slider{name: "Color", max: 255, default: 65},
-      %Slider{name: "Brightness", max: 255, default: 255},
-      %Slider{name: "Width", max: 255, default: 20},
-      %Slider{name: "Period [100ms]", max: 255, default: 60},
-      %Slider{name: "Offset [100ms]", max: 255, default: 0},
-      %Slider{name: "Max height", max: 255, default: 255},
-      %Select{name: "Fill Type", options: FillType.__enum_map__(), default: 0}
-    ]
-  end
-
-  defp input_def(%Command{type: :fill}, :dode) do
-    [
-      %Select{name: "Fill Type", options: FillType.__enum_map__(), default: 0},
-      %Slider{name: "Color", max: 255, default: 210},
-      %Slider{name: "Brightness", max: 255, default: 255},
-      %Slider{name: "Position", max: 255, default: 20},
-      %Slider{name: "Width", max: 255, default: 20}
     ]
   end
 
@@ -317,38 +300,12 @@ defmodule Tr33Control.Commands.Inputs do
     ]
   end
 
-  ### Keller #########################################################################################
-
-  defp input_def(%Command{type: :ping_pong}, :keller) do
-    [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 10},
-      %Select{name: "Type", options: PingPongType.__enum_map__(), default: 1},
-      %Slider{name: "Color", max: 255, default: 65},
-      %Slider{name: "Brightness", max: 255, default: 255},
-      %Slider{name: "Width", max: 255, default: 20},
-      %Slider{name: "Period [100ms]", max: 255, default: 60},
-      %Slider{name: "Offset [100ms]", max: 255, default: 0},
-      %Slider{name: "Max height", max: 255, default: 255},
-      %Select{name: "Fill Type", options: FillType.__enum_map__(), default: 0}
-    ]
-  end
-
-  defp input_def(%Command{type: :fill}, :keller) do
-    [
-      %Select{name: "StripIndex", options: StripIndex.__enum_map__(), default: 10},
-      %Select{name: "Fill Type", options: FillType.__enum_map__(), default: 0},
-      %Slider{name: "Color", max: 255, default: 210},
-      %Slider{name: "Brightness", max: 255, default: 255},
-      %Slider{name: "Position", max: 255, default: 20},
-      %Slider{name: "Width", max: 255, default: 20}
-    ]
-  end
-
   defp input_def(_, _), do: :disabled
 
   defp strip_index(type) do
     case StripIndex.dump(type) do
       {:ok, int} -> int
+      _ -> 0
     end
   end
 end

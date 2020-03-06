@@ -10,3 +10,7 @@ This app leverages phoenix channels to sync the state between all connected brow
 * gravity height relative to strip length
 * move up/down -> no update
 * pause command
+
+* persistence per led structure
+* upgrade live_view
+* dynamic modifiers

@@ -22,7 +22,7 @@ defmodule Tr33Control.Commands.Command do
     random_walk: 13,
     fireworks: 15,
     rotating_sectors: 16,
-    fill: 17,
+    render: 17,
     rotating_plane: 18,
     twang: 19,
     flicker_sparkle: 20
@@ -51,7 +51,7 @@ defmodule Tr33Control.Commands.Command do
     |> Changeset.cast(params, [:index, :type, :data, :enabled])
     |> Changeset.validate_required([:index, :type])
     |> Changeset.validate_number(:index, less_than: 256)
-    |> Changeset.validate_length(:data, max: 8)
+    |> Changeset.validate_length(:data, max: 10)
     |> Changeset.cast_embed(:modifiers)
   end
 
