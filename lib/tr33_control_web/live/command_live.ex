@@ -11,7 +11,7 @@ defmodule Tr33ControlWeb.CommandLive do
     Tr33ControlWeb.CommandsView.render("_command.html", assigns)
   end
 
-  def mount(%{index: index}, socket) do
+  def mount(%{"index" => index}, socket) do
     if connected?(socket), do: Commands.subscribe()
 
     socket =

@@ -1,9 +1,9 @@
 defmodule Tr33ControlWeb.Endpoint do
   use Phoenix.Endpoint, otp_app: :tr33_control
+  @session_options [store: :cookie, key: "_tr33_control_key", signing_salt: "GpKM0Z87"]
 
   socket "/socket", Tr33ControlWeb.UserSocket, websocket: true
-  socket "/live", Phoenix.LiveView.Socket
-
+  socket "/live", Phoenix.LiveView.Socket, websocket: [connect_info: [session: @session_options]]
   # Serve at "/" the static files from "priv/static" directory.
   #
   # You should set gzip to true if you are running phoenix.digest
@@ -32,10 +32,7 @@ defmodule Tr33ControlWeb.Endpoint do
   # The session will be stored in the cookie and signed,
   # this means its contents can be read but not tampered with.
   # Set :encryption_salt if you would also like to encrypt it.
-  plug Plug.Session,
-    store: :cookie,
-    key: "_tr33_control_key",
-    signing_salt: "GpKM0Z87"
+  plug Plug.Session, @session_options
 
   plug Tr33ControlWeb.Router
 

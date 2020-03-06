@@ -13,5 +13,5 @@
 </ul>
 
 <%= for index <- 0..Application.fetch_env!(:tr33_control, :command_max_index) do %>
-  <%= live_render(@socket, Tr33ControlWeb.CommandLive, session: %{index: index}, id: index) %>
+  <%= live_render(@socket, Tr33ControlWeb.CommandLive, session: %{"index" => index}, id: index) %>
 <% end %>

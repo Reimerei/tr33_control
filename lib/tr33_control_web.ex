@@ -23,6 +23,7 @@ defmodule Tr33ControlWeb do
       import Plug.Conn
       import Tr33ControlWeb.Router.Helpers
       import Tr33ControlWeb.Gettext
+      import Phoenix.LiveView.Controller
     end
   end
 
@@ -34,7 +35,7 @@ defmodule Tr33ControlWeb do
 
       # Import convenience functions from controllers
       import Phoenix.Controller, only: [get_flash: 2, view_module: 1]
-      import Phoenix.LiveView, only: [live_render: 2, live_render: 3]
+      import Phoenix.LiveView.Helpers
 
       # Use all HTML functionality (forms, tags, etc)
       use Phoenix.HTML

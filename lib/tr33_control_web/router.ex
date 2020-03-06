@@ -4,7 +4,7 @@ defmodule Tr33ControlWeb.Router do
   pipeline :browser do
     plug :accepts, ["html"]
     plug :fetch_session
-    plug Phoenix.LiveView.Flash
+    plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
     plug :put_layout, {Tr33ControlWeb.LayoutView, :app}
