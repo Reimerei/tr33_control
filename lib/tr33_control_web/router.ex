@@ -7,7 +7,7 @@ defmodule Tr33ControlWeb.Router do
     plug :fetch_live_flash
     plug :protect_from_forgery
     plug :put_secure_browser_headers
-    plug :put_layout, {Tr33ControlWeb.LayoutView, :app}
+    plug :put_live_layout, {Tr33ControlWeb.LayoutView, "app.html"}
   end
 
   scope "/", Tr33ControlWeb do
