@@ -17,7 +17,7 @@ defmodule Tr33ControlWeb.Router do
   scope "/", Tr33ControlWeb do
     pipe_through :browser
 
-    live "/", PageLive, :index
+    live "/", ControlLive, :index
   end
 
   # Other scopes may use custom stacks.
