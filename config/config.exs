@@ -16,6 +16,13 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
   live_view: [signing_salt: "HC+iC2aJ"]
 
 config :tr33_control,
+  ecto_repos: [Tr33Control.Repo],
+  command_max_index: 9,
+  esp32_ip: "192.168.0.42",
+  esp32_port: "1337",
+  serial_port: System.get_env("SERIAL_PORT") || "ttyAMA0",
+  udp_listen_port: 1337,
+  cache_persist_dir: System.get_env("CACHE_PERSIST_DIR") || "/root/tr33/cache_persist",
   led_structure: :keller
 
 # led_structure: :dode
