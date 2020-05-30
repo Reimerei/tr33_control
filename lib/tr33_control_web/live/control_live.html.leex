@@ -1,1 +1,3 @@
-Control!
+<%= for index <- 0..Application.fetch_env!(:tr33_control, :command_max_index) do %>
+  <%= live_component @socket, Tr33ControlWeb.CommandComponent, id: index %>
+<% end %>

@@ -1,0 +1,61 @@
+<ul class="list-group pb-4">
+  <li class="list-group-item list-group-item-secondary">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="dropdown">
+          <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
+            <%= @command.type %>
+          </button>
+          <div class="dropdown-menu">
+            <%= for {name, _} <- @command_types do %>
+              <div class="dropdown-item" phx-click=type_change phx-target="<%= @myself %>" phx-value-new_type="<%= name %>" ><%= name %></div>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="btn-group float-right" role="group">
+          <button type="button" class="btn btn-secondary" phx-click="command_up" phx-target="<%= @myself %>">↑</button>
+          <button type="button" class="btn btn-secondary" phx-click="command_down" phx-target="<%= @myself %>">↓</button>
+          <button type="button" class="btn btn-secondary" phx-click="command_clone" phx-target="<%= @myself %>">clone</button>
+          <button type="button" class="btn btn-secondary" phx-click="command_toggle_enabled" phx-target="<%= @myself %>">
+            <%= if (@command.enabled) do %>
+              pause
+            <% else %>
+              continue
+            <% end %>
+          </button>
+          <button type="button" class="btn btn-secondary" phx-click="command_toggle_collapsed" phx-target="<%= @myself %>">
+            <%= if @collapsed? do %>
+              +
+            <% else %>
+              -
+            <% end %>
+          </button>
+
+        </div>
+      </div>
+    </div>
+  </li>
+
+  <%= if not @collapsed? do %>
+    <li class="list-group-item <%= if (not @command.enabled) do %>list-group-item-secondary<% end %>">
+      <form action="" phx-change="data_change" phx-target="<%= @myself %>">
+        <div class="form-row">
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_0}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_1}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_2}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_3}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_4}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_5}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_6}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_7}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_8}) %>
+          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_9}) %>
+        </div>
+      </form>
+    </li>
+  <% end %>
+
+</ul>

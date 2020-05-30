@@ -87,29 +87,18 @@ defmodule Tr33Control.Commands.Command do
     %Command{command | data: data, modifiers: []}
   end
 
-  def inputs(%Command{data: data, type: type} = command) do
-    data_inputs =
-      Inputs.input_def(command)
-      |> case do
-        :disabled ->
-          []
+  def inputs(%Command{data: data} = command) do
+    Inputs.input_def(command)
+    |> case do
+      :disabled ->
+        []
 
-        inputs ->
-          inputs
-          |> Enum.map(fn input -> Map.put(input, :variable_name, "data[]") end)
-          |> Enum.with_index()
-          |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
-      end
-
-    type_input = %Select{
-      value: CommandType.__enum_map__()[type],
-      options: types(),
-      name: "Type",
-      variable_name: "type",
-      default: :disabled
-    }
-
-    [type_input | data_inputs]
+      inputs ->
+        inputs
+        |> Enum.map(fn input -> Map.put(input, :variable_name, "data[]") end)
+        |> Enum.with_index()
+        |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
+    end
   end
 
   def types() do

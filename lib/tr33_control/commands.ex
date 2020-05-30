@@ -7,25 +7,6 @@ defmodule Tr33Control.Commands do
 
   @topic "#{inspect(__MODULE__)}"
 
-  def subscribe do
-    Phoenix.PubSub.subscribe(Tr33Control.PubSub, @topic)
-  end
-
-  def notify_subscribers(struct_or_message, force \\ false)
-  def notify_subscribers({Command, key}, force), do: notify_subscribers({:command_update, key}, force)
-  def notify_subscribers({Event, key}, force), do: notify_subscribers({:event_update, key}, force)
-  def notify_subscribers({Preset, key}, force), do: notify_subscribers({:preset_update, key}, force)
-
-  def notify_subscribers(message, force) do
-    now = System.os_time(:millisecond)
-    last_notify = Application.get_env(:tr33_control, :pubsub_last_notify, 0)
-
-    if force or now - last_notify > @pubsub_silent_period_ms do
-      Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, message)
-      Application.put_env(:tr33_control, :pubsub_last_notify, now)
-    end
-  end
-
   def init() do
     Cache.init_all()
 
@@ -47,6 +28,32 @@ defmodule Tr33Control.Commands do
     event
     |> maybe_insert()
     |> UART.send()
+  end
+
+  ### PubSub #######################################################################
+
+  def subscribe() do
+    Phoenix.PubSub.subscribe(Tr33Control.PubSub, @topic)
+  end
+
+  def notify_subscribers(struct_or_message, force \\ false)
+
+  def notify_subscribers({Command, key}, force),
+    do: notify_subscribers({:command_update, key}, force)
+
+  def notify_subscribers({Event, key}, force), do: notify_subscribers({:event_update, key}, force)
+
+  def notify_subscribers({Preset, key}, force),
+    do: notify_subscribers({:preset_update, key}, force)
+
+  def notify_subscribers(message, force) do
+    now = System.os_time(:millisecond)
+    last_notify = Application.get_env(:tr33_control, :pubsub_last_notify, 0)
+
+    if force or now - last_notify > @pubsub_silent_period_ms do
+      Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, message)
+      Application.put_env(:tr33_control, :pubsub_last_notify, now)
+    end
   end
 
   ### Commands ###############################################################################################

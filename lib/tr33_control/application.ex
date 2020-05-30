@@ -1,26 +1,34 @@
 defmodule Tr33Control.Application do
-  # See https://hexdocs.pm/elixir/Application.html
-  # for more information on OTP Applications
-  @moduledoc false
-
   use Application
+  alias Tr33Control.Commands
+  alias Tr33Control.Commands.{Command, Event, Preset}
 
   def start(_type, _args) do
+    Application.fetch_env!(:tr33_control, :cache_persist_dir)
+    |> File.mkdir_p!()
+
     children = [
-      # Start the Telemetry supervisor
       Tr33ControlWeb.Telemetry,
-      # Start the PubSub system
       {Phoenix.PubSub, name: Tr33Control.PubSub},
-      # Start the Endpoint (http/https)
-      Tr33ControlWeb.Endpoint
-      # Start a worker by calling: Tr33Control.Worker.start_link(arg)
-      # {Tr33Control.Worker, arg}
+      Tr33ControlWeb.Endpoint,
+      Tr33Control.Commands.UART,
+      Tr33Control.UdpServer,
+      Supervisor.child_spec({Cachex, Command}, id: make_ref()),
+      Supervisor.child_spec({Cachex, Event}, id: make_ref()),
+      Supervisor.child_spec({Cachex, Preset}, id: make_ref()),
+      Tr33Control.Joystick,
+      Tr33Control.Commands.Updater
+      # Tr33Control.Commands.Socket
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Tr33Control.Supervisor]
-    Supervisor.start_link(children, opts)
+    sup = Supervisor.start_link(children, opts)
+
+    Commands.init()
+
+    sup
   end
 
   # Tell Phoenix to update the endpoint configuration
