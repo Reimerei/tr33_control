@@ -1,7 +1,7 @@
 defmodule Tr33Control.Commands.Cache do
   require Logger
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Command, Event, Preset}
+  alias Tr33Control.Commands.{Command, Event, Preset, Modifier}
 
   @all_cache_keys [Command, Event, Preset]
 
@@ -80,11 +80,29 @@ defmodule Tr33Control.Commands.Cache do
     all(cache)
     |> Enum.map(&struct!(Preset, Map.delete(&1, :__struct__)))
     |> Enum.map(fn %Preset{commands: commands} = preset ->
-      commands = Enum.map(commands, &struct!(Command, Map.delete(&1, :__struct__)))
+      commands =
+        commands
+        |> Enum.map(&struct!(Command, Map.delete(&1, :__struct__)))
+        |> Enum.map(&migrate_modifiers_to_map/1)
+
       %Preset{preset | commands: commands}
     end)
     |> Enum.map(&insert/1)
   end
 
   defp migrate(_), do: :noop
+
+  defp migrate_modifiers_to_map(%Command{modifiers: %{}} = command), do: command
+  defp migrate_modifiers_to_map(%Command{modifiers: nil} = command), do: command
+
+  defp migrate_modifiers_to_map(%Command{modifiers: modifiers} = command) when is_list(modifiers) do
+    map =
+      modifiers
+      |> Enum.map(fn %{field_index: field_index} = modifier ->
+        {field_index, struct!(Modifier, Map.delete(modifier, :__struct__))}
+      end)
+      |> Enum.into(%{})
+
+    %Command{command | modifiers: map}
+  end
 end

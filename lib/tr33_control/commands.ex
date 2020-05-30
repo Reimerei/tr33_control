@@ -134,14 +134,20 @@ defmodule Tr33Control.Commands do
 
   ### Modifiers ###############################################################################################
 
-  def enable_modifiers(%Command{} = command) do
-    %Command{command | modifiers: Modifier.defaults_for_command(command)}
-    |> Cache.insert()
+  def create_modifier(%Command{modifiers: modifiers} = command, index) do
+    input =
+      Command.inputs(command)
+      |> Enum.find(&match?(%{index: ^index}, &1))
+
+    modifier = Modifier.from_input(input)
+
+    %Command{command | modifiers: Map.put(modifiers, index, modifier)}
+    |> Cache.insert(true)
   end
 
-  def disable_modifiers(%Command{} = command) do
-    %Command{command | modifiers: []}
-    |> Cache.insert()
+  def delete_modifier(%Command{modifiers: modifiers} = command, index) do
+    %Command{command | modifiers: Map.delete(modifiers, index)}
+    |> Cache.insert(true)
   end
 
   def update_modifier!(%Command{modifiers: modifiers} = command, index, params) when is_number(index) do
@@ -151,15 +157,13 @@ defmodule Tr33Control.Commands do
       |> Ecto.Changeset.apply_action(:insert)
       |> raise_on_error()
 
-    %Command{command | modifiers: List.replace_at(modifiers, index, modifier)}
-    |> Cache.insert()
+    %Command{command | modifiers: Map.put(modifiers, index, modifier)}
+    |> Cache.insert(true)
   end
 
-  def apply_modifiers(%Command{modifiers: modifiers} = command) when length(modifiers) > 0 do
-    if Enum.any?(modifiers, fn %Modifier{period: period} -> period > 0 end) do
-      Enum.reduce(modifiers, command, &Modifier.apply/2)
-      |> send()
-    end
+  def apply_modifiers(%Command{modifiers: modifiers} = command) when map_size(modifiers) > 0 do
+    Enum.reduce(modifiers, command, &Modifier.apply/2)
+    |> send()
   end
 
   def apply_modifiers(%Command{} = command) do

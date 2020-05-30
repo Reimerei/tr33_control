@@ -15,7 +15,7 @@ defmodule Tr33Control.Commands.Modifier do
 
   @primary_key false
   embedded_schema do
-    field :field_index, :integer
+    # field :field_index, :integer
     field :type, ModifierType
     field :period, :integer
     field :offset, :integer
@@ -32,36 +32,40 @@ defmodule Tr33Control.Commands.Modifier do
 
   def changeset(modifier, params) do
     modifier
-    |> Changeset.cast(params, [:field_index, :type, :period, :offset, :max, :min])
+    |> Changeset.cast(params, [:type, :period, :offset, :max, :min])
   end
 
-  def apply(%__MODULE__{period: 0}, %Command{} = command), do: command
+  def from_input(input) do
+    max = input_max(input)
 
-  def apply(%__MODULE__{min: min, max: max, field_index: field_index} = modifier, %Command{data: data} = command) do
+    params =
+      input_def(max)
+      |> Enum.map(fn {key, %{default: default}} -> {key, default} end)
+      |> Enum.into(%{})
+
+    {:ok, modifier} =
+      %__MODULE__{}
+      |> changeset(params)
+      |> Changeset.apply_action(:insert)
+
+    modifier
+  end
+
+  def apply({_index, %__MODULE__{period: 0}}, %Command{} = command), do: command
+
+  def apply({index, %__MODULE__{min: min, max: max} = modifier}, %Command{data: data} = command) do
     fraction = fraction(modifier)
     value = (min + (max - min) * fraction) |> round
-    %Command{command | data: List.replace_at(data, field_index, value)}
+    %Command{command | data: List.replace_at(data, index, value)}
   end
 
   def inputs_for_command(%Command{modifiers: modifiers} = command) do
-    command_inputs = data_inputs(command)
+    command_inputs = Command.inputs(command)
 
-    for %__MODULE__{field_index: index} = modifier <- modifiers do
+    for {index, modifier} <- modifiers do
       command_input = Enum.at(command_inputs, index)
-      {inputs(modifier, input_max(command_input)), input_name(command_input)}
+      {inputs(modifier, input_max(command_input)), input_name(command_input), index}
     end
-  end
-
-  def defaults_for_command(%Command{} = command) do
-    command
-    |> data_inputs
-    |> Enum.with_index()
-    |> Enum.filter(&supported_input?/1)
-    |> Enum.map(fn {input, index} ->
-      %__MODULE__{}
-      |> defaults(input_max(input))
-      |> Map.put(:field_index, index)
-    end)
   end
 
   defp inputs(%__MODULE__{} = modifier, max) do
@@ -73,19 +77,9 @@ defmodule Tr33Control.Commands.Modifier do
     end)
   end
 
-  defp defaults(%__MODULE__{} = modifier, max) do
-    defaults =
-      input_def(max)
-      |> Enum.map(fn {key, %{default: default}} -> {key, default} end)
-      |> Enum.into(%{})
-
-    Map.merge(modifier, defaults)
-  end
-
   defp input_def(max) do
     [
-      field_index: %Hidden{},
-      type: %Select{name: "Type", options: ModifierType.__enum_map__(), default: 0},
+      type: %Select{name: "Modifier Type", options: ModifierType.__enum_map__(), default: 0},
       period: %Slider{name: "Period [s]", max: 600, default: 0},
       offset: %Slider{name: "Offset [s]", max: 600, default: 0},
       min: %Slider{name: "Min value", max: max, default: 0},
@@ -176,23 +170,8 @@ defmodule Tr33Control.Commands.Modifier do
     Ease.ease_in_out_cubic(time_elapsed, current, next - current, period)
   end
 
-  defp data_inputs(%Command{} = command) do
-    Command.inputs(command)
-    |> Enum.filter(&supported_input?/1)
-    |> Enum.filter(&(input_variable_name(&1) == "data[]"))
-  end
-
-  defp supported_input?(%Slider{}), do: true
-  defp supported_input?(%Select{}), do: true
-  defp supported_input?({%Slider{}, _}), do: true
-  defp supported_input?({%Select{}, _}), do: true
-  defp supported_input?(_), do: false
-
   defp input_name(%Slider{name: name}), do: name
   defp input_name(%Select{name: name}), do: name
-
-  defp input_variable_name(%Slider{variable_name: name}), do: name
-  defp input_variable_name(%Select{variable_name: name}), do: name
 
   defp input_max(%Slider{max: max}), do: max
   defp input_max(%Select{options: options}), do: Enum.max_by(options, fn {_key, value} -> value end) |> elem(1)

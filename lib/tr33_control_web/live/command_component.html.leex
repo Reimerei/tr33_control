@@ -43,19 +43,35 @@
     <li class="list-group-item <%= if (not @command.enabled) do %>list-group-item-secondary<% end %>">
       <form action="" phx-change="data_change" phx-target="<%= @myself %>">
         <div class="form-row">
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_0}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_1}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_2}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_3}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_4}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_5}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_6}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_7}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_8}) %>
-          <%= render(Tr33ControlWeb.ControlView, "_input.html", %{input: @input_9}) %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_0, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_1, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_2, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_3, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_4, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_5, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_6, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_7, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_8, myself: @myself} %>
+          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_9, myself: @myself} %>
         </div>
       </form>
     </li>
+
+    <%= for {inputs, field, index} <- @modifier_inputs do %>
+      <li class="list-group-item list-group-item-success">
+        <form action="" phx-change="modifier_change" phx-target="<%= @myself %>">
+          <div class="form-row">
+            <div class="form-group col-md-3">
+              <h4 class="mt-2"><%= field %></h4>
+            </div>
+            <input name="index" type="hidden" value="<%= index %>">
+            <%= for input <- inputs do %>
+              <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: input, myself: @myself} %>
+            <% end %>
+          </div>
+        </form>
+      </li>
+    <% end %>
   <% end %>
 
 </ul>

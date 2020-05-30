@@ -1,8 +1,8 @@
 <%= case @input do %>
 
-  <% %Select{name: name, variable_name: variable_name, value: value, options: options, modifier: modifier} -> %>
+  <% %Select{name: name, variable_name: variable_name, value: value, options: options} -> %>
     <div class="form-group col-md-3">
-      <%= render("_modifier_button.html", %{modifier: modifier})  %>
+      <%= render("_modifier_button.html", assigns)  %>
       <label><%= name %></label>
       <select name="<%= variable_name %>" class="custom-select">
         <%= for {option_name, option_value} <- options do %>
@@ -11,9 +11,9 @@
       </select>
     </div>
 
-  <% %Slider{name: name, variable_name: variable_name, value: value, max: max, step: step, modifier: modifier} -> %>
+  <% %Slider{name: name, variable_name: variable_name, value: value, max: max, step: step} -> %>
     <div class="form-group col-md-3">
-      <%= render("_modifier_button.html", %{modifier: modifier}) %>
+      <%= render("_modifier_button.html", assigns) %>
       <label><%= name %>: <%= format(value) %></label>
       <div class="pt-2">
         <input type="range" name="<%= variable_name %>" class="custom-range" min="0" max="<%= max %>" step="<%= step %>" value="<%= value %>">

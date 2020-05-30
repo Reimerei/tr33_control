@@ -1,1 +1,11 @@
-<button type="button" class="btn btn-outline-secondary btn-sm <%= if @modifier do "active" end%>">M</button>
+<%= if @input.index do %>
+  <button
+    type="button"
+    class="btn btn-sm  <%= if @input.has_modifier? do "btn-success" else "btn-secondary" end%>"
+    phx-click="<%= if @input.has_modifier? do "modifier_delete" else "modifier_create" end%>"
+    phx-value-index="<%= @input.index %>"
+    phx-target="<%= @myself %>"
+  >
+    M
+  </button>
+<% end %>

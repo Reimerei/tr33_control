@@ -90,7 +90,18 @@ defmodule Tr33Control.Commands.Inputs do
 
   #  Public  ####################################################################################################
 
-  def input_def(struct), do: input_def(struct, Application.fetch_env!(:tr33_control, :led_structure))
+  def input_def(struct) do
+    input_def(struct, Application.fetch_env!(:tr33_control, :led_structure))
+    |> add_index
+  end
+
+  defp add_index(inputs) when is_list(inputs) do
+    inputs
+    |> Enum.with_index()
+    |> Enum.map(fn {input, index} -> %{input | index: index} end)
+  end
+
+  defp add_index(:disabled), do: :disabled
 
   #  All  ####################################################################################################
 

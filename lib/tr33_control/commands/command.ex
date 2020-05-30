@@ -35,8 +35,7 @@ defmodule Tr33Control.Commands.Command do
     field :type, CommandType
     field :data, {:array, :integer}, default: []
     field :enabled, :boolean, default: true
-
-    embeds_many :modifiers, Modifier
+    field :modifiers, {:map, Modifier}, default: %{}
   end
 
   def changeset(command, %{"type" => type} = params) when is_binary(type) do
@@ -52,7 +51,6 @@ defmodule Tr33Control.Commands.Command do
     |> Changeset.validate_required([:index, :type])
     |> Changeset.validate_number(:index, less_than: 256)
     |> Changeset.validate_length(:data, max: 10)
-    |> Changeset.cast_embed(:modifiers)
   end
 
   def from_binary(<<index::size(8), type::size(8), data_bin::binary>>) do
@@ -84,10 +82,10 @@ defmodule Tr33Control.Commands.Command do
       Inputs.input_def(command)
       |> Enum.map(fn %{default: default} -> default end)
 
-    %Command{command | data: data, modifiers: []}
+    %Command{command | data: data, modifiers: %{}}
   end
 
-  def inputs(%Command{data: data} = command) do
+  def inputs(%Command{data: data, modifiers: modifiers} = command) do
     Inputs.input_def(command)
     |> case do
       :disabled ->
@@ -96,8 +94,8 @@ defmodule Tr33Control.Commands.Command do
       inputs ->
         inputs
         |> Enum.map(fn input -> Map.put(input, :variable_name, "data[]") end)
-        |> Enum.with_index()
-        |> Enum.map(fn {input, index} -> Map.merge(input, %{value: Enum.at(data, index, 0)}) end)
+        |> Enum.map(fn %{index: index} = input -> %{input | value: Enum.at(data, index, 0)} end)
+        |> Enum.map(fn %{index: index} = input -> %{input | has_modifier?: Map.has_key?(modifiers, index)} end)
     end
   end
 

@@ -1,4 +1,4 @@
 defmodule Tr33Control.Commands.Inputs.Hidden do
   @enforce_keys []
-  defstruct [:variable_name, :value, default: 0]
+  defstruct [:index, :variable_name, :value, default: 0, has_modifier?: false]
 end

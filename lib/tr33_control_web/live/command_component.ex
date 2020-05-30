@@ -17,6 +17,7 @@ defmodule Tr33ControlWeb.CommandComponent do
       |> assign(:id, id)
       |> assign(:command_types, Commands.command_types())
       |> assign(:collapsed?, Map.get(assigns, :collaped?, command.type == :disabled))
+      |> assign(:modifier_inputs, Commands.modifier_inputs(command))
 
     {:ok, socket}
   end
@@ -71,6 +72,27 @@ defmodule Tr33ControlWeb.CommandComponent do
 
   def handle_event("command_toggle_collapsed", _params, %Socket{assigns: assigns} = socket) do
     {:noreply, assign(socket, :collapsed?, not Map.get(assigns, :collapsed?, false))}
+  end
+
+  def handle_event("modifier_create", %{"index" => index}, %Socket{assigns: %{id: id}} = socket) do
+    Commands.get_command(id)
+    |> Commands.create_modifier(String.to_integer(index))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("modifier_delete", %{"index" => index}, %Socket{assigns: %{id: id}} = socket) do
+    Commands.get_command(id)
+    |> Commands.delete_modifier(String.to_integer(index))
+
+    {:noreply, socket}
+  end
+
+  def handle_event("modifier_change", %{"index" => index} = params, %Socket{assigns: %{id: id}} = socket) do
+    Commands.get_command(id)
+    |> Commands.update_modifier!(String.to_integer(index), params)
+
+    {:noreply, socket}
   end
 
   def handle_event(event, params, socket) do

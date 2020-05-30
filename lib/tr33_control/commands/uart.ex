@@ -15,7 +15,7 @@ defmodule Tr33Control.Commands.UART do
   @command_batch_max_byte_size 1024
   @command_batch_max_command_count min(floor((@command_batch_max_byte_size - 2) / (@command_data_bytes + 2)), 256)
   @rts_max_wait_ms 100
-  @debug_logs false
+  @debug_logs true
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
