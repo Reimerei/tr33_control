@@ -2,9 +2,9 @@
 
   <% %Select{name: name, variable_name: variable_name, value: value, options: options} -> %>
     <div class="form-group col-md-3">
-      <%= render("_modifier_button.html", assigns)  %>
       <label><%= name %></label>
-      <select name="<%= variable_name %>" class="custom-select">
+      <%= render Tr33ControlWeb.ControlView, "_modifier_button.html", assigns %>
+      <select name="<%= variable_name %>" class="custom-select mt-1">
         <%= for {option_name, option_value} <- options do %>
           <option value="<%= option_value %>" <%= if option_value == value or option_name == value do %>selected<% end %> ><%= "[#{option_value}] #{option_name}" %></option>
         <% end %>
@@ -13,10 +13,10 @@
 
   <% %Slider{name: name, variable_name: variable_name, value: value, max: max, step: step} -> %>
     <div class="form-group col-md-3">
-      <%= render("_modifier_button.html", assigns) %>
-      <label><%= name %>: <%= format(value) %></label>
+      <label><%= name %>: <%= value %></label>
+      <%= render Tr33ControlWeb.ControlView, "_modifier_button.html", assigns %>
       <div class="pt-2">
-        <input type="range" name="<%= variable_name %>" class="custom-range" min="0" max="<%= max %>" step="<%= step %>" value="<%= value %>">
+        <input type="range" name="<%= variable_name %>" class="custom-range mt-1" min="0" max="<%= max %>" step="<%= step %>" value="<%= value %>">
       </div>
     </div>
 

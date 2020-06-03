@@ -33,7 +33,6 @@
               -
             <% end %>
           </button>
-
         </div>
       </div>
     </div>
@@ -43,16 +42,16 @@
     <li class="list-group-item <%= if (not @command.enabled) do %>list-group-item-secondary<% end %>">
       <form action="" phx-change="data_change" phx-target="<%= @myself %>">
         <div class="form-row">
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_0, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_1, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_2, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_3, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_4, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_5, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_6, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_7, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_8, myself: @myself} %>
-          <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: @input_9, myself: @myself} %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_0, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_1, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_2, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_3, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_4, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_5, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_6, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_7, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_8, target: @myself %>
+          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_9, target: @myself %>
         </div>
       </form>
     </li>
@@ -66,7 +65,7 @@
             </div>
             <input name="index" type="hidden" value="<%= index %>">
             <%= for input <- inputs do %>
-              <%= render Tr33ControlWeb.ControlView, "_input.html", %{input: input, myself: @myself} %>
+              <%= live_component @socket, Tr33ControlWeb.InputComponent, input: input, target: @myself %>
             <% end %>
           </div>
         </form>

@@ -162,8 +162,10 @@ defmodule Tr33Control.Commands do
   end
 
   def apply_modifiers(%Command{modifiers: modifiers} = command) when map_size(modifiers) > 0 do
-    Enum.reduce(modifiers, command, &Modifier.apply/2)
-    |> send()
+    if Enum.any?(modifiers, fn {_, %Modifier{period: period}} -> period > 0 end) do
+      Enum.reduce(modifiers, command, &Modifier.apply/2)
+      |> send()
+    end
   end
 
   def apply_modifiers(%Command{} = command) do
