@@ -64,16 +64,17 @@ defmodule Tr33Control.Commands.Modifier do
 
     for {index, modifier} <- modifiers do
       command_input = Enum.at(command_inputs, index)
-      {inputs(modifier, input_max(command_input)), input_name(command_input), index}
+      {inputs(modifier, input_max(command_input), index), input_name(command_input), index}
     end
   end
 
-  defp inputs(%__MODULE__{} = modifier, max) do
+  defp inputs(%__MODULE__{} = modifier, max, index) do
     input_def(max)
     |> Enum.map(fn {key, input} ->
       input
       |> Map.put(:value, Map.fetch!(modifier, key))
       |> Map.put(:variable_name, Atom.to_string(key))
+      |> Map.put(:index, index)
     end)
   end
 

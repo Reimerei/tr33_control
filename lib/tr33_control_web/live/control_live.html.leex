@@ -1,3 +1,17 @@
+<ul class="list-group pb-4">
+
+  <li class="list-group-item list-group-item-secondary">
+    <p class="h3 mb-0">Settings</p>
+  </li>
+
+  <li class="list-group-item">
+    Receiving commands on <span class="font-weight-bold">UDP Port <%= Application.fetch_env!(:tr33_control, :udp_listen_port) %> </span>:
+    <a href="/docs">Documentation</a>
+  </li>
+
+  <%= live_component @socket, Tr33ControlWeb.SettingsComponent, id: :settings %>
+</ul>
+
 <%= for index <- 0..Application.fetch_env!(:tr33_control, :command_max_index) do %>
   <%= live_component @socket, Tr33ControlWeb.CommandComponent, id: index %>
 <% end %>

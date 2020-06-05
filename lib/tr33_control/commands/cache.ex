@@ -62,7 +62,9 @@ defmodule Tr33Control.Commands.Cache do
   end
 
   def delete(cache, key) when cache in @all_cache_keys do
-    Cachex.take(cache, key)
+    res = Cachex.take(cache, key)
+    Commands.notify_subscribers({cache, key}, true)
+    res
   end
 
   defp cache_key(%Command{index: index}), do: index

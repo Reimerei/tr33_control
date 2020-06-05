@@ -3,9 +3,10 @@ defmodule Tr33ControlWeb.CommandComponent do
   require Logger
   alias Phoenix.LiveView.Socket
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.Command
+  alias Tr33Control.Commands.{Command, Modifier}
 
-  def update(%{id: id} = assigns, socket) do
+  def update(parent_assigns, %Socket{assigns: assigns} = socket) do
+    assigns = %{id: id} = Map.merge(assigns, parent_assigns)
     command = Commands.get_command(id)
     command_inputs = Commands.inputs(command)
 
@@ -16,7 +17,7 @@ defmodule Tr33ControlWeb.CommandComponent do
       |> assign(:command, command)
       |> assign(:id, id)
       |> assign(:command_types, Commands.command_types())
-      |> assign(:collapsed?, Map.get(assigns, :collaped?, command.type == :disabled))
+      |> assign(:collapsed?, Map.get(assigns, :collapsed?, command.type == :disabled))
       |> assign(:modifier_inputs, Commands.modifier_inputs(command))
 
     {:ok, socket}
@@ -34,6 +35,26 @@ defmodule Tr33ControlWeb.CommandComponent do
   def handle_event("data_change", params, %Socket{assigns: %{id: id}} = socket) do
     Commands.get_command(id)
     |> Commands.edit_command!(params)
+    |> Commands.send(true)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("data_increase", %{"index" => index}, %Socket{assigns: %{id: id}} = socket) do
+    command = %Command{data: data} = Commands.get_command(id)
+
+    command
+    |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(index), &increment_data/1)})
+    |> Commands.send(true)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("data_decrease", %{"index" => index}, %Socket{assigns: %{id: id}} = socket) do
+    command = %Command{data: data} = Commands.get_command(id)
+
+    command
+    |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(index), &decrement_data/1)})
     |> Commands.send(true)
 
     {:noreply, socket}
@@ -95,8 +116,48 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
+  def handle_event("modifier_increase", params, %Socket{assigns: %{id: id}} = socket) do
+    %{"index" => index, "variable_name" => variable_name} = params
+    index = String.to_integer(index)
+    variable_name = String.to_existing_atom(variable_name)
+
+    command = %Command{modifiers: %{^index => modifier}} = Commands.get_command(id)
+    Commands.update_modifier!(command, index, %{variable_name => increment_modifier_value(modifier, variable_name)})
+    {:noreply, socket}
+  end
+
+  def handle_event("modifier_decrease", params, %Socket{assigns: %{id: id}} = socket) do
+    %{"index" => index, "variable_name" => variable_name} = params
+    index = String.to_integer(index)
+    variable_name = String.to_existing_atom(variable_name)
+
+    command = %Command{modifiers: %{^index => modifier}} = Commands.get_command(id)
+    Commands.update_modifier!(command, index, %{variable_name => decrement_modifier_value(modifier, variable_name)})
+    {:noreply, socket}
+  end
+
   def handle_event(event, params, socket) do
     Logger.warn("#{__MODULE__}: Unhandled event #{inspect(event)} Params: #{inspect(params)}")
     {:noreply, socket}
+  end
+
+  def increment_data(data) when data < 255, do: data + 1
+  def increment_data(data), do: data
+
+  def decrement_data(data) when data > 0, do: data + -1
+  def decrement_data(data), do: data
+
+  def increment_modifier_value(%Modifier{} = modifier, variable_name) do
+    case Map.fetch!(modifier, variable_name) do
+      number when is_number(number) -> number + 1
+      other -> other
+    end
+  end
+
+  def decrement_modifier_value(%Modifier{} = modifier, variable_name) do
+    case Map.fetch!(modifier, variable_name) do
+      number when is_number(number) and number > 0 -> number + -1
+      other -> other
+    end
   end
 end

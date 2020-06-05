@@ -152,7 +152,7 @@ defmodule Tr33Control.Commands do
 
   def update_modifier!(%Command{modifiers: modifiers} = command, index, params) when is_number(index) do
     modifier =
-      %Modifier{}
+      Map.fetch!(modifiers, index)
       |> Modifier.changeset(params)
       |> Ecto.Changeset.apply_action(:insert)
       |> raise_on_error()

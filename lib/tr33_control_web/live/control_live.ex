@@ -3,7 +3,7 @@ defmodule Tr33ControlWeb.ControlLive do
   require Logger
 
   alias Tr33Control.Commands
-  alias Tr33ControlWeb.CommandComponent
+  alias Tr33ControlWeb.{CommandComponent, SettingsComponent}
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: Commands.subscribe()
@@ -18,6 +18,21 @@ defmodule Tr33ControlWeb.ControlLive do
 
   def handle_info({:command_update, id}, socket) do
     send_update(CommandComponent, id: id)
+    {:noreply, socket}
+  end
+
+  def handle_info({:event_update, :update_settings}, socket) do
+    send_update(SettingsComponent, id: :settings)
+    {:noreply, socket}
+  end
+
+  def handle_info({:preset_update, _name}, socket) do
+    send_update(SettingsComponent, id: :settings)
+    {:noreply, socket}
+  end
+
+  def handle_info({:preset_load, _name}, socket) do
+    send_update(SettingsComponent, id: :settings)
     {:noreply, socket}
   end
 
