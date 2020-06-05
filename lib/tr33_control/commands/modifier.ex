@@ -15,7 +15,6 @@ defmodule Tr33Control.Commands.Modifier do
 
   @primary_key false
   embedded_schema do
-    # field :field_index, :integer
     field :type, ModifierType
     field :period, :integer
     field :offset, :integer

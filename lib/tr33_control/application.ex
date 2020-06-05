@@ -21,18 +21,14 @@ defmodule Tr33Control.Application do
       # Tr33Control.Commands.Socket
     ]
 
-    # See https://hexdocs.pm/elixir/Supervisor.html
-    # for other strategies and supported options
     opts = [strategy: :one_for_one, name: Tr33Control.Supervisor]
-    sup = Supervisor.start_link(children, opts)
+    sup = {:ok, _} = Supervisor.start_link(children, opts)
 
     Commands.init()
 
     sup
   end
 
-  # Tell Phoenix to update the endpoint configuration
-  # whenever the application is updated.
   def config_change(changed, _new, removed) do
     Tr33ControlWeb.Endpoint.config_change(changed, removed)
     :ok

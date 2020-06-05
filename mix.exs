@@ -5,7 +5,7 @@ defmodule Tr33Control.MixProject do
     [
       app: :tr33_control,
       version: "0.1.0",
-      elixir: "~> 1.7",
+      elixir: "~> 1.10",
       elixirc_paths: elixirc_paths(Mix.env()),
       compilers: [:phoenix] ++ Mix.compilers(),
       start_permanent: Mix.env() == :prod,
@@ -44,7 +44,6 @@ defmodule Tr33Control.MixProject do
       {:floki, ">= 0.0.0", only: :test},
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
-
       {:ecto, "~> 3.0"},
       {:ecto_enum, "~> 1.0"},
       {:nerves_uart, "~> 1.2"},
