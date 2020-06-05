@@ -44,7 +44,7 @@
     <div class="form-row">
       <input name="index" type="hidden" value="<%= assigns[:index] || 0 %>">
       <%= for input <- @settings_inputs do %>
-        <%= live_component @socket, Tr33ControlWeb.InputComponent, input: input, target: @myself, modifier?: true %>
+        <%= live_component @socket, Tr33ControlWeb.InputComponent, input: input, target: @myself, modifier_button?: false, step_buttons?: false %>
       <% end %>
     </div>
   </form>
