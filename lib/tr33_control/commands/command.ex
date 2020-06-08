@@ -4,7 +4,6 @@ defmodule Tr33Control.Commands.Command do
   alias Ecto.Changeset
   alias __MODULE__
   alias Tr33Control.Commands.{Modifier, Inputs}
-  alias Tr33Control.Commands.Inputs.{Select}
 
   defenum CommandType,
     disabled: 0,
@@ -94,7 +93,10 @@ defmodule Tr33Control.Commands.Command do
       inputs ->
         inputs
         |> Enum.map(fn input -> Map.put(input, :variable_name, "data[]") end)
-        |> Enum.map(fn %{index: index} = input -> %{input | value: Enum.at(data, index, 0)} end)
+        |> Enum.map(fn
+          %{index: index, value: _} = input -> %{input | value: Enum.at(data, index, 0)}
+          input -> input
+        end)
         |> Enum.map(fn %{index: index} = input -> %{input | has_modifier?: Map.has_key?(modifiers, index)} end)
     end
   end

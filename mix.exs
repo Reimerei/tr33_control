@@ -20,7 +20,7 @@ defmodule Tr33Control.MixProject do
   def application do
     [
       mod: {Tr33Control.Application, []},
-      extra_applications: [:logger, :runtime_tools]
+      extra_applications: [:logger, :runtime_tools, :os_mon]
     ]
   end
 

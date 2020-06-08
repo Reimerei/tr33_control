@@ -100,8 +100,9 @@ defmodule Tr33Control.Commands.Cache do
   defp migrate_modifiers_to_map(%Command{modifiers: modifiers} = command) when is_list(modifiers) do
     map =
       modifiers
+      |> IO.inspect()
       |> Enum.map(fn %{field_index: field_index} = modifier ->
-        {field_index, struct!(Modifier, Map.delete(modifier, :__struct__))}
+        {field_index, struct!(Modifier, Map.drop(modifier, [:__struct__, :field_index]))}
       end)
       |> Enum.into(%{})
 

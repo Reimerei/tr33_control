@@ -10,3 +10,7 @@ This app leverages phoenix channels to sync the state between all connected brow
 * gravity height relative to strip length
 * move up/down -> no update
 * persistence per led structure
+* type select not working with enabled modifier
+* reverse sawtooth in firmware
+* performance with modifiers
+* read led_structure from controller

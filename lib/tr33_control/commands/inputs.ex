@@ -5,22 +5,22 @@ defmodule Tr33Control.Commands.Inputs do
   alias Tr33Control.Commands.Command.{StripIndex, BallType}
   alias Tr33Control.Commands.Inputs.{Button, Slider, Select, Hidden}
 
-  # @trunk_count 8
-  # @branch_count 12
-  # @strip_index_values_tr33 [
-  #                            all: @trunk_count + @branch_count + 2,
-  #                            all_trunks: @trunk_count + @branch_count,
-  #                            all_branches: @trunk_count + @branch_count + 1
-  #                          ] ++
-  #                            Enum.map(0..(@trunk_count - 1), &{:"trunk_#{&1}", &1}) ++
-  #                            Enum.map(0..(@branch_count - 1), &{:"branch_#{&1}", &1 + @trunk_count})
-  @strip_count 10
-  @strip_index_values_keller [
-                               all: @strip_count
-                             ] ++
-                               Enum.map(0..(@strip_count - 1), &{:"strip_#{&1}", &1})
+  @trunk_count 8
+  @branch_count 12
+  @strip_index_values_tr33 [
+                             all: @trunk_count + @branch_count + 2,
+                             all_trunks: @trunk_count + @branch_count,
+                             all_branches: @trunk_count + @branch_count + 1
+                           ] ++
+                             Enum.map(0..(@trunk_count - 1), &{:"trunk_#{&1}", &1}) ++
+                             Enum.map(0..(@branch_count - 1), &{:"branch_#{&1}", &1 + @trunk_count})
+  # @strip_count 10
+  # @strip_index_values_keller [
+  #                              all: @strip_count
+  #                            ] ++
+  #                              Enum.map(0..(@strip_count - 1), &{:"strip_#{&1}", &1})
 
-  defenum StripIndex, @strip_index_values_keller
+  defenum StripIndex, @strip_index_values_tr33
 
   defenum BallType,
     # square: 0,

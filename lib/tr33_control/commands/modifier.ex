@@ -4,12 +4,13 @@ defmodule Tr33Control.Commands.Modifier do
 
   alias Ecto.Changeset
   alias Tr33Control.Commands.Command
-  alias Tr33Control.Commands.Inputs.{Select, Slider, Hidden}
+  alias Tr33Control.Commands.Inputs.{Select, Slider}
 
   defenum ModifierType,
     linear: 0,
     sine: 1,
     sawtooth: 2,
+    sawtooth_reverse: 5,
     random: 3,
     random_transitions: 4
 
@@ -113,6 +114,13 @@ defmodule Tr33Control.Commands.Modifier do
     rem(System.os_time(:millisecond) + offset, period) / period
   end
 
+  defp fraction(%__MODULE__{type: :sawtooth_reverse, period: period, offset: offset}) do
+    period = period * 1000
+    offset = offset * 1000
+
+    1 - rem(System.os_time(:millisecond) + offset, period) / period
+  end
+
   defp fraction(%__MODULE__{type: :random, period: period, offset: offset}) do
     key_value = period
     period = period * 1000
@@ -172,7 +180,9 @@ defmodule Tr33Control.Commands.Modifier do
 
   defp input_name(%Slider{name: name}), do: name
   defp input_name(%Select{name: name}), do: name
+  defp input_name(_), do: "THIS SHOULD NOT BE HERE"
 
   defp input_max(%Slider{max: max}), do: max
   defp input_max(%Select{options: options}), do: Enum.max_by(options, fn {_key, value} -> value end) |> elem(1)
+  defp input_max(_), do: 0
 end

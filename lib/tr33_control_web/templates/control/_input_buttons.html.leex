@@ -1,16 +1,6 @@
 <%= if @step_buttons? do %>
+
   <div class="btn-group float-right pl-3 mb-2" role="group">
-    <button
-      type="button"
-      class="btn btn-sm btn-secondary"
-      style="width: 40px"
-      phx-click="<%= if @modifier_button?, do: "data_increase", else: "modifier_increase" %>"
-      phx-value-index="<%= @input.index %>"
-      phx-value-variable_name="<%= @input.variable_name %>"
-      phx-target="<%= @target %>"
-    >
-      +
-    </button>
     <button
       type="button"
       class="btn btn-sm btn-secondary"
@@ -21,6 +11,17 @@
       phx-target="<%= @target %>"
     >
       -
+    </button>
+    <button
+      type="button"
+      class="btn btn-sm btn-secondary"
+      style="width: 40px"
+      phx-click="<%= if @modifier_button?, do: "data_increase", else: "modifier_increase" %>"
+      phx-value-index="<%= @input.index %>"
+      phx-value-variable_name="<%= @input.variable_name %>"
+      phx-target="<%= @target %>"
+    >
+      +
     </button>
   </div>
 <% end %>

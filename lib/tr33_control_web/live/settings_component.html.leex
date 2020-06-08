@@ -40,7 +40,7 @@
 </li>
 
 <li class="list-group-item">
-  <form action="" phx-change="settings_change" phx-target="<%= @myself %> ">
+  <form action="" phx-change="settings_change" phx-target="<%= @myself %>">
     <div class="form-row">
       <input name="index" type="hidden" value="<%= assigns[:index] || 0 %>">
       <%= for input <- @settings_inputs do %>

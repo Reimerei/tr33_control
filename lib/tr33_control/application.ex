@@ -10,12 +10,12 @@ defmodule Tr33Control.Application do
     children = [
       Tr33ControlWeb.Telemetry,
       {Phoenix.PubSub, name: Tr33Control.PubSub},
-      Tr33ControlWeb.Endpoint,
-      Tr33Control.Commands.UART,
-      Tr33Control.UdpServer,
       Supervisor.child_spec({Cachex, Command}, id: make_ref()),
       Supervisor.child_spec({Cachex, Event}, id: make_ref()),
       Supervisor.child_spec({Cachex, Preset}, id: make_ref()),
+      Tr33ControlWeb.Endpoint,
+      Tr33Control.Commands.UART,
+      Tr33Control.UdpServer,
       Tr33Control.Joystick,
       Tr33Control.Commands.Updater
       # Tr33Control.Commands.Socket

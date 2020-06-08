@@ -56,6 +56,7 @@ defmodule Tr33Control.Commands.UART do
       last_rts: 0
     }
 
+    resync()
     {:ok, state}
   end
 
