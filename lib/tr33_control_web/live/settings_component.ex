@@ -70,7 +70,7 @@ defmodule Tr33ControlWeb.SettingsComponent do
 
   def handle_event("preset_delete", %{"name" => name}, socket) do
     flash =
-      case Commands.delete_preset(name) |> IO.inspect() do
+      case Commands.delete_preset(name) do
         {:ok, _} -> "Preset #{inspect(name)} deleted"
         _ -> "Could not delete Preset #{inspect(name)}"
       end
@@ -103,7 +103,7 @@ defmodule Tr33ControlWeb.SettingsComponent do
     params
     |> Map.put("type", "update_settings")
     |> Commands.new_event!()
-    |> Commands.send()
+    |> Commands.send_to_esp()
 
     {:noreply, socket}
   end

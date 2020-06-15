@@ -1,9 +1,10 @@
 defmodule Tr33Control.Commands do
+  require Logger
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset, Modifier}
 
   @max_index Application.fetch_env!(:tr33_control, :command_max_index)
-  @pubsub_silent_period_ms 50
+  @pubsub_silent_period_ms 100
 
   @topic "#{inspect(__MODULE__)}"
 
@@ -14,19 +15,19 @@ defmodule Tr33Control.Commands do
     |> load_preset
   end
 
-  def send(command, force \\ true)
+  def send_to_esp(command, force \\ false)
 
-  def send(%Command{index: index} = command, force) when index <= @max_index do
+  def send_to_esp(%Command{index: index} = command, force) when index <= @max_index do
     command
     |> Cache.insert(force)
     |> UART.send()
   end
 
-  def send(%Command{} = command, _), do: command
+  def send_to_esp(%Command{} = command, _), do: command
 
-  def send(%Event{} = event, _) do
+  def send_to_esp(%Event{} = event, force) do
     event
-    |> maybe_insert()
+    |> maybe_insert(force)
     |> UART.send()
   end
 
@@ -36,15 +37,11 @@ defmodule Tr33Control.Commands do
     Phoenix.PubSub.subscribe(Tr33Control.PubSub, @topic)
   end
 
-  def notify_subscribers(struct_or_message, force \\ false)
-
-  def notify_subscribers({Command, key}, force),
-    do: notify_subscribers({:command_update, key}, force)
+  def notify_subscribers({Command, key}, force), do: notify_subscribers({:command_update, key}, force)
 
   def notify_subscribers({Event, key}, force), do: notify_subscribers({:event_update, key}, force)
 
-  def notify_subscribers({Preset, key}, force),
-    do: notify_subscribers({:preset_update, key}, force)
+  def notify_subscribers({Preset, key}, force), do: notify_subscribers({:preset_update, key}, force)
 
   def notify_subscribers(message, force) do
     now = System.os_time(:millisecond)
@@ -53,6 +50,8 @@ defmodule Tr33Control.Commands do
     if force or now - last_notify > @pubsub_silent_period_ms do
       Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @topic, message)
       Application.put_env(:tr33_control, :pubsub_last_notify, now)
+    else
+      # Logger.debug("PubSub throttled, message: #{inspect(message)}")
     end
   end
 
@@ -82,7 +81,7 @@ defmodule Tr33Control.Commands do
       end
 
     Command.defaults(next_index)
-    |> send()
+    |> send_to_esp()
   end
 
   def list_commands() do
@@ -117,17 +116,17 @@ defmodule Tr33Control.Commands do
     swapped_command = get_command(new_index)
 
     %Command{swapped_command | index: index}
-    |> send()
+    |> send_to_esp(true)
 
     %Command{command | index: new_index}
-    |> send()
+    |> send_to_esp(true)
   end
 
   def swap_commands(%Command{} = command, _), do: command
 
   def clone_command(%Command{} = command, new_index) when new_index >= 0 and new_index <= @max_index do
     %Command{command | index: new_index}
-    |> send()
+    |> send_to_esp(true)
   end
 
   def clone_command(%Command{} = command, _), do: command
@@ -164,7 +163,7 @@ defmodule Tr33Control.Commands do
   def apply_modifiers(%Command{modifiers: modifiers} = command) when map_size(modifiers) > 0 do
     if Enum.any?(modifiers, fn {_, %Modifier{period: period}} -> period > 0 end) do
       Enum.reduce(modifiers, command, &Modifier.apply/2)
-      |> send()
+      |> send_to_esp()
     end
   end
 
@@ -214,7 +213,7 @@ defmodule Tr33Control.Commands do
     |> Changeset.put_change(:events, events)
     |> Changeset.put_change(:updated_at, NaiveDateTime.utc_now())
     |> Ecto.Changeset.apply_action(:insert)
-    |> maybe_insert()
+    |> maybe_insert(true)
     |> maybe_set_current_preset()
   end
 
@@ -222,7 +221,7 @@ defmodule Tr33Control.Commands do
     preset
     |> change_preset(attrs)
     |> Ecto.Changeset.apply_action(:update)
-    |> maybe_insert()
+    |> maybe_insert(true)
     |> raise_on_error()
   end
 
@@ -241,7 +240,7 @@ defmodule Tr33Control.Commands do
     Cache.clear(Event)
 
     (commands ++ events)
-    |> Enum.map(&Cache.insert/1)
+    |> Enum.map(&Cache.insert(&1, true))
 
     UART.resync()
     notify_subscribers({:preset_load, name}, true)
@@ -311,15 +310,15 @@ defmodule Tr33Control.Commands do
 
   defp raise_on_error(error), do: raise(RuntimeError, message: "Could not create: #{inspect(error)}")
 
-  defp maybe_insert(%Event{} = event) do
-    if Event.persist?(event), do: Cache.insert(event)
+  defp maybe_insert(%Event{} = event, force) do
+    if Event.persist?(event), do: Cache.insert(event, force)
     event
   end
 
-  defp maybe_insert({:error, _} = response), do: response
+  defp maybe_insert({:error, _} = response, _), do: response
 
-  defp maybe_insert({:ok, struct} = response) do
-    Cache.insert(struct)
+  defp maybe_insert({:ok, struct} = response, force) do
+    Cache.insert(struct, force)
     response
   end
 

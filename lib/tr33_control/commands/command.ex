@@ -15,7 +15,7 @@ defmodule Tr33Control.Commands.Command do
     sparkle: 6,
     show_number: 7,
     rain: 8,
-    mapped_swipe: 10,
+    mapped_slope: 10,
     mapped_shape: 11,
     kaleidoscope: 12,
     random_walk: 13,

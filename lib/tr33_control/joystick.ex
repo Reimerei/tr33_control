@@ -30,19 +30,19 @@ defmodule Tr33Control.Joystick do
     if Commands.get_current_preset_name() == "joystick" do
       Commands.get_event(:update_settings)
       |> Map.update(:data, [], &iterate(&1, 0, Inputs.ColorPalette))
-      |> Commands.send()
+      |> Commands.send_to_esp()
     end
 
     if Commands.get_current_preset_name() == "twang" do
       Commands.new_event!(%{type: :joystick, data: [0, 160]})
-      |> Commands.send()
+      |> Commands.send_to_esp()
     end
   end
 
   defp handle_joystick_event({:ev_key, :btn_trigger, 0}) do
     if Commands.get_current_preset_name() == "twang" do
       Commands.new_event!(%{type: :joystick, data: [0, 0]})
-      |> Commands.send()
+      |> Commands.send_to_esp()
     end
   end
 
@@ -55,13 +55,13 @@ defmodule Tr33Control.Joystick do
 
         command ->
           Map.update(command, :data, [], &update_mapped_shape_data(&1, name, value))
-          |> Commands.send()
+          |> Commands.send_to_esp()
       end
     end
 
     if Commands.get_current_preset_name() == "twang" do
       twang_event(name, value)
-      |> Commands.send()
+      |> Commands.send_to_esp()
     end
   end
 

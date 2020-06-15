@@ -28,18 +28,18 @@ defmodule Tr33Control.UdpServer do
 
     case Commands.new_command(data) do
       {:ok, command} ->
-        Commands.send(command)
+        Commands.send_to_esp(command)
         send_ack(socket, address, port)
 
-      Logger.debug("Valid command: #{inspect(command)}", label: @log_label)
+        Logger.debug("Valid command: #{inspect(command)}", label: @log_label)
 
       {:error, _error} ->
         case Commands.new_event(data) do
           {:ok, event} ->
-            Commands.send(event)
+            Commands.send_to_esp(event)
             send_ack(socket, address, port)
 
-          Logger.debug("Valid event: #{inspect(event)}", label: @log_label)
+            Logger.debug("Valid event: #{inspect(event)}", label: @log_label)
 
           {:error, error} ->
             Logger.debug("Inalid command or event: #{inspect(data)}, Error: #{inspect(error)}", label: @log_label)

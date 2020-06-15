@@ -7,10 +7,27 @@ This app leverages phoenix channels to sync the state between all connected brow
 
 # Bugs/features
 
+
 * gravity height relative to strip length
-* move up/down -> no update
 * persistence per led structure
-* type select not working with enabled modifier
 * reverse sawtooth in firmware
 * performance with modifiers
 * read led_structure from controller
+* position 16bit
+* ping pong sawtooth, fade out
+* modifier for palette 
+* random walk for tr33
+* more shapes for mapped_shape
+* joystick plug and play
+* diffusion (lava lamp) effect
+* move slope, or render in general: color shift effect (or similar) instead of solid color 
+
+
+## Fixed
+* move up/down -> no update
+* bug: change type when moving command
+* type select not working with enabled modifier
+
+## Wont do
+* x for disable
+* optionally avoid overlap in random transistion

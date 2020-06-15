@@ -12,7 +12,7 @@ defmodule Tr33Control.Commands.Cache do
   def init(Command) do
     0..Application.fetch_env!(:tr33_control, :command_max_index)
     |> Enum.map(&Command.defaults/1)
-    |> Enum.map(&insert/1)
+    |> Enum.map(&insert(&1, true))
   end
 
   def init(Event) do
@@ -20,7 +20,7 @@ defmodule Tr33Control.Commands.Cache do
       %Event{type: :update_settings}
     ]
     |> Enum.map(&Event.defaults/1)
-    |> Enum.map(&insert/1)
+    |> Enum.map(&insert(&1, true))
   end
 
   def init(Preset) do
@@ -42,7 +42,7 @@ defmodule Tr33Control.Commands.Cache do
     Cachex.clear!(key)
   end
 
-  def insert(%{__struct__: cache} = struct, force \\ true) when cache in @all_cache_keys do
+  def insert(%{__struct__: cache} = struct, force) when cache in @all_cache_keys do
     Cachex.put!(cache, cache_key(struct), struct)
     maybe_persist_cache(struct)
     Commands.notify_subscribers({cache, cache_key(struct)}, force)
@@ -89,7 +89,7 @@ defmodule Tr33Control.Commands.Cache do
 
       %Preset{preset | commands: commands}
     end)
-    |> Enum.map(&insert/1)
+    |> Enum.map(&insert(&1, false))
   end
 
   defp migrate(_), do: :noop
@@ -100,7 +100,6 @@ defmodule Tr33Control.Commands.Cache do
   defp migrate_modifiers_to_map(%Command{modifiers: modifiers} = command) when is_list(modifiers) do
     map =
       modifiers
-      |> IO.inspect()
       |> Enum.map(fn %{field_index: field_index} = modifier ->
         {field_index, struct!(Modifier, Map.drop(modifier, [:__struct__, :field_index]))}
       end)

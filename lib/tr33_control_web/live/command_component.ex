@@ -5,8 +5,16 @@ defmodule Tr33ControlWeb.CommandComponent do
   alias Tr33Control.Commands
   alias Tr33Control.Commands.{Command, Modifier}
 
-  def update(parent_assigns, %Socket{assigns: assigns} = socket) do
-    assigns = %{id: id} = Map.merge(assigns, parent_assigns)
+  def mount(socket) do
+    socket =
+      socket
+      |> assign(:collapsed?, true)
+
+    {:ok, socket}
+  end
+
+  def update(update_assigns, %Socket{assigns: assigns} = socket) do
+    %{id: id} = Map.merge(assigns, update_assigns)
     command = Commands.get_command(id)
     command_inputs = Commands.inputs(command)
 
@@ -14,20 +22,23 @@ defmodule Tr33ControlWeb.CommandComponent do
       Enum.reduce(0..9, socket, fn index, socket_acc ->
         assign(socket_acc, String.to_atom("input_#{index}"), Enum.at(command_inputs, index))
       end)
-      |> assign(:command, command)
       |> assign(:id, id)
       |> assign(:command_types, Commands.command_types())
-      |> assign(:collapsed?, Map.get(assigns, :collapsed?, command.type == :disabled))
+      |> assign(:command, command)
       |> assign(:modifier_inputs, Commands.modifier_inputs(command))
+      |> maybe_set_collapsed?(command, Map.get(assigns, :command))
 
     {:ok, socket}
   end
 
-  def handle_event("type_change", %{"new_type" => new_type}, %Socket{assigns: %{id: id}} = socket) do
-    %{index: id, type: new_type}
+  def handle_event("type_change", %{"type" => new_type}, %Socket{assigns: %{id: id}} = socket) do
+    %{index: id, type: String.to_integer(new_type)}
     |> Commands.new_command!()
     |> Command.defaults()
-    |> Commands.send(true)
+    |> Commands.send_to_esp(true)
+
+    socket
+    |> set_default_collapsed?(new_type)
 
     {:noreply, socket}
   end
@@ -35,7 +46,7 @@ defmodule Tr33ControlWeb.CommandComponent do
   def handle_event("data_change", params, %Socket{assigns: %{id: id}} = socket) do
     Commands.get_command(id)
     |> Commands.edit_command!(params)
-    |> Commands.send(true)
+    |> Commands.send_to_esp(true)
 
     {:noreply, socket}
   end
@@ -45,7 +56,7 @@ defmodule Tr33ControlWeb.CommandComponent do
 
     command
     |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(index), &increment_data/1)})
-    |> Commands.send(true)
+    |> Commands.send_to_esp(true)
 
     {:noreply, socket}
   end
@@ -55,7 +66,7 @@ defmodule Tr33ControlWeb.CommandComponent do
 
     command
     |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(index), &decrement_data/1)})
-    |> Commands.send(true)
+    |> Commands.send_to_esp(true)
 
     {:noreply, socket}
   end
@@ -86,7 +97,7 @@ defmodule Tr33ControlWeb.CommandComponent do
 
     command
     |> Commands.edit_command!(%{enabled: !enabled})
-    |> Commands.send()
+    |> Commands.send_to_esp()
 
     {:noreply, socket}
   end
@@ -159,5 +170,15 @@ defmodule Tr33ControlWeb.CommandComponent do
       number when is_number(number) and number > 0 -> number + -1
       other -> other
     end
+  end
+
+  def maybe_set_collapsed?(socket, %Command{type: type}, %Command{type: type}), do: socket
+
+  def maybe_set_collapsed?(socket, %Command{type: new_type}, _) do
+    set_default_collapsed?(socket, new_type)
+  end
+
+  def set_default_collapsed?(socket, new_type) do
+    assign(socket, :collapsed?, new_type == :disabled || new_type == "disabled")
   end
 end

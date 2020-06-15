@@ -1,21 +1,20 @@
 <ul class="list-group pb-4">
   <li class="list-group-item list-group-item-secondary">
     <div class="row">
-      <div class="col-md-6">
-        <div class="dropdown">
-          <button type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown">
-            <%= @command.type %>
-          </button>
-          <div class="dropdown-menu">
-            <%= for {name, _} <- @command_types do %>
-              <div class="dropdown-item" phx-click=type_change phx-target="<%= @myself %>" phx-value-new_type="<%= name %>" ><%= name %></div>
-            <% end %>
-          </div>
-        </div>
+      <div class="col-md-1 h5 pt-2">
+        CMD <%= @command.index %>
       </div>
-
-      <div class="col-md-6">
-        <div class="btn-group float-right" role="group">
+      <div class="col-md-2">
+        <form action="" phx-change="type_change" phx-target="<%= @myself %>">
+          <select name="type" class="custom-select">
+            <%= for {type_name, type_value} <- @command_types do %>
+              <option value="<%= type_value %>" <%= if type_name == @command.type or type_value == @command.type do %>selected<% end %> ><%= type_name %></option>
+            <% end %>
+          </select>
+        </form>
+      </div>
+      <div class="col-md-9">
+         <div class="btn-group float-right" role="group">
           <button type="button" class="btn btn-secondary" phx-click="command_up" phx-target="<%= @myself %>">↑</button>
           <button type="button" class="btn btn-secondary" phx-click="command_down" phx-target="<%= @myself %>">↓</button>
           <button type="button" class="btn btn-secondary" phx-click="command_clone" phx-target="<%= @myself %>">clone</button>
