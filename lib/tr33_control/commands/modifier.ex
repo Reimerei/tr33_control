@@ -12,7 +12,8 @@ defmodule Tr33Control.Commands.Modifier do
     sawtooth: 2,
     sawtooth_reverse: 5,
     random: 3,
-    random_transitions: 4
+    random_transitions: 4,
+    bounce: 6
 
   @primary_key false
   embedded_schema do
@@ -172,6 +173,21 @@ defmodule Tr33Control.Commands.Modifier do
 
     Application.put_env(:tr33_control, :"modifier_random_transition_#{key}", state)
     ease(current_value, next_value, now - last_update, period)
+  end
+
+  @gravity 9.8
+  @initial_rate 1
+  defp fraction(%__MODULE__{type: :bounce, period: period, offset: offset}) do
+    period = period * 1000
+    offset = offset * 1000
+    current_bounce_duration = rem(System.os_time(:millisecond) + offset, period) / 1000
+
+    height =
+      @initial_rate * current_bounce_duration + -0.5 * @gravity * current_bounce_duration * current_bounce_duration
+
+    max_height = @initial_rate * @initial_rate / (2 * @gravity)
+
+    height / max_height * 1.2
   end
 
   defp ease(current, next, time_elapsed, period) do

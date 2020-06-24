@@ -19,8 +19,8 @@ defmodule Tr33Control.Commands.Inputs do
 
   defenum MappedShape,
     square: 0,
-    hollow_square: 1,
-    circle: 2
+    ball: 1,
+    ring: 2
 
   defenum ColorPalette,
     rainbow: 0,
@@ -208,17 +208,17 @@ defmodule Tr33Control.Commands.Inputs do
 
   defp input_def(%Command{type: :mapped_shape}, _) do
     [
-      %Select{name: "Shape", options: MappedShape.__enum_map__(), default: 0},
       %Slider{name: "Color", max: 255, default: 50},
-      %Slider{name: "X", max: 255, default: 100},
-      %Slider{name: "Y", max: 255, default: 100},
-      %Slider{name: "Size", max: 255, default: 50}
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Select{name: "Shape", options: MappedShape.__enum_map__(), default: 0},
+      %Slider{name: "X", max: 255, default: 128},
+      %Slider{name: "Y", max: 255, default: 128},
+      %Slider{name: "Size", max: 255, default: 50},
+      %Slider{name: "Fade Distance", max: 255, default: 50}
     ]
   end
 
-  #  Tr33  ###################################################################################################
-
-  defp input_def(%Command{type: :gravity}, :tr33) do
+  defp input_def(%Command{type: :gravity}, _) do
     [
       %Select{name: "StripIndex", options: LedStructure.strip_index_options(), default: strip_index(:all)},
       %Slider{name: "Color", max: 255, default: 13},
@@ -228,6 +228,8 @@ defmodule Tr33Control.Commands.Inputs do
       %Button{name: "Add Ball", event: :gravity}
     ]
   end
+
+  #  Tr33  ###################################################################################################
 
   # defp input_def(%Command{type: :show_number}, :tr33) do
   #   [

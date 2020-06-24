@@ -15,7 +15,6 @@ defmodule Tr33Control.Commands.UART do
   @command_batch_max_byte_size 1024
   @command_batch_max_command_count min(floor((@command_batch_max_byte_size - 2) / (@command_data_bytes + 2)), 256)
   @rts_max_wait_ms 100
-  @debug_logs Application.get_env(:tr33_control, :uart_debug, false)
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -76,7 +75,7 @@ defmodule Tr33Control.Commands.UART do
   end
 
   def handle_info({:nerves_uart, _, @serial_clear_to_send}, %{queue: queue} = state) do
-    if @debug_logs do
+    if debug_logs?() do
       Logger.debug("UART RECEIVED CTS")
     end
 
@@ -86,7 +85,7 @@ defmodule Tr33Control.Commands.UART do
     {queue_send, queue_rest} = :queue.split(command_count, queue)
     header = <<@serial_header::size(8), command_count::size(8)>>
 
-    if @debug_logs do
+    if debug_logs?() do
       Logger.debug("UART SENDING BATCH WITH #{inspect(command_count)} COMMANDS")
     end
 
@@ -126,7 +125,7 @@ defmodule Tr33Control.Commands.UART do
   defp to_binary(%Event{} = event), do: Event.to_binary(event)
 
   defp send_packet(%{uart_pid: uart_pid}, paket) do
-    if @debug_logs do
+    if debug_logs?() do
       Logger.debug("UART SENDING #{inspect(paket)}")
     end
 
@@ -150,11 +149,13 @@ defmodule Tr33Control.Commands.UART do
   end
 
   defp do_send_rts(%{uart_pid: uart_pid} = state) do
-    if @debug_logs do
+    if debug_logs?() do
       Logger.debug("UART SENDING RTS")
     end
 
     Nerves.UART.write(uart_pid, @serial_ready_to_send)
     %{state | last_rts: System.os_time(:millisecond)}
   end
+
+  defp debug_logs?(), do: Application.get_env(:tr33_control, :uart_debug, false)
 end
