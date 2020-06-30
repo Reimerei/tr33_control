@@ -27,6 +27,7 @@ This app leverages phoenix channels to sync the state between all connected brow
 * bug in mapped slope: use perpendicular distance instead of y distance
 * mapped 2D bouncing ball
 * multiple rain/sparkle in parallel
+* softer sparkle
 
 
 ## Fixed
