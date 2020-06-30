@@ -17,6 +17,8 @@ defmodule Tr33Control.Commands.Command do
     rain: 8,
     mapped_slope: 10,
     mapped_shape: 11,
+    mapped_triangle: 21,
+    mapped_particles: 22,
     kaleidoscope: 12,
     random_walk: 13,
     fireworks: 15,

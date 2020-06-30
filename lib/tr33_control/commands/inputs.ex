@@ -65,6 +65,10 @@ defmodule Tr33Control.Commands.Inputs do
     nyan_bounce: 4,
     fill: 5
 
+  defenum SlopeType,
+    line: 0,
+    fill: 1
+
   #  Public  ####################################################################################################
 
   def input_def(struct) do
@@ -199,14 +203,41 @@ defmodule Tr33Control.Commands.Inputs do
     [
       %Slider{name: "Color", max: 255, default: 0},
       %Slider{name: "Brightness", max: 255, default: 255},
-      %Slider{name: "X1", max: 255, default: 20},
-      %Slider{name: "Y1", max: 255, default: 20},
-      %Slider{name: "X2", max: 255, default: 200},
-      %Slider{name: "Y2", max: 255, default: 200}
+      %Slider{name: "X1", max: 255, default: 0},
+      %Slider{name: "Y1", max: 255, default: 0},
+      %Slider{name: "X2", max: 255, default: 255},
+      %Slider{name: "Y2", max: 255, default: 255},
+      %Slider{name: "Fade Distance", max: 255, default: 5},
+      %Select{name: "Type", options: SlopeType.__enum_map__(), default: 0}
     ]
   end
 
   defp input_def(%Command{type: :mapped_shape}, _) do
+    [
+      %Slider{name: "Color", max: 255, default: 50},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Select{name: "Shape", options: MappedShape.__enum_map__(), default: 0},
+      %Slider{name: "X", max: 255, default: 128},
+      %Slider{name: "Y", max: 255, default: 128},
+      %Slider{name: "Size", max: 255, default: 50},
+      %Slider{name: "Fade Distance", max: 255, default: 50}
+    ]
+  end
+
+  defp input_def(%Command{type: :mapped_triangle}, _) do
+    [
+      %Slider{name: "Color", max: 255, default: 0},
+      %Slider{name: "Brightness", max: 255, default: 255},
+      %Slider{name: "X1", max: 255, default: 20},
+      %Slider{name: "Y1", max: 255, default: 20},
+      %Slider{name: "X2", max: 255, default: 128},
+      %Slider{name: "Y2", max: 255, default: 230},
+      %Slider{name: "X3", max: 255, default: 230},
+      %Slider{name: "Y3", max: 255, default: 20}
+    ]
+  end
+
+  defp input_def(%Command{type: :mapped_particles}, _) do
     [
       %Slider{name: "Color", max: 255, default: 50},
       %Slider{name: "Brightness", max: 255, default: 255},
