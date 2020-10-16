@@ -3,7 +3,7 @@
   <div class="btn-group float-right pl-3 mb-3" role="group">
     <button
       type="button"
-      class="btn btn-sm btn-outline-secondary"
+      class="btn btn-sm btn-primary"
       style="width: 40px"
       phx-click="<%= if @modifier_button?, do: "data_decrease", else: "modifier_decrease" %>"
       phx-value-index="<%= @input.index %>"
@@ -14,7 +14,7 @@
     </button>
     <button
       type="button"
-      class="btn btn-sm btn-outline-secondary"
+      class="btn btn-sm btn-primary"
       style="width: 40px"
       phx-click="<%= if @modifier_button?, do: "data_increase", else: "modifier_increase" %>"
       phx-value-index="<%= @input.index %>"
@@ -29,7 +29,7 @@
 <%= if @modifier_button? do %>
   <button
     type="button"
-    class="btn btn-sm float-right <%= if @input.has_modifier? do "btn-success" else "btn-outline-secondary" end%>"
+    class="btn btn-sm float-right <%= if @input.has_modifier? do "btn-success" else "btn-primary" end%>"
     phx-click="<%= if @input.has_modifier? do "modifier_delete" else "modifier_create" end%>"
     phx-value-index="<%= @input.index %>"
     phx-target="<%= @target %>"

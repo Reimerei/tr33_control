@@ -1,5 +1,5 @@
 <ul class="list-group pb-4">
-  <li class="list-group-item list-group-item-secondary">
+  <li class="list-group-item">
     <div class="row">
       <div class="col-md-1 h5 pt-2">
         CMD <%= @command.index %>
@@ -15,17 +15,17 @@
       </div>
       <div class="col-md-9">
          <div class="btn-group float-right" role="group">
-          <button type="button" class="btn btn-secondary" phx-click="command_up" phx-target="<%= @myself %>">↑</button>
-          <button type="button" class="btn btn-secondary" phx-click="command_down" phx-target="<%= @myself %>">↓</button>
-          <button type="button" class="btn btn-secondary" phx-click="command_clone" phx-target="<%= @myself %>">clone</button>
-          <button type="button" class="btn btn-secondary" phx-click="command_toggle_enabled" phx-target="<%= @myself %>">
+          <button type="button" class="btn btn-primary" phx-click="command_up" phx-target="<%= @myself %>">↑</button>
+          <button type="button" class="btn btn-primary" phx-click="command_down" phx-target="<%= @myself %>">↓</button>
+          <button type="button" class="btn btn-primary" phx-click="command_clone" phx-target="<%= @myself %>">clone</button>
+          <button type="button" class="btn btn-primary" phx-click="command_toggle_enabled" phx-target="<%= @myself %>">
             <%= if (@command.enabled) do %>
               pause
             <% else %>
               continue
             <% end %>
           </button>
-          <button type="button" class="btn btn-secondary" phx-click="command_toggle_collapsed" phx-target="<%= @myself %>">
+          <button type="button" class="btn btn-primary" phx-click="command_toggle_collapsed" phx-target="<%= @myself %>">
             <%= if @collapsed? do %>
               +
             <% else %>
@@ -38,7 +38,7 @@
   </li>
 
   <%= if not @collapsed? do %>
-    <li class="list-group-item <%= if (not @command.enabled) do %>list-group-item-secondary<% end %>">
+    <li class="list-group-item <%= if (not @command.enabled) do %>list-group-item-danger<% end %>">
       <form action="" phx-change="data_change" phx-target="<%= @myself %>">
         <div class="form-row">
           <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_0, target: @myself, modifier_button?: true, step_buttons?: true %>
@@ -56,11 +56,11 @@
     </li>
 
     <%= for {inputs, field, index} <- @modifier_inputs do %>
-      <li class="list-group-item list-group-item-success">
+      <li class="list-group-item list-group-item-secondary">
         <form action="" phx-change="modifier_change" phx-target="<%= @myself %>">
           <div class="form-row">
             <div class="form-group col-md-3">
-              <h4 class="mt-2"><%= field %></h4>
+              <h4 class="mt-2">Modifier <%= field %></h4>
             </div>
             <input name="index" type="hidden" value="<%= index %>">
             <%= for input <- inputs do %>

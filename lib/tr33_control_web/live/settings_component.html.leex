@@ -25,9 +25,9 @@
 
           <div class="form-group col-md-6" style="margin-top: 2rem">
             <div class="btn-group" role="group">
-              <%= submit "Save", phx_disable_with: "Saving...", class: "btn btn-secondary" %>
-              <button type="button" class="btn btn-secondary" phx-click="preset_delete" phx-value-name="<%= input_value(f, :name) %>" phx-target="<%= @myself %>">Delete</button>
-              <button type="button" class="btn btn-secondary" phx-click="preset_set_default" phx-value-name="<%= input_value(f, :name)%>" phx-target="<%= @myself %>">Set as default</button>
+              <%= submit "Save", phx_disable_with: "Saving...", class: "btn btn-primary" %>
+              <button type="button" class="btn btn-primary" phx-click="preset_delete" phx-value-name="<%= input_value(f, :name) %>" phx-target="<%= @myself %>">Delete</button>
+              <button type="button" class="btn btn-primary" phx-click="preset_set_default" phx-value-name="<%= input_value(f, :name)%>" phx-target="<%= @myself %>">Set as default</button>
             </div>
           </div>
         </div>
@@ -49,5 +49,5 @@
     </div>
   </form>
 
-  <button type="button" class="btn btn-secondary" phx-click="resync" phx-target="<%= @myself %>">Resync</button>
+  <button type="button" class="btn btn-primary" phx-click="resync" phx-target="<%= @myself %>">Resync</button>
 </li>
