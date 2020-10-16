@@ -1,4 +1,4 @@
-use Mix.Config
+import Config
 
 config :tr33_control, Tr33ControlWeb.Endpoint,
   url: [host: "tr33", port: 80],

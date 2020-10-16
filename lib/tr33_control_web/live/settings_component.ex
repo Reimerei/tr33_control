@@ -108,6 +108,11 @@ defmodule Tr33ControlWeb.SettingsComponent do
     {:noreply, socket}
   end
 
+  def handle_event("resync", _, socket) do
+    Commands.resync_esp()
+    {:noreply, socket}
+  end
+
   def handle_event(event, data, socket) do
     Logger.warn("#{__MODULE__}: Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     {:noreply, socket}

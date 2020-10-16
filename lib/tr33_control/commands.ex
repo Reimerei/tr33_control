@@ -1,7 +1,7 @@
 defmodule Tr33Control.Commands do
   require Logger
   alias Ecto.Changeset
-  alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset, Modifier}
+  alias Tr33Control.Commands.{Command, UART, Event, Cache, Preset, Modifier, UDP}
 
   @max_index Application.fetch_env!(:tr33_control, :command_max_index)
   @pubsub_silent_period_ms 100
@@ -20,6 +20,7 @@ defmodule Tr33Control.Commands do
   def send_to_esp(%Command{index: index} = command, force) when index <= @max_index do
     command
     |> Cache.insert(force)
+    |> UDP.send()
     |> UART.send()
   end
 
@@ -28,7 +29,13 @@ defmodule Tr33Control.Commands do
   def send_to_esp(%Event{} = event, force) do
     event
     |> maybe_insert(force)
+    |> UDP.send()
     |> UART.send()
+  end
+
+  def resync_esp() do
+    UDP.resync()
+    UART.resync()
   end
 
   ### PubSub #######################################################################
@@ -242,7 +249,7 @@ defmodule Tr33Control.Commands do
     (commands ++ events)
     |> Enum.map(&Cache.insert(&1, true))
 
-    UART.resync()
+    resync_esp()
     notify_subscribers({:preset_load, name}, true)
 
     preset

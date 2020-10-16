@@ -3,7 +3,7 @@ defmodule Tr33Control.Commands.Inputs do
 
   alias Tr33Control.Commands.{Command, Event, LedStructure}
   alias Tr33Control.Commands.Command.{BallType}
-  alias Tr33Control.Commands.Inputs.{Button, Slider, Select, Hidden}
+  alias Tr33Control.Commands.Inputs.{Button, Slider, Select}
 
   defenum BallType,
     # square: 0,

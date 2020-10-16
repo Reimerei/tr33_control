@@ -1,4 +1,8 @@
-use Mix.Config
+import Config
+
+config :tr33_control,
+  udp_debug: false,
+  uart_debug: false
 
 # For development, we disable any cache and enable
 # debugging and code reloading.
@@ -33,6 +37,8 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
 
 # Do not include metadata nor timestamps in development logs
 config :logger, :console, format: "[$level] $message\n"
+
+config :logger, level: :debug
 
 # Set a higher stacktrace during development. Avoid configuring such
 # in production as building large stacktraces may be expensive.

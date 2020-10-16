@@ -3,7 +3,7 @@ defmodule Tr33Control.Commands.Command do
   import EctoEnum
   alias Ecto.Changeset
   alias __MODULE__
-  alias Tr33Control.Commands.{Modifier, Inputs}
+  alias Tr33Control.Commands.{Inputs}
 
   defenum CommandType,
     disabled: 0,
@@ -36,7 +36,7 @@ defmodule Tr33Control.Commands.Command do
     field :type, CommandType
     field :data, {:array, :integer}, default: []
     field :enabled, :boolean, default: true
-    field :modifiers, {:map, Modifier}, default: %{}
+    field :modifiers, :map, default: %{}
   end
 
   def changeset(command, %{"type" => type} = params) when is_binary(type) do
