@@ -15,8 +15,8 @@ defmodule Tr33Control.Application do
       Supervisor.child_spec({Cachex, Preset}, id: make_ref()),
       Tr33ControlWeb.Endpoint,
       Tr33Control.Commands.UART,
-      # {Tr33Control.Commands.UDP, {"trommel.lan.xhain.space", 1337}},
-      {Tr33Control.Commands.UDP, {"wand.fritz.box", 1337}},
+      {Tr33Control.Commands.UDP, {"trommel.lan.xhain.space", 1337}},
+      # {Tr33Control.Commands.UDP, {"wand.fritz.box", 1337}},
       # Tr33Control.UdpServer,
       # Tr33Control.Joystick,
       Tr33Control.Commands.Updater

@@ -147,6 +147,14 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
+  def handle_event("toggle_target", _params, %Socket{assigns: %{id: id}} = socket) do
+    Commands.get_command(id)
+    |> next_target()
+    |> Commands.send_to_esp()
+
+    {:noreply, socket}
+  end
+
   def handle_event(event, params, socket) do
     Logger.warn("#{__MODULE__}: Unhandled event #{inspect(event)} Params: #{inspect(params)}")
     {:noreply, socket}
@@ -181,4 +189,8 @@ defmodule Tr33ControlWeb.CommandComponent do
   def set_default_collapsed?(socket, new_type) do
     assign(socket, :collapsed?, new_type == :disabled || new_type == "disabled")
   end
+
+  defp next_target(%Command{target: "all"} = command), do: %Command{command | target: "udp"}
+  defp next_target(%Command{target: "udp"} = command), do: %Command{command | target: "uart"}
+  defp next_target(%Command{target: "uart"} = command), do: %Command{command | target: "all"}
 end

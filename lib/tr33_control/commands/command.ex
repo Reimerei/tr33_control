@@ -37,6 +37,7 @@ defmodule Tr33Control.Commands.Command do
     field :data, {:array, :integer}, default: []
     field :enabled, :boolean, default: true
     field :modifiers, :map, default: %{}
+    field :target, :string, default: "all"
   end
 
   def changeset(command, %{"type" => type} = params) when is_binary(type) do

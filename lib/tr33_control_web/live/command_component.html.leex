@@ -13,6 +13,11 @@
           </select>
         </form>
       </div>
+
+      <div class="col-md-2">
+        <button type="button" class="btn btn-primary" phx-click="toggle_target" phx-target="<%= @myself %>">Target: <%= @command.target %></button>
+      </div>
+
       <div class="col-md-9">
          <div class="btn-group float-right" role="group">
           <button type="button" class="btn btn-primary" phx-click="command_up" phx-target="<%= @myself %>">↑</button>

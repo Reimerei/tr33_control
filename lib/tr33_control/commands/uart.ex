@@ -21,8 +21,11 @@ defmodule Tr33Control.Commands.UART do
   end
 
   def send(struct) do
-    binary = to_binary(struct)
-    GenServer.cast(__MODULE__, {:send, binary})
+    if Map.get(struct, :target, "all") in ["all", "uart"] do
+      binary = to_binary(struct)
+      GenServer.cast(__MODULE__, {:send, binary})
+    end
+
     struct
   end
 

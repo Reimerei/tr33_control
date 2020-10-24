@@ -6,14 +6,18 @@ defmodule Tr33Control.Commands.UDP do
 
   @udp_interval_ms 25
   @max_queue_len 1000 / 25
+  @resync_interval 60000
 
   def start_link({host, port}) when is_binary(host) and is_number(port) do
     GenServer.start_link(__MODULE__, {host, port}, [{:name, __MODULE__}])
   end
 
   def send(struct) do
-    binary = to_binary(struct)
-    GenServer.cast(__MODULE__, {:send, binary})
+    if Map.get(struct, :target, "all") in ["all", "udp"] do
+      binary = to_binary(struct)
+      GenServer.cast(__MODULE__, {:send, binary})
+    end
+
     struct
   end
 
@@ -35,6 +39,7 @@ defmodule Tr33Control.Commands.UDP do
     state = %{
       socket: socket,
       last_packet: System.os_time(:millisecond),
+      last_transmit: 0,
       queue: :queue.new(),
       host: host |> to_charlist(),
       port: port
@@ -61,6 +66,7 @@ defmodule Tr33Control.Commands.UDP do
 
   def handle_info(:tick, state) do
     state = handle_tick(state)
+
     {:noreply, state}
   end
 
@@ -70,17 +76,24 @@ defmodule Tr33Control.Commands.UDP do
   defp handle_tick(%{queue: queue} = state) do
     Process.send_after(self(), :tick, @udp_interval_ms)
 
-    case :queue.out(queue) do
-      {:empty, _} ->
-        state
+    state =
+      case :queue.out(queue) do
+        {:empty, _} ->
+          state
 
-      {{:value, binary}, rest} ->
-        transmit_binary(binary, state)
-        %{state | queue: rest}
+        {{:value, binary}, rest} ->
+          state = transmit_binary(binary, state)
+          %{state | queue: rest}
+      end
+
+    if System.os_time(:millisecond) - state.last_transmit > @resync_interval do
+      resync()
     end
+
+    state
   end
 
-  defp transmit_binary(binary, %{socket: socket, port: port, host: host}) when is_binary(binary) do
+  defp transmit_binary(binary, state = %{socket: socket, port: port, host: host}) when is_binary(binary) do
     result = :gen_udp.send(socket, host, port, binary)
 
     if Application.get_env(:tr33_control, :udp_debug, false) do
@@ -88,5 +101,7 @@ defmodule Tr33Control.Commands.UDP do
         "UDP: Send packet to #{inspect(host)}:#{inspect(port)} result: #{inspect(result)} content: #{inspect(binary)}"
       )
     end
+
+    %{state | last_transmit: System.os_time(:millisecond)}
   end
 end
