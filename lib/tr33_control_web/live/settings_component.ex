@@ -109,7 +109,7 @@ defmodule Tr33ControlWeb.SettingsComponent do
   end
 
   def handle_event("resync", _, socket) do
-    Commands.resync_esp()
+    Tr33Control.ESP.resync()
     {:noreply, socket}
   end
 

@@ -86,6 +86,7 @@ defmodule Tr33Control.Commands.Cache do
         commands
         |> Enum.map(&struct!(Command, Map.delete(&1, :__struct__)))
         |> Enum.map(&migrate_modifiers_to_map/1)
+        |> Enum.map(&migrate_target/1)
 
       %Preset{preset | commands: commands}
     end)
@@ -107,4 +108,8 @@ defmodule Tr33Control.Commands.Cache do
 
     %Command{command | modifiers: map}
   end
+
+  defp migrate_target(%Command{target: "all"} = command), do: %Command{command | target: :all}
+  defp migrate_target(%Command{target: nil} = command), do: %Command{command | target: :all}
+  defp migrate_target(%Command{} = command), do: command
 end

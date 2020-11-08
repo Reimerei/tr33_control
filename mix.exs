@@ -47,6 +47,7 @@ defmodule Tr33Control.MixProject do
       {:ecto, "~> 3.0"},
       {:ecto_enum, "~> 1.0"},
       {:nerves_uart, "~> 1.2"},
+      {:nerves_leds, "~> 0.8"},
       {:input_event, "~> 0.4"},
       {:cachex, "~> 3.1"},
       {:ease, "~> 0.1"},

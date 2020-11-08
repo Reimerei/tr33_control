@@ -88,7 +88,7 @@ defmodule Tr33Control.Commands.Inputs do
 
   defp input_def(%Command{type: :disabled}, _), do: []
   defp input_def(%Command{type: :white}, _), do: []
-  # defp input_def(%Command{type: :twang}, _), do: []
+  defp input_def(%Command{type: :twang}, _), do: []
 
   defp input_def(%Command{type: :single_color}, _) do
     [

@@ -14,19 +14,20 @@ defmodule Tr33Control.Application do
       Supervisor.child_spec({Cachex, Event}, id: make_ref()),
       Supervisor.child_spec({Cachex, Preset}, id: make_ref()),
       Tr33ControlWeb.Endpoint,
-      Tr33Control.Commands.UART,
-      {Tr33Control.Commands.UDP, {"trommel.lan.xhain.space", 1337}},
-      # {Tr33Control.Commands.UDP, {"wand.fritz.box", 1337}},
-      # Tr33Control.UdpServer,
-      # Tr33Control.Joystick,
+      Tr33Control.ESP,
+      Tr33Control.UdpServer,
+      Tr33Control.Joystick,
+      Tr33Control.Joystick.Poller,
       Tr33Control.Commands.Updater
-      # Tr33Control.Commands.Socket
     ]
 
+    Nerves.Leds.set(:green, :fastblink)
+    Nerves.Leds.set(:red, false)
     opts = [strategy: :one_for_one, name: Tr33Control.Supervisor]
     sup = {:ok, _} = Supervisor.start_link(children, opts)
 
     Commands.init()
+    Nerves.Leds.set(:green, true)
 
     sup
   end

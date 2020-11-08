@@ -1,33 +1,21 @@
-defmodule Tr33Control.Commands.UDP do
+defmodule Tr33Control.ESP.UDP do
   use GenServer
   require Logger
-  alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Event, Command}
 
-  @udp_interval_ms 25
+  @tick_interval_ms 25
   @max_queue_len 1000 / 25
-  @resync_interval 60000
 
-  def start_link({host, port}) when is_binary(host) and is_number(port) do
-    GenServer.start_link(__MODULE__, {host, port}, [{:name, __MODULE__}])
+  def start_link({host, port, process_name}) when is_binary(host) and is_number(port) do
+    GenServer.start_link(__MODULE__, {host, port}, name: process_name)
   end
 
-  def send(struct) do
-    if Map.get(struct, :target, "all") in ["all", "udp"] do
-      binary = to_binary(struct)
-      GenServer.cast(__MODULE__, {:send, binary})
-    end
-
-    struct
+  def send(binary, process_name) when is_binary(binary) do
+    GenServer.cast(process_name, {:send, binary})
   end
 
-  def resync() do
-    (Commands.list_commands() ++ Commands.list_events())
-    |> Enum.map(&send/1)
-  end
-
-  def debug() do
-    Application.put_env(:tr33_control, :udp_debug, true)
+  def toggle_debug() do
+    current = Application.get_env(:tr33_control, :udp_debug, false)
+    Application.put_env(:tr33_control, :udp_debug, not current)
   end
 
   def init({host, port}) do
@@ -39,16 +27,15 @@ defmodule Tr33Control.Commands.UDP do
     state = %{
       socket: socket,
       last_packet: System.os_time(:millisecond),
-      last_transmit: 0,
       queue: :queue.new(),
       host: host |> to_charlist(),
-      port: port
+      port: port,
+      sequence: 0
     }
 
     Logger.info("UDP: Connected!")
 
-    resync()
-    state = handle_tick(state)
+    :timer.send_interval(@tick_interval_ms, :tick)
 
     {:ok, state}
   end
@@ -64,33 +51,19 @@ defmodule Tr33Control.Commands.UDP do
     {:noreply, state}
   end
 
-  def handle_info(:tick, state) do
-    state = handle_tick(state)
-
-    {:noreply, state}
-  end
-
-  defp to_binary(%Command{} = command), do: Command.to_binary(command)
-  defp to_binary(%Event{} = event), do: Event.to_binary(event)
-
-  defp handle_tick(%{queue: queue} = state) do
-    Process.send_after(self(), :tick, @udp_interval_ms)
-
+  def handle_info(:tick, %{queue: queue} = state) do
     state =
       case :queue.out(queue) do
         {:empty, _} ->
           state
 
         {{:value, binary}, rest} ->
+          # todo: send multiple commands in one packet
           state = transmit_binary(binary, state)
           %{state | queue: rest}
       end
 
-    if System.os_time(:millisecond) - state.last_transmit > @resync_interval do
-      resync()
-    end
-
-    state
+    {:noreply, state}
   end
 
   defp transmit_binary(binary, state = %{socket: socket, port: port, host: host}) when is_binary(binary) do
@@ -102,6 +75,6 @@ defmodule Tr33Control.Commands.UDP do
       )
     end
 
-    %{state | last_transmit: System.os_time(:millisecond)}
+    state
   end
 end

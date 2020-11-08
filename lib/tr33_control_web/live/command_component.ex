@@ -32,7 +32,9 @@ defmodule Tr33ControlWeb.CommandComponent do
   end
 
   def handle_event("type_change", %{"type" => new_type}, %Socket{assigns: %{id: id}} = socket) do
-    %{index: id, type: String.to_integer(new_type)}
+    Commands.get_command(id)
+    |> Map.take([:index, :target])
+    |> Map.put(:type, String.to_integer(new_type))
     |> Commands.new_command!()
     |> Command.defaults()
     |> Commands.send_to_esp(true)
@@ -149,7 +151,7 @@ defmodule Tr33ControlWeb.CommandComponent do
 
   def handle_event("toggle_target", _params, %Socket{assigns: %{id: id}} = socket) do
     Commands.get_command(id)
-    |> next_target()
+    |> Map.update!(:target, &Tr33Control.ESP.toggle_target/1)
     |> Commands.send_to_esp()
 
     {:noreply, socket}
@@ -189,8 +191,4 @@ defmodule Tr33ControlWeb.CommandComponent do
   def set_default_collapsed?(socket, new_type) do
     assign(socket, :collapsed?, new_type == :disabled || new_type == "disabled")
   end
-
-  defp next_target(%Command{target: "all"} = command), do: %Command{command | target: "udp"}
-  defp next_target(%Command{target: "udp"} = command), do: %Command{command | target: "uart"}
-  defp next_target(%Command{target: "uart"} = command), do: %Command{command | target: "all"}
 end

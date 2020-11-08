@@ -1,8 +1,6 @@
-defmodule Tr33Control.Commands.UART do
+defmodule Tr33Control.ESP.UART do
   use GenServer
   require Logger
-  alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Event, Command}
 
   # these values have to match with the config in the firmware
   @baudrate 921_600
@@ -20,25 +18,17 @@ defmodule Tr33Control.Commands.UART do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
   end
 
-  def send(struct) do
-    if Map.get(struct, :target, "all") in ["all", "uart"] do
-      binary = to_binary(struct)
-      GenServer.cast(__MODULE__, {:send, binary})
-    end
+  def send(binary) when is_binary(binary) do
+    GenServer.cast(__MODULE__, {:send, binary})
+  end
 
-    struct
+  def toggle_debug() do
+    current = Application.get_env(:tr33_control, :uart_debug, false)
+    Application.put_env(:tr33_control, :uart_debug, not current)
   end
 
   def send_rts() do
     GenServer.cast(__MODULE__, :send_rts)
-  end
-
-  def resync() do
-    binaries =
-      (Commands.list_commands() ++ Commands.list_events())
-      |> Enum.map(&to_binary/1)
-
-    GenServer.cast(__MODULE__, {:resync, binaries})
   end
 
   # -- GenServer callbacks -----------------------------------------------------
@@ -58,7 +48,6 @@ defmodule Tr33Control.Commands.UART do
       last_rts: 0
     }
 
-    resync()
     {:ok, state}
   end
 
@@ -114,7 +103,9 @@ defmodule Tr33Control.Commands.UART do
     case bytes do
       <<_::size(left_size), @serial_request_resync>> ->
         Logger.debug("UART RECEIVED RESYNC REQUEST")
-        resync()
+
+      # todo
+      # ESP.resync()
 
       _ ->
         Logger.warn("UART RECEIVED UNEXPECTED: #{inspect(bytes)}")
@@ -123,9 +114,6 @@ defmodule Tr33Control.Commands.UART do
 
     {:noreply, state}
   end
-
-  defp to_binary(%Command{} = command), do: Command.to_binary(command)
-  defp to_binary(%Event{} = event), do: Event.to_binary(event)
 
   defp send_packet(%{uart_pid: uart_pid}, paket) do
     if debug_logs?() do

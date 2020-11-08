@@ -4,7 +4,7 @@ defmodule Tr33Control.Commands.Updater do
 
   alias Tr33Control.Commands
 
-  @update_interval_ms 30
+  @update_interval_ms 25
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, [])

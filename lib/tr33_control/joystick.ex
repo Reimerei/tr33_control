@@ -4,26 +4,57 @@ defmodule Tr33Control.Joystick do
   alias Tr33Control.Commands.{Event, Command, Inputs}
   alias Tr33Control.Commands
 
-  @input_dev "/dev/input/event15"
+  @joystick_name "Mega World USB Game Controllers"
+
+  def toggle_debug() do
+    current = Application.get_env(:tr33_control, :joystick_debug, false)
+    Application.put_env(:tr33_control, :joystick_debug, not current)
+  end
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
   end
 
   def init(_) do
-    result = InputEvent.start_link(@input_dev)
-    Logger.info("Tried to listen on #{@input_dev} for joystick commands, result: #{inspect(result)}")
-    Process.flag(:trap_exit, true)
-    {:ok, %{}}
+    InputEvent.enumerate()
+    |> Enum.find(&match?({_, %InputEvent.Info{name: @joystick_name}}, &1))
+    |> case do
+      nil ->
+        debug_log("Joystick #{inspect(@joystick_name)} not found")
+        :ignore
+
+      {input_device, _} ->
+        Logger.info("#{__MODULE__}: Found joystick on device #{inspect(input_device)}")
+        result = InputEvent.start_link(input_device)
+
+        Logger.info(
+          "#{__MODULE__}: Trying to listen on #{input_device} for joystick commands, result: #{inspect(result)}"
+        )
+
+        {:ok, %{}}
+    end
+
+    # Process.flag(:trap_exit, true)
   end
 
-  def handle_info({:input_event, @input_dev, joystick_events}, state) when is_list(joystick_events) do
-    Enum.each(joystick_events, &handle_joystick_event/1)
+  def handle_info({:input_event, _, joystick_events}, state) when is_list(joystick_events) do
+    joystick_events
+    |> Enum.map(fn event ->
+      debug_log("Received joystick event #{inspect(event)}")
+      event
+    end)
+    |> Enum.each(&handle_joystick_event/1)
+
     {:noreply, state}
   end
 
   def handle_info(_, state) do
     {:noreply, state}
+  end
+
+  def terminate(reason, _state) do
+    Logger.error("#{__MODULE__}: terminating, reason: #{inspect(reason)}")
+    reason
   end
 
   defp handle_joystick_event({:ev_key, :btn_trigger, 1}) do
@@ -79,8 +110,13 @@ defmodule Tr33Control.Joystick do
     end
   end
 
-  defp handle_joystick_event(event), do: Logger.debug(inspect(event))
-  # defp handle_joystick_event(_event), do: :ok
+  defp handle_joystick_event(event), do: debug_log("Unhandled joystick event #{inspect(event)}")
+
+  defp debug_log(message) do
+    if Application.get_env(:tr33_control, :joystick_debug, false) do
+      Logger.debug("#{__MODULE__}: #{message}")
+    end
+  end
 
   defp iterate(data, index, enum) do
     List.update_at(data, index, fn value ->
@@ -126,7 +162,7 @@ defmodule Tr33Control.Joystick do
   end
 
   defp twang_event(:abs_y, value) do
-    Commands.new_event!(%{type: :joystick, data: [round((value - 127) / 2) * -1, 0]})
+    Commands.new_event!(%{type: :joystick, data: [255 - value, 0]})
   end
 
   # defp twang_event(:abs_hat0y, value) do

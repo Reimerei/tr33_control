@@ -37,7 +37,7 @@ defmodule Tr33Control.Commands.Command do
     field :data, {:array, :integer}, default: []
     field :enabled, :boolean, default: true
     field :modifiers, :map, default: %{}
-    field :target, :string, default: "all"
+    field :target, Tr33Control.Atom, default: :all
   end
 
   def changeset(command, %{"type" => type} = params) when is_binary(type) do
@@ -49,7 +49,7 @@ defmodule Tr33Control.Commands.Command do
 
   def changeset(command, params) do
     command
-    |> Changeset.cast(params, [:index, :type, :data, :enabled])
+    |> Changeset.cast(params, [:index, :type, :data, :enabled, :target])
     |> Changeset.validate_required([:index, :type])
     |> Changeset.validate_number(:index, less_than: 256)
     |> Changeset.validate_length(:data, max: 10)
