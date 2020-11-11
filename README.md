@@ -20,6 +20,12 @@ This app leverages phoenix channels to sync the state between all connected brow
   * x/per minute relative to pixel count
 * multiple instances of rain/sparkle/etc
 * fix docs for packet format
+* send sync request on boot
+* render effect: position 2 bytes
+* discard live view sessions on restart/reconnect
+* cleanup: get rid of pub_sub rate limit (maybe not?)
+* modifier_increse evetns
+* double check modifier migration
 
 ## low
 

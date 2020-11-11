@@ -9,6 +9,7 @@ defmodule Tr33Control.Commands.Preset do
 
     embeds_many :commands, Command, on_replace: :delete
     embeds_many :events, Event, on_replace: :delete
+    embeds_many :modifiers, Modifier, on_replace: :delete
 
     timestamps()
   end

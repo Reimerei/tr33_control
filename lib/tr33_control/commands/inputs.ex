@@ -79,7 +79,7 @@ defmodule Tr33Control.Commands.Inputs do
   defp add_index(inputs) when is_list(inputs) do
     inputs
     |> Enum.with_index()
-    |> Enum.map(fn {input, index} -> %{input | index: index} end)
+    |> Enum.map(fn {input, data_index} -> %{input | data_index: data_index} end)
   end
 
   defp add_index(:disabled), do: :disabled
@@ -118,7 +118,13 @@ defmodule Tr33Control.Commands.Inputs do
       %Select{name: "StripIndex", options: LedStructure.strip_index_options(), default: strip_index(:all)},
       %Slider{name: "Color", max: 255, default: 210},
       %Slider{name: "Brightness", max: 255, default: 255},
-      %Slider{name: "Position", max: 255, default: 20},
+      %Slider{
+        name: "Position",
+        max: 256 * 256 - 1,
+        default: 20,
+        bytes: 2,
+        display_fun: fn x -> "#{round(x * 100 / (256 * 256 - 1))} %" end
+      },
       %Slider{name: "Width", max: 255, default: 20}
     ]
   end

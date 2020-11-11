@@ -10,7 +10,8 @@ defmodule Tr33Control.Commands.Event do
     beat: 102,
     pixel: 103,
     pixel_rgb: 104,
-    joystick: 105
+    joystick: 105,
+    modifier_update: 106
 
   # game:    2
 

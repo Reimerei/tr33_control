@@ -3,7 +3,7 @@ defmodule Tr33Control.Commands.Command do
   import EctoEnum
   alias Ecto.Changeset
   alias __MODULE__
-  alias Tr33Control.Commands.{Inputs}
+  alias Tr33Control.Commands.{Inputs, Modifier}
 
   defenum CommandType,
     disabled: 0,
@@ -36,7 +36,6 @@ defmodule Tr33Control.Commands.Command do
     field :type, CommandType
     field :data, {:array, :integer}, default: []
     field :enabled, :boolean, default: true
-    field :modifiers, :map, default: %{}
     field :target, Tr33Control.Atom, default: :all
   end
 
@@ -84,10 +83,10 @@ defmodule Tr33Control.Commands.Command do
       Inputs.input_def(command)
       |> Enum.map(fn %{default: default} -> default end)
 
-    %Command{command | data: data, modifiers: %{}}
+    %Command{command | data: data}
   end
 
-  def inputs(%Command{data: data, modifiers: modifiers} = command) do
+  def inputs(%Command{data: data} = command, modifiers) do
     Inputs.input_def(command)
     |> case do
       :disabled ->
@@ -97,10 +96,12 @@ defmodule Tr33Control.Commands.Command do
         inputs
         |> Enum.map(fn input -> Map.put(input, :variable_name, "data[]") end)
         |> Enum.map(fn
-          %{index: index, value: _} = input -> %{input | value: Enum.at(data, index, 0)}
+          %{data_index: data_index, value: _} = input -> %{input | value: Enum.at(data, data_index, 0)}
           input -> input
         end)
-        |> Enum.map(fn %{index: index} = input -> %{input | has_modifier?: Map.has_key?(modifiers, index)} end)
+        |> Enum.map(fn %{data_index: data_index} = input ->
+          %{input | has_modifier?: Enum.any?(modifiers, &match?(%Modifier{data_index: ^data_index}, &1))}
+        end)
     end
   end
 

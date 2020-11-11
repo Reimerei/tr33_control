@@ -6,7 +6,7 @@
       class="btn btn-sm btn-primary"
       style="width: 40px"
       phx-click="<%= if @modifier_button?, do: "data_decrease", else: "modifier_decrease" %>"
-      phx-value-index="<%= @input.index %>"
+      phx-value-data-index="<%= @input.data_index %>"
       phx-value-variable_name="<%= @input.variable_name %>"
       phx-target="<%= @target %>"
     >
@@ -17,7 +17,7 @@
       class="btn btn-sm btn-primary"
       style="width: 40px"
       phx-click="<%= if @modifier_button?, do: "data_increase", else: "modifier_increase" %>"
-      phx-value-index="<%= @input.index %>"
+      phx-value-data-index="<%= @input.data_index %>"
       phx-value-variable_name="<%= @input.variable_name %>"
       phx-target="<%= @target %>"
     >
@@ -31,7 +31,7 @@
     type="button"
     class="btn btn-sm float-right <%= if @input.has_modifier? do "btn-success" else "btn-primary" end%>"
     phx-click="<%= if @input.has_modifier? do "modifier_delete" else "modifier_create" end%>"
-    phx-value-index="<%= @input.index %>"
+    phx-value-data-index="<%= @input.data_index %>"
     phx-target="<%= @target %>"
   >
     M

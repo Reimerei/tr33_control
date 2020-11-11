@@ -1,7 +1,7 @@
 <li class="list-group-item">
   <div class="row">
     <div class="col-md-3 pr-0">
-      <form action="#" phx-change="preset_load" phx-target="<%= @myself %>">
+      <form action="#" phx-change="preset_load" phx-target="<%= @myself %>" phx-auto-recover="ignore">
         <div class="form-group">
           <label>Load Preset</label>
             <select name="name" class="custom-select">
@@ -40,7 +40,7 @@
 </li>
 
 <li class="list-group-item">
-  <form action="" phx-change="settings_change" phx-target="<%= @myself %>">
+  <form action="" phx-change="settings_change" phx-target="<%= @myself %>" phx-auto-recover="ignore">
     <div class="form-row">
       <input name="index" type="hidden" value="<%= assigns[:index] || 0 %>">
       <%= for input <- @settings_inputs do %>

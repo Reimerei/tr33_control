@@ -3,7 +3,7 @@ defmodule Tr33Control.Commands.Cache do
   alias Tr33Control.Commands
   alias Tr33Control.Commands.{Command, Event, Preset, Modifier}
 
-  @all_cache_keys [Command, Event, Preset]
+  @all_cache_keys [Command, Event, Preset, Modifier]
 
   def init_all() do
     Enum.map(@all_cache_keys, &init/1)
@@ -32,6 +32,9 @@ defmodule Tr33Control.Commands.Cache do
     else
       Logger.warn("No preset persist file found #{inspect(presets_persist_file())}")
     end
+  end
+
+  def init(Modifier) do
   end
 
   def clear_all() do
@@ -70,6 +73,7 @@ defmodule Tr33Control.Commands.Cache do
   defp cache_key(%Command{index: index}), do: index
   defp cache_key(%Event{type: type}), do: type
   defp cache_key(%Preset{name: name}), do: name
+  defp cache_key(%Modifier{index: index, data_index: data_index}), do: {index, data_index}
 
   defp maybe_persist_cache(%Preset{}), do: Cachex.dump!(Preset, presets_persist_file())
   defp maybe_persist_cache(_), do: :noop
@@ -82,10 +86,13 @@ defmodule Tr33Control.Commands.Cache do
     all(cache)
     |> Enum.map(&struct!(Preset, Map.delete(&1, :__struct__)))
     |> Enum.map(fn %Preset{commands: commands} = preset ->
+      modifiers =
+        commands
+        |> Enum.flat_map(&migrate_modifiers/1)
+
       commands =
         commands
-        |> Enum.map(&struct!(Command, Map.delete(&1, :__struct__)))
-        |> Enum.map(&migrate_modifiers_to_map/1)
+        |> Enum.map(&struct!(Command, Map.drop(&1, [:__struct__, :modifiers])))
         |> Enum.map(&migrate_target/1)
 
       %Preset{preset | commands: commands}
@@ -95,21 +102,35 @@ defmodule Tr33Control.Commands.Cache do
 
   defp migrate(_), do: :noop
 
-  defp migrate_modifiers_to_map(%Command{modifiers: %{}} = command), do: command
-  defp migrate_modifiers_to_map(%Command{modifiers: nil} = command), do: command
-
-  defp migrate_modifiers_to_map(%Command{modifiers: modifiers} = command) when is_list(modifiers) do
-    map =
-      modifiers
-      |> Enum.map(fn %{field_index: field_index} = modifier ->
-        {field_index, struct!(Modifier, Map.drop(modifier, [:__struct__, :field_index]))}
-      end)
-      |> Enum.into(%{})
-
-    %Command{command | modifiers: map}
-  end
-
   defp migrate_target(%Command{target: "all"} = command), do: %Command{command | target: :all}
   defp migrate_target(%Command{target: nil} = command), do: %Command{command | target: :all}
   defp migrate_target(%Command{} = command), do: command
+
+  defp migrate_modifiers(%{modifiers: old_modifiers, index: index}) do
+    Enum.map(old_modifiers, fn {data_index, old} ->
+      %Modifier{
+        type: old.type,
+        index: index,
+        data_index: data_index,
+        data_length: 1,
+        beats_per_minute: migrate_modifier_period(old.period),
+        offset: old.offset * 10,
+        max: old.max,
+        min: old.min
+      }
+    end)
+  end
+
+  defp migrate_modifiers(_), do: []
+
+  # defp migrate_modifier_type(0), do: 1
+  # defp migrate_modifier_type(1), do: 2
+  # defp migrate_modifier_type(2), do: 5
+  # defp migrate_modifier_type(3), do: 7
+  # defp migrate_modifier_type(4), do: 8
+  # defp migrate_modifier_type(5), do: 6
+  # defp migrate_modifier_type(6), do: 0
+
+  defp migrate_modifier_period(0), do: 0
+  defp migrate_modifier_period(seconds), do: 60 * 256 / seconds
 end

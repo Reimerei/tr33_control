@@ -36,6 +36,11 @@ defmodule Tr33ControlWeb.ControlLive do
     {:noreply, socket}
   end
 
+  def handle_info({:modifier_update, {id, _}}, socket) do
+    send_update(CommandComponent, id: id)
+    {:noreply, socket}
+  end
+
   def handle_info(data, socket) do
     Logger.warn("#{__MODULE__}: Unhandled info #{inspect(data)}")
     {:noreply, socket}

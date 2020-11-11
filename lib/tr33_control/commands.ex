@@ -39,10 +39,9 @@ defmodule Tr33Control.Commands do
   end
 
   def notify_subscribers({Command, key}, force), do: notify_subscribers({:command_update, key}, force)
-
   def notify_subscribers({Event, key}, force), do: notify_subscribers({:event_update, key}, force)
-
   def notify_subscribers({Preset, key}, force), do: notify_subscribers({:preset_update, key}, force)
+  def notify_subscribers({Modifier, key}, force), do: notify_subscribers({:modifier_update, key}, force)
 
   def notify_subscribers(message, force) do
     now = System.os_time(:millisecond)
@@ -114,6 +113,12 @@ defmodule Tr33Control.Commands do
   end
 
   def swap_commands(%Command{index: index} = command, new_index) when new_index >= 0 and new_index <= @max_index do
+    modifiers = get_modifiers(index)
+    swapped_modifiers = get_modifiers(new_index)
+    (modifiers ++ swapped_modifiers) |> Enum.each(&delete_modifier/1)
+    Enum.each(modifiers, &update_modifier!(&1, %{index: new_index}))
+    Enum.each(swapped_modifiers, &update_modifier!(&1, %{index: index}))
+
     swapped_command = get_command(new_index)
 
     %Command{swapped_command | index: index}
@@ -125,7 +130,13 @@ defmodule Tr33Control.Commands do
 
   def swap_commands(%Command{} = command, _), do: command
 
-  def clone_command(%Command{} = command, new_index) when new_index >= 0 and new_index <= @max_index do
+  def clone_command(%Command{index: old_index} = command, new_index) when new_index >= 0 and new_index <= @max_index do
+    get_modifiers(new_index)
+    |> Enum.each(&delete_modifier/1)
+
+    get_modifiers(old_index)
+    |> Enum.each(&update_modifier!(&1, %{index: new_index}))
+
     %Command{command | index: new_index}
     |> send_to_esp(true)
   end
@@ -134,44 +145,44 @@ defmodule Tr33Control.Commands do
 
   ### Modifiers ###############################################################################################
 
-  def create_modifier(%Command{modifiers: modifiers} = command, index) do
-    input =
-      Command.inputs(command)
-      |> Enum.find(&match?(%{index: ^index}, &1))
-
-    modifier = Modifier.from_input(input)
-
-    %Command{command | modifiers: Map.put(modifiers, index, modifier)}
+  def create_modifier!(%Command{index: index}, data_index) do
+    Modifier.new(index, data_index)
+    |> raise_on_error()
     |> Cache.insert(true)
+    |> ESP.send()
   end
 
-  def delete_modifier(%Command{modifiers: modifiers} = command, index) do
-    %Command{command | modifiers: Map.delete(modifiers, index)}
+  def get_modifier(index, data_index) do
+    Cache.get(Modifier, {index, data_index})
+  end
+
+  def get_modifiers(index) do
+    Cache.all(Modifier)
+    |> Enum.filter(&match?(%Modifier{index: ^index}, &1))
+  end
+
+  def list_modifiers() do
+    Cache.all(Modifier)
+  end
+
+  def delete_modifier(%Modifier{index: index, data_index: data_index}) do
+    delete_modifier(index, data_index)
+  end
+
+  def delete_modifier(index, data_index) do
+    get_modifier(index, data_index)
+    |> update_modifier!(%{type: :disabled})
+
+    Cache.delete(Modifier, {index, data_index})
+  end
+
+  def update_modifier!(modifier, params) do
+    modifier
+    |> Modifier.changeset(params)
+    |> Ecto.Changeset.apply_action(:update)
+    |> raise_on_error()
     |> Cache.insert(true)
-  end
-
-  def update_modifier!(%Command{modifiers: modifiers} = command, index, params) when is_number(index) do
-    Logger.info("Update modifier index #{inspect(index)} in command: #{inspect(command)}")
-
-    modifier =
-      Map.fetch!(modifiers, index)
-      |> Modifier.changeset(params)
-      |> Ecto.Changeset.apply_action(:insert)
-      |> raise_on_error()
-
-    %Command{command | modifiers: Map.put(modifiers, index, modifier)}
-    |> Cache.insert(true)
-  end
-
-  def apply_modifiers(%Command{modifiers: modifiers} = command) when map_size(modifiers) > 0 do
-    if Enum.any?(modifiers, fn {_, %Modifier{period: period}} -> period > 0 end) do
-      Enum.reduce(modifiers, command, &Modifier.apply/2)
-      |> send_to_esp()
-    end
-  end
-
-  def apply_modifiers(%Command{} = command) do
-    command
+    |> ESP.send()
   end
 
   ### Events ###############################################################################################
@@ -209,11 +220,13 @@ defmodule Tr33Control.Commands do
   def create_preset(attrs) do
     commands = list_commands()
     events = list_events()
+    modifiers = list_modifiers()
 
     attrs
     |> get_or_new_preset()
     |> Changeset.put_change(:commands, commands)
     |> Changeset.put_change(:events, events)
+    |> Changeset.put_change(:modifiers, modifiers)
     |> Changeset.put_change(:updated_at, NaiveDateTime.utc_now())
     |> Ecto.Changeset.apply_action(:insert)
     |> maybe_insert(true)
@@ -236,13 +249,14 @@ defmodule Tr33Control.Commands do
     Cache.all(Preset)
   end
 
-  def load_preset(%Preset{commands: commands, events: events, name: name} = preset) do
+  def load_preset(%Preset{commands: commands, modifiers: modifiers, events: events, name: name} = preset) do
     set_current_preset(preset)
 
     Cache.clear(Command)
     Cache.clear(Event)
+    Cache.clear(Modifier)
 
-    (commands ++ events)
+    (commands ++ events ++ modifiers)
     |> Enum.map(&Cache.insert(&1, true))
 
     ESP.resync()
@@ -304,11 +318,8 @@ defmodule Tr33Control.Commands do
   def event_types(), do: Event.types()
 
   def inputs(%Event{} = event), do: Event.inputs(event)
-  def inputs(%Command{} = command), do: Command.inputs(command)
-
-  def modifier_inputs(%Command{} = command) do
-    Modifier.inputs_for_command(command)
-  end
+  def inputs(%Modifier{} = modifier), do: Modifier.inputs(modifier)
+  def inputs(%Command{} = command, modifiers), do: Command.inputs(command, modifiers)
 
   defp raise_on_error({:ok, result}), do: result
 

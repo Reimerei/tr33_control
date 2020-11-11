@@ -3,13 +3,13 @@ defmodule Tr33Control.ESP do
 
   alias Tr33Control.ESP.{UDP, UART}
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Command, Event}
+  alias Tr33Control.Commands.{Command, Event, Modifier}
 
   @udp_registry :esp_targets
-  # @udp_targets [:trommel, :wolke4, :wolke6]
-  # @all_targets [:uart] ++ @udp_targets
-  @udp_targets [:wand, :neo]
-  @all_targets @udp_targets
+  @udp_targets [:trommel, :wand, :wolke1, :wolke2, :wolke3]
+  @all_targets [:uart] ++ @udp_targets
+  # @udp_targets [:wand, :neo]
+  # @all_targets @udp_targets
 
   ### External API ###########################################
 
@@ -45,8 +45,21 @@ defmodule Tr33Control.ESP do
     event
   end
 
+  def send(%Modifier{index: index, data_index: data_index} = modifier) do
+    %Command{target: target} = Commands.get_command(index)
+    binary = Modifier.to_binary(modifier)
+    disable_binary = %Modifier{index: index, data_index: data_index} |> Modifier.to_binary()
+
+    Enum.each(@all_targets, fn
+      ^target -> send_to_target(binary, target)
+      other_target -> send_to_target(disable_binary, other_target)
+    end)
+
+    modifier
+  end
+
   def resync() do
-    (Commands.list_commands() ++ Commands.list_events())
+    (Commands.list_commands() ++ Commands.list_events() ++ Commands.list_modifiers())
     |> Enum.map(&send/1)
   end
 
@@ -111,7 +124,7 @@ defmodule Tr33Control.ESP do
   end
 
   defp host_for_target(:wand), do: "wand.fritz.box"
-  defp host_for_target(:neo), do: "192.168.0.200"
-  defp host_for_target(other), do: "#{other}.fritz.box"
-  # defp host_for_target(other), do: "#{other}.lan.xhain.space"
+  # defp host_for_target(:neo), do: "192.168.0.200"
+  # defp host_for_target(other), do: "#{other}.fritz.box"
+  defp host_for_target(other), do: "#{other}.lan.xhain.space"
 end

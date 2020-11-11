@@ -16,7 +16,9 @@ defmodule Tr33ControlWeb.CommandComponent do
   def update(update_assigns, %Socket{assigns: assigns} = socket) do
     %{id: id} = Map.merge(assigns, update_assigns)
     command = Commands.get_command(id)
-    command_inputs = Commands.inputs(command)
+    modifiers = Commands.get_modifiers(id)
+    command_inputs = Commands.inputs(command, modifiers)
+    modifier_inputs = Enum.map(modifiers, &Commands.inputs(&1))
 
     socket =
       Enum.reduce(0..9, socket, fn index, socket_acc ->
@@ -25,7 +27,7 @@ defmodule Tr33ControlWeb.CommandComponent do
       |> assign(:id, id)
       |> assign(:command_types, Commands.command_types())
       |> assign(:command, command)
-      |> assign(:modifier_inputs, Commands.modifier_inputs(command))
+      |> assign(:modifier_inputs, modifier_inputs)
       |> maybe_set_collapsed?(command, Map.get(assigns, :command))
 
     {:ok, socket}
@@ -42,10 +44,15 @@ defmodule Tr33ControlWeb.CommandComponent do
     socket
     |> set_default_collapsed?(new_type)
 
+    Commands.get_modifiers(id)
+    |> Enum.each(&Commands.delete_modifier/1)
+
     {:noreply, socket}
   end
 
   def handle_event("data_change", params, %Socket{assigns: %{id: id}} = socket) do
+    IO.inspect(params)
+
     Commands.get_command(id)
     |> Commands.edit_command!(params)
     |> Commands.send_to_esp(true)
@@ -53,21 +60,21 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
-  def handle_event("data_increase", %{"index" => index}, %Socket{assigns: %{id: id}} = socket) do
+  def handle_event("data_increase", %{"data-index" => data_index}, %Socket{assigns: %{id: id}} = socket) do
     command = %Command{data: data} = Commands.get_command(id)
 
     command
-    |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(index), &increment_data/1)})
+    |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(data_index), &increment_data/1)})
     |> Commands.send_to_esp(true)
 
     {:noreply, socket}
   end
 
-  def handle_event("data_decrease", %{"index" => index}, %Socket{assigns: %{id: id}} = socket) do
+  def handle_event("data_decrease", %{"data-index" => data_index}, %Socket{assigns: %{id: id}} = socket) do
     command = %Command{data: data} = Commands.get_command(id)
 
     command
-    |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(index), &decrement_data/1)})
+    |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(data_index), &decrement_data/1)})
     |> Commands.send_to_esp(true)
 
     {:noreply, socket}
@@ -108,46 +115,47 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, assign(socket, :collapsed?, not Map.get(assigns, :collapsed?, false))}
   end
 
-  def handle_event("modifier_create", %{"index" => index}, %Socket{assigns: %{id: id}} = socket) do
+  def handle_event("modifier_create", %{"data-index" => data_index}, %Socket{assigns: %{id: id}} = socket) do
     Commands.get_command(id)
-    |> Commands.create_modifier(String.to_integer(index))
+    |> Commands.create_modifier!(String.to_integer(data_index))
 
     {:noreply, socket}
   end
 
-  def handle_event("modifier_delete", %{"index" => index}, %Socket{assigns: %{id: id}} = socket) do
-    Commands.get_command(id)
-    |> Commands.delete_modifier(String.to_integer(index))
+  def handle_event("modifier_delete", %{"data-index" => data_index}, %Socket{assigns: %{id: id}} = socket) do
+    Commands.delete_modifier(id, String.to_integer(data_index))
 
     {:noreply, socket}
   end
 
-  def handle_event("modifier_change", %{"index" => index} = params, %Socket{assigns: %{id: id}} = socket) do
-    Commands.get_command(id)
-    |> Commands.update_modifier!(String.to_integer(index), params)
+  def handle_event("modifier_change", %{"data_index" => data_index} = params, %Socket{assigns: %{id: id}} = socket) do
+    Commands.get_modifier(id, String.to_integer(data_index))
+    |> Commands.update_modifier!(params)
 
     {:noreply, socket}
   end
 
-  def handle_event("modifier_increase", params, %Socket{assigns: %{id: id}} = socket) do
-    %{"index" => index, "variable_name" => variable_name} = params
-    index = String.to_integer(index)
-    variable_name = String.to_existing_atom(variable_name)
+  # def handle_event("modifier_increase", params, %Socket{assigns: %{id: id}} = socket) do
+  #   %{"data_index" => data_index} = params
+  #   Commands.get_modifier!(id, data_index)
 
-    command = %Command{modifiers: %{^index => modifier}} = Commands.get_command(id)
-    Commands.update_modifier!(command, index, %{variable_name => increment_modifier_value(modifier, variable_name)})
-    {:noreply, socket}
-  end
+  #   index = String.to_integer(index)
+  #   variable_name = String.to_existing_atom(variable_name)
 
-  def handle_event("modifier_decrease", params, %Socket{assigns: %{id: id}} = socket) do
-    %{"index" => index, "variable_name" => variable_name} = params
-    index = String.to_integer(index)
-    variable_name = String.to_existing_atom(variable_name)
+  #   command = %Command{modifiers: %{^index => modifier}} = Commands.get_command(id)
+  #   Commands.update_modifier!(command, index, %{variable_name => increment_modifier_value(modifier, variable_name)})
+  #   {:noreply, socket}
+  # end
 
-    command = %Command{modifiers: %{^index => modifier}} = Commands.get_command(id)
-    Commands.update_modifier!(command, index, %{variable_name => decrement_modifier_value(modifier, variable_name)})
-    {:noreply, socket}
-  end
+  # def handle_event("modifier_decrease", params, %Socket{assigns: %{id: id}} = socket) do
+  #   %{"index" => index, "variable_name" => variable_name} = params
+  #   index = String.to_integer(index)
+  #   variable_name = String.to_existing_atom(variable_name)
+
+  #   command = %Command{modifiers: %{^index => modifier}} = Commands.get_command(id)
+  #   Commands.update_modifier!(command, index, %{variable_name => decrement_modifier_value(modifier, variable_name)})
+  #   {:noreply, socket}
+  # end
 
   def handle_event("toggle_target", _params, %Socket{assigns: %{id: id}} = socket) do
     Commands.get_command(id)

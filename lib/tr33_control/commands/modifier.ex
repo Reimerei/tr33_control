@@ -3,202 +3,140 @@ defmodule Tr33Control.Commands.Modifier do
   import EctoEnum
 
   alias Ecto.Changeset
-  alias Tr33Control.Commands.Command
-  alias Tr33Control.Commands.Inputs.{Select, Slider}
+  alias Tr33Control.Commands
+  alias Tr33Control.Commands.Inputs.{Select, Slider, Hidden}
 
   defenum ModifierType,
-    linear: 0,
-    sine: 1,
-    sawtooth: 2,
-    sawtooth_reverse: 5,
-    random: 3,
-    random_transitions: 4,
-    bounce: 6
+    disabled: 0,
+    linear: 1,
+    sine: 2,
+    quadratic: 3,
+    # cubic: 4,
+    sawtooth: 5,
+    sawtooth_reverse: 6,
+    random: 7,
+    random_transitions: 8
+
+  @modifier_update_command 106
 
   @primary_key false
+  @enforce_keys [:index, :data_index]
   embedded_schema do
-    field :type, ModifierType
-    field :period, :integer
-    field :offset, :integer
-    field :max, :integer
-    field :min, :integer
+    field :type, ModifierType, default: :disabled
+    field :index, :integer
+    field :data_index, :integer
+    field :data_length, :integer, default: 1
+    field :beats_per_minute, :integer, default: 0
+    field :offset, :integer, default: 0
+    field :max, :integer, default: 256
+    field :min, :integer, default: 0
   end
 
-  def changeset(command, %{"type" => type} = params) when is_binary(type) do
+  def changeset(modifier, %{"type" => type} = params) when is_binary(type) do
     case Integer.parse(type) do
-      {int, _} -> changeset(command, Map.put(params, "type", int))
-      _ -> changeset(command, params)
+      {int, _} -> changeset(modifier, Map.put(params, "type", int))
+      _ -> changeset(modifier, params)
     end
   end
 
   def changeset(modifier, params) do
     modifier
-    |> Changeset.cast(params, [:type, :period, :offset, :max, :min])
+    |> Changeset.cast(params, __MODULE__.__schema__(:fields))
   end
 
-  def from_input(input) do
-    max = input_max(input)
-
+  def new(index, data_index) do
     params =
-      input_def(max)
+      input_def(command_max(index, data_index))
       |> Enum.map(fn {key, %{default: default}} -> {key, default} end)
+      |> Enum.reject(&match?({_, nil}, &1))
       |> Enum.into(%{})
+      |> Map.put(:max, command_max(index, data_index))
 
-    {:ok, modifier} =
-      %__MODULE__{}
-      |> changeset(params)
-      |> Changeset.apply_action(:insert)
-
-    modifier
+    %__MODULE__{
+      index: index,
+      data_index: data_index
+    }
+    |> IO.inspect()
+    |> changeset(params)
+    |> IO.inspect()
+    |> Changeset.apply_action(:insert)
+    |> IO.inspect()
   end
 
-  def apply({_index, %__MODULE__{period: 0}}, %Command{} = command), do: command
+  def inputs(%__MODULE__{index: index, data_index: data_index} = modifier) do
+    inputs =
+      command_max(index, data_index)
+      |> input_def()
+      |> Enum.map(fn {key, input} ->
+        input
+        |> Map.put(:value, Map.fetch!(modifier, key))
+        |> Map.put(:variable_name, Atom.to_string(key))
+        |> Map.put(:index, index)
+      end)
 
-  def apply({index, %__MODULE__{min: min, max: max} = modifier}, %Command{data: data} = command) do
-    fraction = fraction(modifier)
-    value = (min + (max - min) * fraction) |> round
-    %Command{command | data: List.replace_at(data, index, value)}
+    {inputs, command_name(index, data_index), data_index}
   end
 
-  def inputs_for_command(%Command{modifiers: modifiers} = command) do
-    command_inputs = Command.inputs(command)
+  def to_binary(%__MODULE__{} = modifier) do
+    type_bin =
+      ModifierType.__enum_map__()
+      |> Enum.into(%{})
+      |> Map.fetch!(modifier.type)
 
-    for {index, modifier} <- modifiers do
-      command_input = Enum.at(command_inputs, index)
-      {inputs(modifier, input_max(command_input), index), input_name(command_input), index}
-    end
+    <<
+      0::size(8),
+      @modifier_update_command::size(8),
+      type_bin::size(8),
+      modifier.index::size(8),
+      modifier.data_index::size(8),
+      modifier.beats_per_minute::size(16),
+      modifier.offset::size(16),
+      modifier.max::size(8),
+      modifier.min::size(8)
+    >>
   end
 
-  defp inputs(%__MODULE__{} = modifier, max, index) do
-    input_def(max)
-    |> Enum.map(fn {key, input} ->
-      input
-      |> Map.put(:value, Map.fetch!(modifier, key))
-      |> Map.put(:variable_name, Atom.to_string(key))
-      |> Map.put(:index, index)
-    end)
-  end
+  def display_offset(val) when is_number(val), do: val / 10
 
-  defp input_def(max) do
+  def display_beats_per_minute(val) when is_number(val),
+    do: "#{floor(val / 256)}." <> String.pad_leading("#{round(rem(val, 256) * 1000 / 256)}", 3, "0")
+
+  defp input_def(command_max) do
     [
       type: %Select{name: "Modifier Type", options: ModifierType.__enum_map__(), default: 0},
-      period: %Slider{name: "Period [s]", max: 600, default: 0},
-      offset: %Slider{name: "Offset [s]", max: 600, default: 0},
-      min: %Slider{name: "Min value", max: max, default: 0},
-      max: %Slider{name: "Max value", max: max, default: max}
+      beats_per_minute: %Slider{
+        name: "Cycles per Minute",
+        max: 256 * 256 - 1,
+        default: 512,
+        display_fun: &display_beats_per_minute/1
+      },
+      offset: %Slider{name: "Offset [s]", max: 256 * 256 - 1, default: 0, display_fun: &display_offset/1},
+      min: %Slider{name: "Min value", max: command_max, default: 0},
+      max: %Slider{name: "Max value", max: command_max, default: command_max},
+      data_index: %Hidden{}
     ]
   end
 
-  defp fraction(%__MODULE__{period: 0}), do: 0
-
-  defp fraction(%__MODULE__{type: :linear, period: period, offset: offset}) do
-    period = period * 1000
-    offset = offset * 1000
-
-    case rem(System.os_time(:millisecond) + offset, period) do
-      rem when rem <= period / 2 -> rem / (period / 2)
-      rem -> 1 - (rem - period / 2) / (period / 2)
-    end
+  # there are better ways to do this
+  defp command_max(index, data_index) do
+    Commands.get_command(index)
+    |> Commands.inputs([])
+    |> Enum.find(&match?(%{data_index: ^data_index}, &1))
+    |> input_max()
   end
 
-  defp fraction(%__MODULE__{type: :sine, period: period, offset: offset}) do
-    period = period * 1000
-    offset = offset * 1000
+  defp input_max(%Slider{max: max}), do: max
+  defp input_max(%Select{options: options}), do: Enum.max_by(options, fn {_key, value} -> value end) |> elem(1)
+  defp input_max(_), do: 0
 
-    (:math.sin((System.os_time(:millisecond) - offset) * 2 * :math.pi() / period) + 1) / 2
-  end
-
-  defp fraction(%__MODULE__{type: :sawtooth, period: period, offset: offset}) do
-    period = period * 1000
-    offset = offset * 1000
-
-    rem(System.os_time(:millisecond) + offset, period) / period
-  end
-
-  defp fraction(%__MODULE__{type: :sawtooth_reverse, period: period, offset: offset}) do
-    period = period * 1000
-    offset = offset * 1000
-
-    1 - rem(System.os_time(:millisecond) + offset, period) / period
-  end
-
-  defp fraction(%__MODULE__{type: :random, period: period, offset: offset}) do
-    key_value = period
-    period = period * 1000
-    offset = offset * 1000
-
-    last_update_map = Application.get_env(:tr33_control, :modifier_random_last_update, %{})
-    last_value_map = Application.get_env(:tr33_control, :modifier_random_last_value, %{})
-    last_period = div(Map.get(last_update_map, key_value, 0) + offset, period)
-
-    now = System.os_time(:millisecond)
-    current_period = div(now + offset, period)
-
-    if current_period > last_period do
-      value = :random.uniform()
-      Application.put_env(:tr33_control, :modifier_random_last_value, Map.put(last_value_map, key_value, value))
-      Application.put_env(:tr33_control, :modifier_random_last_update, Map.put(last_update_map, key_value, now))
-      value
-    else
-      Map.get(last_value_map, key_value, 0)
-    end
-  end
-
-  defp fraction(%__MODULE__{type: :random_transitions, period: period, offset: offset} = modifier) do
-    key = :erlang.phash2(modifier)
-    period = period * 1000
-    offset = offset * 1000
-
-    state = Application.get_env(:tr33_control, :"modifier_random_transition_#{key}", %{})
-    last_update = Map.get(state, :last_update, 0)
-    current_value = Map.get(state, :current_value, 0)
-    next_value = Map.get(state, :next_value, 0)
-
-    now = System.os_time(:millisecond)
-    current_period = div(now + offset, period)
-    last_period = div(Map.get(state, :last_update, 0) + offset, period)
-
-    {current_value, next_value, last_update} =
-      if current_period > last_period do
-        {next_value, :random.uniform(), now}
-      else
-        {current_value, next_value, last_update}
-      end
-
-    state =
-      state
-      |> Map.put(:last_update, last_update)
-      |> Map.put(:current_value, current_value)
-      |> Map.put(:next_value, next_value)
-
-    Application.put_env(:tr33_control, :"modifier_random_transition_#{key}", state)
-    ease(current_value, next_value, now - last_update, period)
-  end
-
-  @gravity 9.8
-  @initial_rate 1
-  defp fraction(%__MODULE__{type: :bounce, period: period, offset: offset}) do
-    period = period * 1000
-    offset = offset * 1000
-    current_bounce_duration = rem(System.os_time(:millisecond) + offset, period) / 1000
-
-    height =
-      @initial_rate * current_bounce_duration + -0.5 * @gravity * current_bounce_duration * current_bounce_duration
-
-    max_height = @initial_rate * @initial_rate / (2 * @gravity)
-
-    height / max_height * 1.2
-  end
-
-  defp ease(current, next, time_elapsed, period) do
-    Ease.ease_in_out_cubic(time_elapsed, current, next - current, period)
+  defp command_name(index, data_index) do
+    Commands.get_command(index)
+    |> Commands.inputs([])
+    |> Enum.find(&match?(%{data_index: ^data_index}, &1))
+    |> input_name()
   end
 
   defp input_name(%Slider{name: name}), do: name
   defp input_name(%Select{name: name}), do: name
   defp input_name(_), do: "THIS SHOULD NOT BE HERE"
-
-  defp input_max(%Slider{max: max}), do: max
-  defp input_max(%Select{options: options}), do: Enum.max_by(options, fn {_key, value} -> value end) |> elem(1)
-  defp input_max(_), do: 0
 end
