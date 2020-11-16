@@ -25,6 +25,7 @@ This app leverages phoenix channels to sync the state between all connected brow
 * discard live view sessions on restart/reconnect
 * cleanup: get rid of pub_sub rate limit (maybe not?)
 * modifier_increse evetns
+* 2 byte values for render
 * double check modifier migration
 
 ## low

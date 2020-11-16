@@ -17,8 +17,6 @@ defmodule Tr33Control.Commands.Modifier do
     random: 7,
     random_transitions: 8
 
-  @modifier_update_command 106
-
   @primary_key false
   @enforce_keys [:index, :data_index]
   embedded_schema do
@@ -28,7 +26,7 @@ defmodule Tr33Control.Commands.Modifier do
     field :data_length, :integer, default: 1
     field :beats_per_minute, :integer, default: 0
     field :offset, :integer, default: 0
-    field :max, :integer, default: 256
+    field :max, :integer, default: 255
     field :min, :integer, default: 0
   end
 
@@ -56,11 +54,8 @@ defmodule Tr33Control.Commands.Modifier do
       index: index,
       data_index: data_index
     }
-    |> IO.inspect()
     |> changeset(params)
-    |> IO.inspect()
     |> Changeset.apply_action(:insert)
-    |> IO.inspect()
   end
 
   def inputs(%__MODULE__{index: index, data_index: data_index} = modifier) do
@@ -84,11 +79,10 @@ defmodule Tr33Control.Commands.Modifier do
       |> Map.fetch!(modifier.type)
 
     <<
-      0::size(8),
-      @modifier_update_command::size(8),
       type_bin::size(8),
       modifier.index::size(8),
       modifier.data_index::size(8),
+      modifier.data_length::size(8),
       modifier.beats_per_minute::size(16),
       modifier.offset::size(16),
       modifier.max::size(8),

@@ -124,10 +124,12 @@ defmodule Tr33Control.ESP.UART do
   end
 
   # TODO: remove padding
-  defp pad(binary) when is_binary(binary) do
+  defp pad(binary) when is_binary(binary) and byte_size(binary) <= @command_data_bytes + 2 do
     padding_size = (@command_data_bytes + 2 - byte_size(binary)) * 8
     <<binary::binary, 0::size(padding_size)>>
   end
+
+  defp pad(binary) when is_binary(binary), do: binary
 
   defp send_rts(state, true), do: do_send_rts(state)
 

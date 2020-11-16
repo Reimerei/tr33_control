@@ -149,7 +149,8 @@ defmodule Tr33Control.Commands do
     Modifier.new(index, data_index)
     |> raise_on_error()
     |> Cache.insert(true)
-    |> ESP.send()
+
+    ESP.sync_modifiers()
   end
 
   def get_modifier(index, data_index) do
@@ -170,10 +171,8 @@ defmodule Tr33Control.Commands do
   end
 
   def delete_modifier(index, data_index) do
-    get_modifier(index, data_index)
-    |> update_modifier!(%{type: :disabled})
-
     Cache.delete(Modifier, {index, data_index})
+    ESP.sync_modifiers()
   end
 
   def update_modifier!(modifier, params) do
@@ -182,7 +181,8 @@ defmodule Tr33Control.Commands do
     |> Ecto.Changeset.apply_action(:update)
     |> raise_on_error()
     |> Cache.insert(true)
-    |> ESP.send()
+
+    ESP.sync_modifiers()
   end
 
   ### Events ###############################################################################################

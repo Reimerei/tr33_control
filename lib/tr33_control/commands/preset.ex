@@ -1,7 +1,7 @@
 defmodule Tr33Control.Commands.Preset do
   use Ecto.Schema
   alias Ecto.Changeset
-  alias Tr33Control.Commands.{Command, Event}
+  alias Tr33Control.Commands.{Command, Event, Modifier}
 
   schema "presets2" do
     field :name, :string

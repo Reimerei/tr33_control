@@ -51,8 +51,6 @@ defmodule Tr33ControlWeb.CommandComponent do
   end
 
   def handle_event("data_change", params, %Socket{assigns: %{id: id}} = socket) do
-    IO.inspect(params)
-
     Commands.get_command(id)
     |> Commands.edit_command!(params)
     |> Commands.send_to_esp(true)

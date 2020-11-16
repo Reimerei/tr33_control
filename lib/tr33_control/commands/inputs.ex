@@ -87,8 +87,12 @@ defmodule Tr33Control.Commands.Inputs do
   #  All  ####################################################################################################
 
   defp input_def(%Command{type: :disabled}, _), do: []
-  defp input_def(%Command{type: :white}, _), do: []
   defp input_def(%Command{type: :twang}, _), do: []
+
+  defp input_def(%Command{type: :white}, _),
+    do: [
+      %Slider{name: "Color", max: 5, default: 0}
+    ]
 
   defp input_def(%Command{type: :single_color}, _) do
     [
