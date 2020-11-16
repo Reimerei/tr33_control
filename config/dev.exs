@@ -2,7 +2,7 @@ import Config
 
 config :tr33_control,
   udp_debug: false,
-  uart_debug: true,
+  uart_debug: false,
   joystick_debug: false
 
 # For development, we disable any cache and enable

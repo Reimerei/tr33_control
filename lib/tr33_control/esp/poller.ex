@@ -1,21 +1,23 @@
-defmodule Tr33Control.ESP.Syncer do
+defmodule Tr33Control.ESP.Poller do
   use GenServer
   require Logger
   alias Tr33Control.ESP
 
-  @resync_interval 60000
+  @tick_interval 60_000
 
   def start_link(_) do
     GenServer.start_link(__MODULE__, [])
   end
 
   def init(_) do
-    :timer.send_interval(@resync_interval, :resync)
+    :timer.send_interval(@tick_interval, :tick)
     {:ok, %{}}
   end
 
-  def handle_info(:resync, state) do
-    ESP.resync()
+  def handle_info(:tick, state) do
+    # ESP.resync()
+    ESP.connect_udp()
+
     {:noreply, state}
   end
 end

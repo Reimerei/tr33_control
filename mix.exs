@@ -50,8 +50,9 @@ defmodule Tr33Control.MixProject do
       {:nerves_leds, "~> 0.8"},
       {:input_event, "~> 0.4"},
       {:cachex, "~> 3.1"},
-      {:ease, "~> 0.1"},
-      {:ex_rated, "~> 1.2"}
+      # {:ease, "~> 0.1"},
+      {:ex_rated, "~> 1.2"},
+      {:dns, "~> 2.2"}
     ]
   end
 

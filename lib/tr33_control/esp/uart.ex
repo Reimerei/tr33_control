@@ -38,7 +38,10 @@ defmodule Tr33Control.ESP.UART do
 
     serial_port = Application.fetch_env!(:tr33_control, :serial_port)
     result = Nerves.UART.open(uart_pid, serial_port, speed: @baudrate, active: true)
-    Logger.info("Connection to serial port #{serial_port}, baudrate: #{@baudrate}. Result: #{inspect(result)}")
+
+    Logger.info(
+      "#{__MODULE__}: Connection to serial port #{serial_port}, baudrate: #{@baudrate}. Result: #{inspect(result)}"
+    )
 
     :ok = Nerves.UART.configure(uart_pid, framing: Nerves.UART.Framing.None)
 
@@ -68,7 +71,7 @@ defmodule Tr33Control.ESP.UART do
 
   def handle_info({:nerves_uart, _, @serial_clear_to_send}, %{queue: queue} = state) do
     if debug_logs?() do
-      Logger.debug("UART RECEIVED CTS")
+      Logger.debug("#{__MODULE__}: RECEIVED CTS")
     end
 
     state = %{state | last_rts: 0}
@@ -78,7 +81,7 @@ defmodule Tr33Control.ESP.UART do
     header = <<@serial_header::size(8), command_count::size(8)>>
 
     if debug_logs?() do
-      Logger.debug("UART SENDING BATCH WITH #{inspect(command_count)} COMMANDS")
+      Logger.debug("#{__MODULE__}: SENDING BATCH WITH #{inspect(command_count)} COMMANDS")
     end
 
     command_binaries =
@@ -102,13 +105,13 @@ defmodule Tr33Control.ESP.UART do
 
     case bytes do
       <<_::size(left_size), @serial_request_resync>> ->
-        Logger.debug("UART RECEIVED RESYNC REQUEST")
+        Logger.debug("#{__MODULE__}:  RECEIVED RESYNC REQUEST")
 
       # todo
       # ESP.resync()
 
       _ ->
-        Logger.warn("UART RECEIVED UNEXPECTED: #{inspect(bytes)}")
+        Logger.warn("#{__MODULE__}:  RECEIVED UNEXPECTED: #{inspect(bytes)}")
         :noop
     end
 
@@ -117,7 +120,7 @@ defmodule Tr33Control.ESP.UART do
 
   defp send_packet(%{uart_pid: uart_pid}, paket) do
     if debug_logs?() do
-      Logger.debug("UART SENDING #{inspect(paket)}")
+      Logger.debug("#{__MODULE__}:  SENDING #{inspect(paket)}")
     end
 
     :ok = Nerves.UART.write(uart_pid, paket)
@@ -143,7 +146,7 @@ defmodule Tr33Control.ESP.UART do
 
   defp do_send_rts(%{uart_pid: uart_pid} = state) do
     if debug_logs?() do
-      Logger.debug("UART SENDING RTS")
+      Logger.debug("#{__MODULE__}:  SENDING RTS")
     end
 
     Nerves.UART.write(uart_pid, @serial_ready_to_send)

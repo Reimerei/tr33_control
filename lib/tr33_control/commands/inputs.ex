@@ -148,7 +148,7 @@ defmodule Tr33Control.Commands.Inputs do
       %Select{name: "StripIndex", options: LedStructure.strip_index_options(), default: strip_index(:all)},
       %Slider{name: "Color", max: 255, default: 1},
       %Slider{name: "Width", max: 255, default: 15},
-      %Slider{name: "Sparkles per second", max: 255, default: 10},
+      %Slider{name: "Sparkle rate", max: 255, default: 10},
       %Slider{name: "Duration", max: 255, default: 100},
       %Slider{name: "Brightness", max: 100, default: 100}
     ]
@@ -172,7 +172,7 @@ defmodule Tr33Control.Commands.Inputs do
       %Select{name: "StripIndex", options: LedStructure.strip_index_options(), default: strip_index(:all)},
       %Slider{name: "Color", max: 255, default: 1},
       %Slider{name: "Width", max: 255, default: 15},
-      %Slider{name: "Drops per second", max: 255, default: 10},
+      %Slider{name: "Drops rate", max: 255, default: 10},
       %Slider{name: "Rate", max: 255, default: 10}
     ]
   end

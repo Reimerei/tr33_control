@@ -2,11 +2,13 @@ defmodule Tr33Control.ESP.UDP do
   use GenServer
   require Logger
 
-  @tick_interval_ms 25
+  @tick_interval_ms 50
   @max_queue_len 1000 / 25
+  @udp_registry :udp_targets
+  @target_port 1337
 
-  def start_link({host, port, process_name}) when is_binary(host) and is_number(port) do
-    GenServer.start_link(__MODULE__, {host, port}, name: process_name)
+  def start_link({target, process_name}) when is_atom(target) do
+    GenServer.start_link(__MODULE__, target, name: process_name)
   end
 
   def send(binary, process_name) when is_binary(binary) do
@@ -18,26 +20,38 @@ defmodule Tr33Control.ESP.UDP do
     Application.put_env(:tr33_control, :udp_debug, not current)
   end
 
-  def init({host, port}) do
-    Logger.info("UDP: Connecting to #{host} on port #{port}")
+  def init(target) do
+    host = "#{target}.#{Application.fetch_env!(:tr33_control, :local_domain)}" |> String.to_charlist()
 
-    local_port = Enum.random(5000..65535)
-    {:ok, socket} = :gen_udp.open(local_port, [:binary])
+    case :inet.gethostbyname(host, :inet) do
+      {:ok, {:hostent, _host, [], :inet, 4, [ip | _]}} ->
+        Logger.info(
+          "#{__MODULE__}: Resovled host #{host} to #{inspect(ip)}. Sending UDP commands to port #{@target_port}"
+        )
 
-    state = %{
-      socket: socket,
-      last_packet: System.os_time(:millisecond),
-      queue: :queue.new(),
-      host: host |> to_charlist(),
-      port: port,
-      sequence: 0
-    }
+        {:ok, socket} = :gen_udp.open(Enum.random(5000..65535), [:binary])
 
-    Logger.info("UDP: Connected!")
+        state = %{
+          socket: socket,
+          last_packet: System.os_time(:millisecond),
+          queue: :queue.new(),
+          host: host,
+          sequence: 0
+        }
 
-    :timer.send_interval(@tick_interval_ms, :tick)
+        :timer.send_interval(@tick_interval_ms, :tick)
 
-    {:ok, state}
+        {:ok, _} = Registry.register(@udp_registry, ip, target)
+
+        {:ok, state}
+
+      other ->
+        Logger.warn(
+          "#{__MODULE__}: Could not resolve host name #{host}. Not sending UDP commands. Reason: #{inspect(other)}"
+        )
+
+        :ignore
+    end
   end
 
   def handle_cast({:send, binary}, %{queue: queue} = state) do
@@ -66,12 +80,14 @@ defmodule Tr33Control.ESP.UDP do
     {:noreply, state}
   end
 
-  defp transmit_binary(binary, state = %{socket: socket, port: port, host: host}) when is_binary(binary) do
-    result = :gen_udp.send(socket, host, port, binary)
+  defp transmit_binary(binary, state = %{socket: socket, host: host}) when is_binary(binary) do
+    result = :gen_udp.send(socket, host, @target_port, binary)
 
     if Application.get_env(:tr33_control, :udp_debug, false) do
       Logger.debug(
-        "UDP: Send packet to #{inspect(host)}:#{inspect(port)} result: #{inspect(result)} content: #{inspect(binary)}"
+        "UDP: Send packet to #{inspect(host)}:#{inspect(@target_port)} result: #{inspect(result)} content: #{
+          inspect(binary)
+        }"
       )
     end
 

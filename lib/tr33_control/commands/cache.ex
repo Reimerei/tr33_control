@@ -86,16 +86,16 @@ defmodule Tr33Control.Commands.Cache do
     all(cache)
     |> Enum.map(&struct!(Preset, Map.delete(&1, :__struct__)))
     |> Enum.map(fn %Preset{commands: commands} = preset ->
-      modifiers =
-        commands
-        |> Enum.flat_map(&migrate_modifiers/1)
+      # modifiers =
+      #   commands
+      #   |> Enum.flat_map(&migrate_modifiers/1)
 
       commands =
         commands
         |> Enum.map(&struct!(Command, Map.drop(&1, [:__struct__, :modifiers])))
         |> Enum.map(&migrate_target/1)
 
-      %Preset{preset | commands: commands, modifiers: modifiers}
+      %Preset{preset | commands: commands}
     end)
     |> Enum.map(&insert(&1, false))
   end

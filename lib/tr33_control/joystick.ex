@@ -33,8 +33,6 @@ defmodule Tr33Control.Joystick do
 
         {:ok, %{}}
     end
-
-    # Process.flag(:trap_exit, true)
   end
 
   def handle_info({:input_event, _, joystick_events}, state) when is_list(joystick_events) do

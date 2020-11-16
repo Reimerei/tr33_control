@@ -6,9 +6,6 @@ This app leverages phoenix channels to sync the state between all connected brow
 
 
 # Bugs/features
-
-* Move modifiers to ESP
-  * reverse sawtooth in firmware
 * Sync time between ESPs
 * Sync random seed betwenn ESPs
 * handshake/ack commands and retry
@@ -17,16 +14,13 @@ This app leverages phoenix channels to sync the state between all connected brow
 * find effect lib
 * effects relative to strip height/prixel count
   * gravity height relative to strip length
-  * x/per minute relative to pixel count
 * multiple instances of rain/sparkle/etc
 * fix docs for packet format
-* send sync request on boot
 * render effect: position 2 bytes
-* discard live view sessions on restart/reconnect
 * cleanup: get rid of pub_sub rate limit (maybe not?)
-* modifier_increse evetns
+* modifier_incresae events
 * 2 byte values for render
-* double check modifier migration
+* kill uart when there is no connection
 
 ## low
 
@@ -49,13 +43,18 @@ This app leverages phoenix channels to sync the state between all connected brow
 
 
 ## done
+* send sync request on boot
+* discard live view sessions on restart/reconnect
+* Move modifiers to ESP
+  * reverse sawtooth in firmware
 * twang
 * joystick plug and play
 * move up/down -> no update
 * bug: change type when moving command
 * type select not working with enabled modifier
 * performance with modifiers
-
+  * x/per minute relative to pixel count
+* double check modifier migration
 ## Wont do
 * position 16bit
 * x for disable
