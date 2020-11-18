@@ -60,9 +60,10 @@ defmodule Tr33ControlWeb.CommandComponent do
 
   def handle_event("data_increase", %{"data-index" => data_index}, %Socket{assigns: %{id: id}} = socket) do
     command = %Command{data: data} = Commands.get_command(id)
+    data_index = String.to_integer(data_index)
 
     command
-    |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(data_index), &increment_data/1)})
+    |> Commands.edit_command!(%{data: List.update_at(data, data_index, &increment_data(&1))})
     |> Commands.send_to_esp(true)
 
     {:noreply, socket}
@@ -133,27 +134,27 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
-  # def handle_event("modifier_increase", params, %Socket{assigns: %{id: id}} = socket) do
-  #   %{"data_index" => data_index} = params
-  #   Commands.get_modifier!(id, data_index)
+  def handle_event("modifier_increase", params, %Socket{assigns: %{id: id}} = socket) do
+    %{"data-index" => data_index, "variable-name" => variable_name} = params
+    key = String.to_existing_atom(variable_name)
 
-  #   index = String.to_integer(index)
-  #   variable_name = String.to_existing_atom(variable_name)
+    modifier = %Modifier{} = Commands.get_modifier(id, String.to_integer(data_index))
+    params = %{key => Map.fetch!(modifier, key) |> increment_data()}
+    Commands.update_modifier!(modifier, params)
 
-  #   command = %Command{modifiers: %{^index => modifier}} = Commands.get_command(id)
-  #   Commands.update_modifier!(command, index, %{variable_name => increment_modifier_value(modifier, variable_name)})
-  #   {:noreply, socket}
-  # end
+    {:noreply, socket}
+  end
 
-  # def handle_event("modifier_decrease", params, %Socket{assigns: %{id: id}} = socket) do
-  #   %{"index" => index, "variable_name" => variable_name} = params
-  #   index = String.to_integer(index)
-  #   variable_name = String.to_existing_atom(variable_name)
+  def handle_event("modifier_decrease", params, %Socket{assigns: %{id: id}} = socket) do
+    %{"data-index" => data_index, "variable-name" => variable_name} = params
+    key = String.to_existing_atom(variable_name)
 
-  #   command = %Command{modifiers: %{^index => modifier}} = Commands.get_command(id)
-  #   Commands.update_modifier!(command, index, %{variable_name => decrement_modifier_value(modifier, variable_name)})
-  #   {:noreply, socket}
-  # end
+    modifier = %Modifier{} = Commands.get_modifier(id, String.to_integer(data_index))
+    params = %{key => Map.fetch!(modifier, key) |> decrement_data()}
+    Commands.update_modifier!(modifier, params)
+
+    {:noreply, socket}
+  end
 
   def handle_event("toggle_target", _params, %Socket{assigns: %{id: id}} = socket) do
     Commands.get_command(id)
@@ -168,8 +169,9 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
-  def increment_data(data) when data < 255, do: data + 1
-  def increment_data(data), do: data
+  # todo: this could be better handled with proper input validation
+  def increment_data(data), do: data + 1
+  # def increment_data(data, _max), do: data
 
   def decrement_data(data) when data > 0, do: data + -1
   def decrement_data(data), do: data

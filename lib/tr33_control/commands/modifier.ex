@@ -68,6 +68,7 @@ defmodule Tr33Control.Commands.Modifier do
         |> Map.put(:value, Map.fetch!(modifier, key))
         |> Map.put(:variable_name, Atom.to_string(key))
         |> Map.put(:index, index)
+        |> Map.put(:data_index, data_index)
       end)
 
     {inputs, input_name(index, data_index), data_index}
@@ -138,6 +139,6 @@ defmodule Tr33Control.Commands.Modifier do
 
   defp input_data_length(index, data_index) do
     Commands.get_command(index)
-    |> Commands.Inputs.input_value_at_index(data_index, :data_length)
+    |> Commands.Inputs.value_at_index(data_index, :data_length)
   end
 end

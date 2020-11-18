@@ -18,6 +18,8 @@ This app leverages phoenix channels to sync the state between all connected brow
 * kill uart when there is no connection
 * more scaling for bigger structures
 * batch UDP commands
+* transitions for changes in modifier period (hard)
+* fix max validations => inputs/data as proper data structures?
 
 ## low
 

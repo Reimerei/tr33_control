@@ -7,6 +7,7 @@ defmodule Tr33Control.Commands.Inputs.Select do
     :options,
     :default,
     :value,
-    has_modifier?: false
+    has_modifier?: false,
+    data_length: 1
   ]
 end

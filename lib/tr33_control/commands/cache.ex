@@ -86,10 +86,6 @@ defmodule Tr33Control.Commands.Cache do
     all(cache)
     |> Enum.map(&struct!(Preset, Map.delete(&1, :__struct__)))
     |> Enum.map(fn %Preset{commands: commands} = preset ->
-      # modifiers =
-      #   commands
-      #   |> Enum.flat_map(&migrate_modifiers/1)
-
       commands =
         commands
         |> Enum.map(&struct!(Command, Map.drop(&1, [:__struct__, :modifiers])))
@@ -105,27 +101,4 @@ defmodule Tr33Control.Commands.Cache do
   defp migrate_target(%Command{target: "all"} = command), do: %Command{command | target: :all}
   defp migrate_target(%Command{target: nil} = command), do: %Command{command | target: :all}
   defp migrate_target(%Command{} = command), do: command
-
-  defp migrate_modifiers(%{modifiers: old_modifiers, index: index}) do
-    Enum.map(old_modifiers, fn {data_index, old} ->
-      %Modifier{
-        type: migrate_modifier_type(old.type),
-        index: index,
-        data_index: data_index,
-        data_length: 1,
-        beats_per_minute: migrate_modifier_period(old.period),
-        offset: old.offset * 10,
-        max: old.max,
-        min: old.min
-      }
-    end)
-  end
-
-  defp migrate_modifiers(_), do: []
-
-  defp migrate_modifier_type(atom) when is_atom(atom), do: atom
-  defp migrate_modifier_type(_), do: :disabled
-
-  defp migrate_modifier_period(0), do: 0
-  defp migrate_modifier_period(seconds), do: round(60 * 256 / seconds)
 end

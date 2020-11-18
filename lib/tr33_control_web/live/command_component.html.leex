@@ -1,8 +1,8 @@
 <ul class="list-group pb-4">
   <li class="list-group-item">
     <div class="row">
-      <div class="col-md-1 h5 pt-2">
-        CMD <%= @command.index %>
+      <div class="col-md-1 h5 pt-2 pl-2">
+        <%= @command.index %>
       </div>
       <div class="col-md-2">
         <form action="" phx-change="type_change" phx-target="<%= @myself %>" phx-auto-recover="ignore">
@@ -44,7 +44,7 @@
 
   <%= if not @collapsed? do %>
     <li class="list-group-item <%= if (not @command.enabled) do %>list-group-item-danger<% end %>">
-      <form action="" phx-change="data_change" phx-target="<%= @myself %>" phx-auto-recover="ignore" phx-auto-recover="ignore">
+      <form action="" phx-change="data_change" phx-target="<%= @myself %>" phx-auto-recover="ignore">
         <div class="form-row">
           <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_0, target: @myself, modifier_button?: true, step_buttons?: true %>
           <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_1, target: @myself, modifier_button?: true, step_buttons?: true %>

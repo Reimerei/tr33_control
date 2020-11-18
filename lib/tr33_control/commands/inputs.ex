@@ -123,7 +123,7 @@ defmodule Tr33Control.Commands.Inputs do
 
   defp add_index(:disabled), do: :disabled
 
-  def input_value_at_index(%Command{} = command, data_index, key) do
+  def value_at_index(%Command{} = command, data_index, key) when is_number(data_index) do
     command
     |> input_def()
     |> Enum.find(%{}, &match?(%{data_index: ^data_index}, &1))
