@@ -8,19 +8,16 @@ This app leverages phoenix channels to sync the state between all connected brow
 # Bugs/features
 * Sync time between ESPs
 * Sync random seed betwenn ESPs
-* handshake/ack commands and retry
 * per command palettes
-* add more palettes
 * find effect lib
 * effects relative to strip height/prixel count
   * gravity height relative to strip length
 * multiple instances of rain/sparkle/etc
 * fix docs for packet format
-* render effect: position 2 bytes
-* cleanup: get rid of pub_sub rate limit (maybe not?)
 * modifier_incresae events
-* 2 byte values for render
 * kill uart when there is no connection
+* more scaling for bigger structures
+* batch UDP commands
 
 ## low
 
@@ -43,6 +40,8 @@ This app leverages phoenix channels to sync the state between all connected brow
 
 
 ## done
+* render effect: position 2 bytes
+* add more palettes
 * send sync request on boot
 * discard live view sessions on restart/reconnect
 * Move modifiers to ESP
@@ -56,6 +55,8 @@ This app leverages phoenix channels to sync the state between all connected brow
   * x/per minute relative to pixel count
 * double check modifier migration
 ## Wont do
+* cleanup: get rid of pub_sub rate limit (maybe not?)
+* handshake/ack commands and retry
 * position 16bit
 * x for disable
 * optionally avoid overlap in random transistion

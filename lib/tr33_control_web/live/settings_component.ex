@@ -98,8 +98,6 @@ defmodule Tr33ControlWeb.SettingsComponent do
   end
 
   def handle_event("settings_change", params, socket) do
-    Logger.debug("settings_change: #{inspect(params)}")
-
     params
     |> Map.put("type", "update_settings")
     |> Commands.new_event!()

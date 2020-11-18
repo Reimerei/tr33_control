@@ -33,7 +33,46 @@ defmodule Tr33Control.Commands.Inputs do
     purple_heat: 7,
     # parrot: 8,
     saga: 9,
-    sage2: 10
+    saga2: 10,
+    # sunset
+    sunset: 11,
+    # rivendell
+    rivendell: 12,
+    # ocean breeze
+    ocean_breeze: 13,
+    # 50_shades_of_pink
+    # shades_of_pink: 14,
+    # sun
+    sun: 15,
+    # Analogous_1: 16,
+    # pinksplash
+    # pinksplash: 17,
+    # Coral_reef: 18,
+    # es_ocean_breeze_068: 19,
+    shades_of_pink: 20,
+    # es_vintage_01: 21,
+    # departure: 22,
+    landscape: 23,
+    # es_landscape_33: 24,
+    rainbowsherbet: 25,
+    blue_pink: 26,
+    hult: 27,
+    # GMT_drywet: 28,
+    jul01: 29,
+    # es_vintage_57: 30,
+    # ib15: 31,
+    fuschia: 32,
+    # es_emerald_dragon_08: 33,
+    # lava: 34,
+    # fire: 35,
+    colorfull: 36,
+    # Magenta_Evening: 37,
+    # Pink_Purple: 38,
+    # autumn: 39,
+    # BlacK_Blue_Magenta_White: 40,
+    # BlacK_Magenta_Red: 41,
+    # BlacK_Red_Magenta_Yellow: 42,
+    blue_cyan_yellow: 43
 
   defenum ColorTemperature,
     none: 0,
@@ -84,6 +123,13 @@ defmodule Tr33Control.Commands.Inputs do
 
   defp add_index(:disabled), do: :disabled
 
+  def input_value_at_index(%Command{} = command, data_index, key) do
+    command
+    |> input_def()
+    |> Enum.find(%{}, &match?(%{data_index: ^data_index}, &1))
+    |> Map.get(key)
+  end
+
   #  All  ####################################################################################################
 
   defp input_def(%Command{type: :disabled}, _), do: []
@@ -125,8 +171,9 @@ defmodule Tr33Control.Commands.Inputs do
       %Slider{
         name: "Position",
         max: 256 * 256 - 1,
+        step: 256,
         default: 20,
-        bytes: 2,
+        data_length: 2,
         display_fun: fn x -> "#{round(x * 100 / (256 * 256 - 1))} %" end
       },
       %Slider{name: "Width", max: 255, default: 20}

@@ -24,7 +24,7 @@ defmodule Tr33Control.ESP.UDP do
     host = "#{target}.#{Application.fetch_env!(:tr33_control, :local_domain)}" |> String.to_charlist()
 
     case :inet.gethostbyname(host, :inet) do
-      {:ok, {:hostent, _host, [], :inet, 4, [ip | _]}} ->
+      {:ok, {:hostent, _host, [], :inet, 4, [{192, _, _, _} = ip | _]}} ->
         Logger.info(
           "#{__MODULE__}: Resovled host #{host} to #{inspect(ip)}. Sending UDP commands to port #{@target_port}"
         )
@@ -46,10 +46,7 @@ defmodule Tr33Control.ESP.UDP do
         {:ok, state}
 
       other ->
-        Logger.warn(
-          "#{__MODULE__}: Could not resolve host name #{host}. Not sending UDP commands. Reason: #{inspect(other)}"
-        )
-
+        debug_log("Could not resolve host name #{host}. Not sending UDP commands. Reason: #{inspect(other)}")
         :ignore
     end
   end
@@ -83,14 +80,15 @@ defmodule Tr33Control.ESP.UDP do
   defp transmit_binary(binary, state = %{socket: socket, host: host}) when is_binary(binary) do
     result = :gen_udp.send(socket, host, @target_port, binary)
 
-    if Application.get_env(:tr33_control, :udp_debug, false) do
-      Logger.debug(
-        "UDP: Send packet to #{inspect(host)}:#{inspect(@target_port)} result: #{inspect(result)} content: #{
-          inspect(binary)
-        }"
-      )
-    end
+    "Send packet to #{inspect(host)} result: #{inspect(result)} content: #{inspect(binary)}"
+    |> debug_log()
 
     state
+  end
+
+  def debug_log(message) do
+    if Application.get_env(:tr33_control, :udp_debug, false) do
+      Logger.debug("#{__MODULE__}: #{message}")
+    end
   end
 end

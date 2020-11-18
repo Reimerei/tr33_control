@@ -106,9 +106,7 @@ defmodule Tr33Control.ESP.UART do
     case bytes do
       <<_::size(left_size), @serial_request_resync>> ->
         Logger.debug("#{__MODULE__}:  RECEIVED RESYNC REQUEST")
-
-      # todo
-      # ESP.resync()
+        Tr33Control.ESP.resync([:uart])
 
       _ ->
         Logger.warn("#{__MODULE__}:  RECEIVED UNEXPECTED: #{inspect(bytes)}")

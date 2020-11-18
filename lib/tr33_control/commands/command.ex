@@ -70,7 +70,15 @@ defmodule Tr33Control.Commands.Command do
 
   def to_binary(%Command{index: index, type: type, data: data}) do
     type_bin = Map.fetch!(@command_type_map, type)
-    data_bin = Enum.map(data, fn int -> <<int::size(8)>> end) |> Enum.join()
+
+    data_bin =
+      data
+      |> Enum.map(fn
+        int when int < 256 -> <<int::size(8)>>
+        int -> <<int::size(16)>>
+      end)
+      |> Enum.join()
+
     <<index::size(8), type_bin::size(8), data_bin::binary>>
   end
 

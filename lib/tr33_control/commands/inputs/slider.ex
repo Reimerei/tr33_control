@@ -10,7 +10,7 @@ defmodule Tr33Control.Commands.Inputs.Slider do
     step: 1,
     has_modifier?: false,
     display_fun: &__MODULE__.default_display_fun/1,
-    bytes: 1
+    data_length: 1
   ]
 
   def default_display_fun(val), do: val

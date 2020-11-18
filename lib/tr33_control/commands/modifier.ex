@@ -44,11 +44,12 @@ defmodule Tr33Control.Commands.Modifier do
 
   def new(index, data_index) do
     params =
-      input_def(command_max(index, data_index))
+      input_def(input_max(index, data_index))
       |> Enum.map(fn {key, %{default: default}} -> {key, default} end)
       |> Enum.reject(&match?({_, nil}, &1))
       |> Enum.into(%{})
-      |> Map.put(:max, command_max(index, data_index))
+      |> Map.put(:max, input_max(index, data_index))
+      |> Map.put(:data_length, input_data_length(index, data_index))
 
     %__MODULE__{
       index: index,
@@ -60,7 +61,7 @@ defmodule Tr33Control.Commands.Modifier do
 
   def inputs(%__MODULE__{index: index, data_index: data_index} = modifier) do
     inputs =
-      command_max(index, data_index)
+      input_max(index, data_index)
       |> input_def()
       |> Enum.map(fn {key, input} ->
         input
@@ -69,7 +70,7 @@ defmodule Tr33Control.Commands.Modifier do
         |> Map.put(:index, index)
       end)
 
-    {inputs, command_name(index, data_index), data_index}
+    {inputs, input_name(index, data_index), data_index}
   end
 
   def to_binary(%__MODULE__{} = modifier) do
@@ -95,7 +96,7 @@ defmodule Tr33Control.Commands.Modifier do
   def display_beats_per_minute(val) when is_number(val),
     do: "#{floor(val / 256)}." <> String.pad_leading("#{round(rem(val, 256) * 1000 / 256)}", 3, "0")
 
-  defp input_def(command_max) do
+  defp input_def(_command_max) do
     [
       type: %Select{name: "Modifier Type", options: ModifierType.__enum_map__(), default: 0},
       beats_per_minute: %Slider{
@@ -105,14 +106,15 @@ defmodule Tr33Control.Commands.Modifier do
         display_fun: &display_beats_per_minute/1
       },
       offset: %Slider{name: "Offset [s]", max: 256 * 256 - 1, default: 0, display_fun: &display_offset/1},
-      min: %Slider{name: "Min value", max: command_max, default: 0},
-      max: %Slider{name: "Max value", max: command_max, default: command_max},
-      data_index: %Hidden{}
+      min: %Slider{name: "Min value", max: 255, default: 0},
+      max: %Slider{name: "Max value", max: 255, default: 255},
+      data_index: %Hidden{},
+      data_length: %Hidden{}
     ]
   end
 
   # there are better ways to do this
-  defp command_max(index, data_index) do
+  defp input_max(index, data_index) do
     Commands.get_command(index)
     |> Commands.inputs([])
     |> Enum.find(&match?(%{data_index: ^data_index}, &1))
@@ -123,7 +125,7 @@ defmodule Tr33Control.Commands.Modifier do
   defp input_max(%Select{options: options}), do: Enum.max_by(options, fn {_key, value} -> value end) |> elem(1)
   defp input_max(_), do: 0
 
-  defp command_name(index, data_index) do
+  defp input_name(index, data_index) do
     Commands.get_command(index)
     |> Commands.inputs([])
     |> Enum.find(&match?(%{data_index: ^data_index}, &1))
@@ -133,4 +135,9 @@ defmodule Tr33Control.Commands.Modifier do
   defp input_name(%Slider{name: name}), do: name
   defp input_name(%Select{name: name}), do: name
   defp input_name(_), do: "THIS SHOULD NOT BE HERE"
+
+  defp input_data_length(index, data_index) do
+    Commands.get_command(index)
+    |> Commands.Inputs.input_value_at_index(data_index, :data_length)
+  end
 end

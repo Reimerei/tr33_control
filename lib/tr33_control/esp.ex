@@ -30,7 +30,7 @@ defmodule Tr33Control.ESP do
     children =
       [
         {Registry, [keys: :unique, name: @udp_registry]},
-        # Tr33Control.ESP.Poller,
+        Tr33Control.ESP.Poller,
         UART
       ] ++ udp_children
 
@@ -76,7 +76,7 @@ defmodule Tr33Control.ESP do
   end
 
   def resync(address, _port) do
-    connect_udp()
+    try_reconnect()
 
     case Registry.lookup(@udp_registry, address) do
       [{_pid, target}] -> resync([target])
@@ -99,7 +99,7 @@ defmodule Tr33Control.ESP do
     end
   end
 
-  def connect_udp() do
+  def try_reconnect() do
     for %{id: child_id} <- Enum.map(@udp_targets, &udp_child_spec/1) do
       Supervisor.restart_child(__MODULE__, child_id)
     end
