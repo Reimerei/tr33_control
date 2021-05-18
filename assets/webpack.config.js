@@ -1,5 +1,6 @@
 const path = require('path');
 const glob = require('glob');
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const TerserPlugin = require('terser-webpack-plugin');
 const OptimizeCSSAssetsPlugin = require('optimize-css-assets-webpack-plugin');
@@ -23,7 +24,7 @@ module.exports = (env, options) => {
       path: path.resolve(__dirname, '../priv/static/js'),
       publicPath: '/js/'
     },
-    devtool: devMode ? 'source-map' : undefined,
+    devtool: devMode ? 'eval-cheap-module-source-map' : undefined,
     module: {
       rules: [
         {
@@ -38,18 +39,7 @@ module.exports = (env, options) => {
           use: [
             MiniCssExtractPlugin.loader,
             'css-loader',
-            {
-              loader: 'postcss-loader',
-              options: {
-                plugins: function () { // post css plugins, can be exported to postcss.config.js
-                  return [
-                    require('precss'),
-                    require('autoprefixer')
-                  ];
-                }
-              }
-            },
-            'sass-loader'
+            'sass-loader',
           ],
         },
         {
@@ -65,8 +55,9 @@ module.exports = (env, options) => {
       ]
     },
     plugins: [
-      new MiniCssExtractPlugin({ filename: '../css/app.css' }),
+      new MiniCssExtractPlugin({ filename: '../css/[name].css' }),
       new CopyWebpackPlugin([{ from: 'static/', to: '../' }])
     ]
+      .concat(devMode ? [new HardSourceWebpackPlugin()] : [])
   }
 };
