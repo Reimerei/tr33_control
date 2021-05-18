@@ -34,7 +34,7 @@ defmodule Tr33Control.MixProject do
   defp deps do
     [
       {:phoenix, "~> 1.5"},
-      {:phoenix_live_view, "~> 0.14.7"},
+      {:phoenix_live_view, "~> 0.14"},
       {:phoenix_ecto, "~> 4.0"},
       {:phoenix_html, "~> 2.11"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
@@ -48,8 +48,8 @@ defmodule Tr33Control.MixProject do
       {:ecto_enum, "~> 1.0"},
       {:nerves_uart, "~> 1.2"},
       {:nerves_leds, "~> 0.8"},
-      {:input_event, "~> 0.4"},
-      {:cachex, "~> 3.1"},
+      {:input_event, github: "reimerei/input_event"},
+      {:cachex, "~> 3.3"},
       # {:ease, "~> 0.1"},
       {:ex_rated, "~> 1.2"},
       {:dns, "~> 2.2"}

@@ -4,7 +4,8 @@ defmodule Tr33Control.Joystick do
   alias Tr33Control.Commands.{Event, Command, Inputs}
   alias Tr33Control.Commands
 
-  @joystick_name "Mega World USB Game Controllers"
+  # @joystick_name "Mega World USB Game Controllers"
+  @joystick_name "Saitek PLC Cyborg Force Rumble Pad"
 
   def toggle_debug() do
     current = Application.get_env(:tr33_control, :joystick_debug, false)
@@ -55,15 +56,14 @@ defmodule Tr33Control.Joystick do
     reason
   end
 
+  # command
   defp handle_joystick_event({:ev_key, :btn_trigger, 1}) do
-    if Commands.get_current_preset_name() == "joystick" do
-      Commands.get_event(:update_settings)
-      |> Map.update(:data, [], &iterate(&1, 0, Inputs.ColorPalette))
-      |> Commands.send_to_esp()
-    end
-
     if Commands.get_current_preset_name() == "twang" do
       Commands.new_event!(%{type: :joystick, data: [0, 160]})
+      |> Commands.send_to_esp()
+    else
+      Commands.get_event(:update_settings)
+      |> Map.update(:data, [], &iterate(&1, 0, Inputs.ColorPalette))
       |> Commands.send_to_esp()
     end
   end
@@ -94,7 +94,8 @@ defmodule Tr33Control.Joystick do
     end
   end
 
-  defp handle_joystick_event({:ev_key, :btn_base5, 1}) do
+  @change_preset_commands [{:ev_key, :btn_base5, 1}, {:ev_key, :btn_top, 1}]
+  defp handle_joystick_event(event) when event in @change_preset_commands do
     if Commands.get_current_preset_name() == "twang" do
       Commands.load_preset("joystick")
     else
