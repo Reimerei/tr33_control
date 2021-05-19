@@ -6,11 +6,12 @@ defmodule Tr33ControlWeb.DocsView do
 
   @excluded_inputs [Button]
 
-  def type_number(%Command{type: type}) do
-    Command.CommandType.__enum_map__()
-    |> Keyword.get(type)
-    |> to_string()
-  end
+  # todo
+  # def type_number(%Command{type: type}) do
+  #   Command.CommandType.__enum_map__()
+  #   |> Keyword.get(type)
+  #   |> to_string()
+  # end
 
   def type_number(%Event{type: type}) do
     Event.EventType.__enum_map__()

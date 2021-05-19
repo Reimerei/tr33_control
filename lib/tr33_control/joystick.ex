@@ -77,21 +77,22 @@ defmodule Tr33Control.Joystick do
 
   defp handle_joystick_event({:ev_abs, name, value})
        when name in [:abs_x, :abs_y, :abs_hat0x, :abs_hat0y] do
-    if Commands.get_current_preset_name() == "joystick" do
-      case Commands.list_commands() |> Enum.find(fn %Command{type: type} -> type == :mapped_shape end) do
-        nil ->
-          :noop
+    # todo
+    # if Commands.get_current_preset_name() == "joystick" do
+    #   case Commands.list_commands() |> Enum.find(fn %Command{type: type} -> type == :mapped_shape end) do
+    #     nil ->
+    #       :noop
 
-        command ->
-          Map.update(command, :data, [], &update_mapped_shape_data(&1, name, value))
-          |> Commands.send_to_esp()
-      end
-    end
+    #     command ->
+    #       Map.update(command, :data, [], &update_mapped_shape_data(&1, name, value))
+    #       |> Commands.send_to_esp()
+    #   end
+    # end
 
-    if Commands.get_current_preset_name() == "twang" do
-      twang_event(name, value)
-      |> Commands.send_to_esp()
-    end
+    # if Commands.get_current_preset_name() == "twang" do
+    #   twang_event(name, value)
+    #   |> Commands.send_to_esp()
+    # end
   end
 
   @change_preset_commands [{:ev_key, :btn_base5, 1}, {:ev_key, :btn_top, 1}]

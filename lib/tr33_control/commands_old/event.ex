@@ -1,17 +1,16 @@
 defmodule Tr33Control.Commands.Event do
   use Ecto.Schema
-  import EctoEnum
   alias Ecto.Changeset
   alias Tr33Control.Commands.{Event, Inputs}
 
-  defenum EventType,
-    gravity: 100,
-    update_settings: 101,
-    beat: 102,
-    pixel: 103,
-    pixel_rgb: 104,
-    joystick: 105,
-    modifier_update: 106
+  # defenum EventType,
+  #   gravity: 100,
+  #   update_settings: 101,
+  #   beat: 102,
+  #   pixel: 103,
+  #   pixel_rgb: 104,
+  #   joystick: 105,
+  #   modifier_update: 106
 
   # game:    2
 
@@ -19,7 +18,8 @@ defmodule Tr33Control.Commands.Event do
 
   @primary_key false
   embedded_schema do
-    field :type, EventType
+    # field :type, EventType
+    field :type, :string
     field :data, {:array, :integer}, default: []
   end
 

@@ -107,19 +107,20 @@ defmodule Tr33Control.ESP do
 
   ### Helper ##########################################
 
-  defp do_send(%Command{target: command_target, index: index} = command, targets) do
-    binary = Command.to_binary(command)
-    disable_binary = Command.defaults(index) |> Command.to_binary()
+  defp do_send(%Command{index: index} = command, targets) do
+    # todo
+    # binary = Command.to_binary(command)
+    # disable_binary = Command.defaults(index) |> Command.to_binary()
 
-    for target <- targets do
-      if target_match?(command_target, target) do
-        send_to_target(binary, target)
-      else
-        send_to_target(disable_binary, target)
-      end
-    end
+    # for target <- targets do
+    #   if target_match?(command_target, target) do
+    #     send_to_target(binary, target)
+    #   else
+    #     send_to_target(disable_binary, target)
+    #   end
+    # end
 
-    command
+    # command
   end
 
   defp do_send(%Event{} = event, targets) do
@@ -159,8 +160,9 @@ defmodule Tr33Control.ESP do
   end
 
   defp add_modifier_target(%Modifier{index: index} = modifier) do
-    %Command{target: target} = Commands.get_command(index)
-    {modifier, target}
+    # todo
+    # %Command{target: target} = Commands.get_command(index)
+    # {modifier, target}
   end
 
   defp target_match?(:all, _), do: true

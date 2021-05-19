@@ -1,0 +1,94 @@
+syntax = "proto2";
+
+enum ColorPalette {    
+  RAINBOW = 0;
+  FOREST = 1;
+  OCEAN = 2;
+  PARTY = 3;
+  HEAT = 4;
+  SPRING_ANGEL = 5;
+  SCOUTY = 6;
+  PURPLE_HEAT = 7;
+  // parrot = 8;
+  SAGA = 9;
+  SAGA2 = 10;
+  // sunset
+  SUNSET = 11;
+  // rivendell
+  RIVENDELL = 12;
+  // ocean breeze
+  OCEAN_BREEZE = 13;
+  // 50_shades_of_pink
+  // shades_of_pink = 14;
+  // sun
+  SUN = 15;
+  // Analogous_1 = 16;
+  // pinksplash
+  // pinksplash = 17;
+  // Coral_reef = 18;
+  // es_ocean_breeze_068 = 19;
+  SHADES_OF_PINK = 20;
+  // es_vintage_01 = 21;
+  // departure = 22;
+  LANDSCAPE = 23;
+  // es_landscape_33 = 24;
+  RAINBOWSHERBET = 25;
+  BLUE_PINK = 26;
+  HULT = 27;
+  // GMT_drywet = 28;
+  JUL01 = 29;
+  // es_vintage_57 = 30;
+  // ib15 = 31;
+  FUSCHIA = 32;
+  // es_emerald_dragon_08 = 33;
+  // lava = 34;
+  // fire = 35;
+  COLORFULL = 36;
+  // Magenta_Evening = 37;
+  // Pink_Purple = 38;
+  // autumn = 39;
+  // BlacK_Blue_Magenta_White = 40;
+  // BlacK_Magenta_Red = 41;
+  // BlacK_Red_Magenta_Yellow = 42;
+  BLUE_CYAN_YELLOW = 43;
+}
+
+enum RenderType {
+    BALL = 0;
+    COMET = 1;
+    COMET_BOUNCE = 2;
+    NYAN = 3;
+    NYAN_BOUNCE = 4;
+    FILL = 5;
+}
+
+enum PingPongType {
+    LINEAR = 0;
+    SINE = 1;
+    COSINE = 2;
+    SAWTOOTH = 3;
+}
+
+message CommonParams {
+  required int32 index = 1;  
+  optional int32 brightness = 2 [default = 100];
+  optional int32 strip_index = 3 [default = 0]; 
+  optional ColorPalette color_palette = 4 [default = RAINBOW];
+}
+
+message PingPongCommand {
+  required CommonParams common = 1;
+  optional RenderType render_type = 2 [default = BALL];
+  optional PingPongType ping_pong_type = 5 [default = LINEAR];
+  optional int32 color = 3 [default = 65];
+  optional int32 width = 4 [default = 20];
+  optional int32 period_ms = 6 [default = 6000];
+  optional int32 offset_ms = 7 [default = 0];
+  optional int32 max_height = 8 [default = 255];
+}
+
+message SingleColorCommand {
+  required CommonParams common = 1;
+  optional int32 color = 2 [default = 226];
+}
+

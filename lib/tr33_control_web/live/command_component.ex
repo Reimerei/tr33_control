@@ -59,22 +59,24 @@ defmodule Tr33ControlWeb.CommandComponent do
   end
 
   def handle_event("data_increase", %{"data-index" => data_index}, %Socket{assigns: %{id: id}} = socket) do
-    command = %Command{data: data} = Commands.get_command(id)
-    data_index = String.to_integer(data_index)
+    # todo
+    # command = %Command{data: data} = Commands.get_command(id)
+    # data_index = String.to_integer(data_index)
 
-    command
-    |> Commands.edit_command!(%{data: List.update_at(data, data_index, &increment_data(&1))})
-    |> Commands.send_to_esp(true)
+    # command
+    # |> Commands.edit_command!(%{data: List.update_at(data, data_index, &increment_data(&1))})
+    # |> Commands.send_to_esp(true)
 
     {:noreply, socket}
   end
 
   def handle_event("data_decrease", %{"data-index" => data_index}, %Socket{assigns: %{id: id}} = socket) do
-    command = %Command{data: data} = Commands.get_command(id)
+    # todo
+    # command = %Command{data: data} = Commands.get_command(id)
 
-    command
-    |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(data_index), &decrement_data/1)})
-    |> Commands.send_to_esp(true)
+    # command
+    # |> Commands.edit_command!(%{data: List.update_at(data, String.to_integer(data_index), &decrement_data/1)})
+    # |> Commands.send_to_esp(true)
 
     {:noreply, socket}
   end
@@ -190,11 +192,13 @@ defmodule Tr33ControlWeb.CommandComponent do
     end
   end
 
-  def maybe_set_collapsed?(socket, %Command{type: type}, %Command{type: type}), do: socket
+  # todo
+  def maybe_set_collapsed?(socket, %Command{}, %Command{}), do: socket
+  # def maybe_set_collapsed?(socket, %Command{type: type}, %Command{type: type}), do: socket
 
-  def maybe_set_collapsed?(socket, %Command{type: new_type}, _) do
-    set_default_collapsed?(socket, new_type)
-  end
+  # def maybe_set_collapsed?(socket, %Command{type: new_type}, _) do
+  #   set_default_collapsed?(socket, new_type)
+  # end
 
   def set_default_collapsed?(socket, new_type) do
     assign(socket, :collapsed?, new_type == :disabled || new_type == "disabled")

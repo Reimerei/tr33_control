@@ -16,13 +16,13 @@ config :tr33_control, Tr33ControlWeb.Endpoint,
   live_view: [signing_salt: "HC+iC2aJ"]
 
 config :tr33_control,
-  ecto_repos: [Tr33Control.Repo],
-  command_max_index: 9,
   serial_port: System.get_env("SERIAL_PORT") || "ttyAMA0",
   udp_listen_port: 1337,
   cache_persist_dir: System.get_env("CACHE_PERSIST_DIR") || "/root/tr33/cache_persist",
+  local_domain: "fritz.box",
+  command_targets: [:tr33, :wolken, :trommel],
   led_structure: :tr33,
-  local_domain: "fritz.box"
+  command_max_index: 9
 
 # led_structure: :keller
 # led_structure: :wand

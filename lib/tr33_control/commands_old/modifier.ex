@@ -1,26 +1,27 @@
 defmodule Tr33Control.Commands.Modifier do
   use Ecto.Schema
-  import EctoEnum
 
   alias Ecto.Changeset
   alias Tr33Control.Commands
   alias Tr33Control.Commands.Inputs.{Select, Slider, Hidden}
 
-  defenum ModifierType,
-    disabled: 0,
-    linear: 1,
-    sine: 2,
-    quadratic: 3,
-    # cubic: 4,
-    sawtooth: 5,
-    sawtooth_reverse: 6,
-    random: 7,
-    random_transitions: 8
+  # todo
+  # defenum ModifierType,
+  #   disabled: 0,
+  #   linear: 1,
+  #   sine: 2,
+  #   quadratic: 3,
+  #   # cubic: 4,
+  #   sawtooth: 5,
+  #   sawtooth_reverse: 6,
+  #   random: 7,
+  #   random_transitions: 8
 
   @primary_key false
   @enforce_keys [:index, :data_index]
   embedded_schema do
-    field :type, ModifierType, default: :disabled
+    # field :type, ModifierType, default: :disabled
+    field :type, :string
     field :index, :integer
     field :data_index, :integer
     field :data_length, :integer, default: 1

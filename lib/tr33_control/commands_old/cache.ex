@@ -1,44 +1,41 @@
-defmodule Tr33Control.Commands.Cache do
+defmodule Tr33Control.Commands.CacheOLD do
   require Logger
   alias Tr33Control.Commands
   alias Tr33Control.Commands.{Command, Event, Preset, Modifier}
 
-  # @all_cache_keys [Command, Event, Preset, Modifier]
-  @all_cache_keys [Command]
+  @all_cache_keys [Command, Event, Preset, Modifier]
 
   def init_all() do
     Enum.map(@all_cache_keys, &init/1)
   end
 
   def init(Command) do
-    Commands.create_command(0)
-    Commands.create_command(1)
-    Commands.create_command(2)
-    Commands.create_command(3)
+    0..Application.fetch_env!(:tr33_control, :command_max_index)
+    |> Enum.map(&Command.defaults/1)
+    |> Enum.map(&insert(&1, true))
   end
 
-  # todo
-  # def init(Event) do
-  #   [
-  #     %Event{type: :update_settings}
-  #   ]
-  #   |> Enum.map(&Event.defaults/1)
-  #   |> Enum.map(&insert(&1, true))
-  # end
+  def init(Event) do
+    [
+      %Event{type: :update_settings}
+    ]
+    |> Enum.map(&Event.defaults/1)
+    |> Enum.map(&insert(&1, true))
+  end
 
-  # def init(Preset) do
-  #   if File.exists?(presets_persist_file()) do
-  #     Logger.info("Loading persisted presets from #{inspect(presets_persist_file())}")
-  #     File.read!(presets_persist_file()) |> :erlang.binary_to_term()
-  #     Cachex.load!(Preset, presets_persist_file())
-  #     Enum.map(@all_cache_keys, &migrate/1)
-  #   else
-  #     Logger.warn("No preset persist file found #{inspect(presets_persist_file())}")
-  #   end
-  # end
+  def init(Preset) do
+    if File.exists?(presets_persist_file()) do
+      Logger.info("Loading persisted presets from #{inspect(presets_persist_file())}")
+      File.read!(presets_persist_file()) |> :erlang.binary_to_term()
+      Cachex.load!(Preset, presets_persist_file())
+      Enum.map(@all_cache_keys, &migrate/1)
+    else
+      Logger.warn("No preset persist file found #{inspect(presets_persist_file())}")
+    end
+  end
 
-  # def init(Modifier) do
-  # end
+  def init(Modifier) do
+  end
 
   def clear_all() do
     Enum.map(@all_cache_keys, &clear/1)
@@ -48,9 +45,10 @@ defmodule Tr33Control.Commands.Cache do
     Cachex.clear!(key)
   end
 
-  def insert(%{__struct__: cache} = struct) when cache in @all_cache_keys do
+  def insert(%{__struct__: cache} = struct, force) when cache in @all_cache_keys do
     Cachex.put!(cache, cache_key(struct), struct)
     maybe_persist_cache(struct)
+    Commands.notify_subscribers({cache, cache_key(struct)}, force)
     struct
   end
 
@@ -66,12 +64,9 @@ defmodule Tr33Control.Commands.Cache do
     |> Enum.into([])
   end
 
-  def count(cache) when cache in @all_cache_keys do
-    Cachex.count!(cache)
-  end
-
   def delete(cache, key) when cache in @all_cache_keys do
     res = Cachex.take(cache, key)
+    Commands.notify_subscribers({cache, key}, true)
     res
   end
 
@@ -102,7 +97,7 @@ defmodule Tr33Control.Commands.Cache do
   #   |> Enum.map(&insert(&1, false))
   # end
 
-  # defp migrate(_), do: :noop
+  defp migrate(_), do: :noop
 
   # defp migrate_target(%Command{target: "all"} = command), do: %Command{command | target: :all}
   # defp migrate_target(%Command{target: nil} = command), do: %Command{command | target: :all}

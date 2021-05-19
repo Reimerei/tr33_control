@@ -3,12 +3,13 @@ defmodule Tr33ControlWeb.ControlLive do
   require Logger
 
   alias Tr33Control.Commands
+  alias Tr33Control.Commands.Command
   alias Tr33ControlWeb.{CommandComponent, SettingsComponent}
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: Commands.subscribe()
 
-    {:ok, socket}
+    {:ok, fetch(socket)}
   end
 
   def handle_event(event, data, socket) do
@@ -16,9 +17,9 @@ defmodule Tr33ControlWeb.ControlLive do
     {:noreply, socket}
   end
 
-  def handle_info({:command_update, id}, socket) do
-    send_update(CommandComponent, id: id)
-    {:noreply, socket}
+  def handle_info({:command_update, command = %Command{}}, socket) do
+    send_update(CommandComponent, id: command.index)
+    {:noreply, fetch(socket)}
   end
 
   def handle_info({:event_update, :update_settings}, socket) do
@@ -44,5 +45,10 @@ defmodule Tr33ControlWeb.ControlLive do
   def handle_info(data, socket) do
     Logger.warn("#{__MODULE__}: Unhandled info #{inspect(data)}")
     {:noreply, socket}
+  end
+
+  defp fetch(socket) do
+    socket
+    |> assign(command_count: Commands.count_commands())
   end
 end
