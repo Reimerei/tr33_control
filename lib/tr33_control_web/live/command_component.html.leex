@@ -1,82 +1,55 @@
-<ul class="list-group pb-4">
-  <li class="list-group-item">
-    <div class="row">
-      <div class="col-md-1 h5 pt-2 pl-2">
-        <%= @command.index %>
-      </div>
-      <div class="col-md-2">
-        <form action="" phx-change="type_change" phx-target="<%= @myself %>" phx-auto-recover="ignore">
-          <select name="type" class="custom-select">
-            <%= for {type_name, type_value} <- @command_types do %>
-              <option value="<%= type_value %>" <%= if type_name == @command.type or type_value == @command.type do %>selected<% end %> ><%= type_name %></option>
-            <% end %>
-          </select>
-        </form>
-      </div>
+<div class="container-fluid px-0">
+  <div class="d-flex justify-content-start py-3 ps-3 bg-dark">
 
-      <div class="col-md-2">
-        <button type="button" class="btn btn-primary" phx-click="toggle_target" phx-target="<%= @myself %>">Target: <%= @command.target %></button>
-      </div>
+    <div class="btn-group">
+      <button type="button" class="btn btn-secondary">Effect</button>
 
-      <div class="col-md-7">
-         <div class="btn-group float-right" role="group">
-          <button type="button" class="btn btn-primary" phx-click="command_up" phx-target="<%= @myself %>">↑</button>
-          <button type="button" class="btn btn-primary" phx-click="command_down" phx-target="<%= @myself %>">↓</button>
-          <button type="button" class="btn btn-primary" phx-click="command_clone" phx-target="<%= @myself %>">clone</button>
-          <button type="button" class="btn btn-primary" phx-click="command_toggle_enabled" phx-target="<%= @myself %>">
-            <%= if (@command.enabled) do %>
-              pause
-            <% else %>
-              continue
-            <% end %>
-          </button>
-          <button type="button" class="btn btn-primary" phx-click="command_toggle_collapsed" phx-target="<%= @myself %>">
-            <%= if @collapsed? do %>
-              +
-            <% else %>
-              -
-            <% end %>
-          </button>
+      <div class="btn-group">
+        <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><%= Display.command_type(@command) %></button>
+        <div class="dropdown-menu">
+          <%= for type <- @command_types do %>
+            <div
+              class="dropdown-item"
+              style="cursor: pointer"
+              phx-click="type_select"
+              phx-value-type="<%= type %>"
+              phx-target="<%= @myself %>"
+              >
+              <%= Display.command_type(type) %>
+            </div>
+          <% end %>
         </div>
       </div>
     </div>
-  </li>
 
-  <%= if not @collapsed? do %>
-    <li class="list-group-item <%= if (not @command.enabled) do %>list-group-item-danger<% end %>">
-      <form action="" phx-change="data_change" phx-target="<%= @myself %>" phx-auto-recover="ignore">
-        <div class="form-row">
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_0, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_1, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_2, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_3, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_4, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_5, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_6, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_7, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_8, target: @myself, modifier_button?: true, step_buttons?: true %>
-          <%= live_component @socket, Tr33ControlWeb.InputComponent, input: @input_9, target: @myself, modifier_button?: true, step_buttons?: true %>
-        </div>
-      </form>
-    </li>
+    <div class="btn-group ps-5">
+      <button type="button" class="btn btn-secondary">Targets</button>
+      <%= for target <- @command_targets do %>
+        <button
+          type="button"
+          class="btn btn-<%= if Display.target_active?(@command, target), do: "primary", else: "secondary" %>"
+          phx-click="toggle_target"
+          phx-value-target="<%= target %>"
+          phx-target="<%= @myself %>"
+          >
+          <%= Display.command_target(target) %>
+        </button>
+      <% end %>
+    </div>
 
-    <%= for {inputs, field_name, data_index} <- @modifier_inputs do %>
-      <li class="list-group-item border-success" style="border-top-width: 1px">
+  </div>
 
-          <form action="" phx-change="modifier_change" phx-target="<%= @myself %>">
-            <div class="form-row">
-              <div class="form-group col-md-3">
-                <h4 class="mt-2 text-success"><%= field_name %></h4>
-              </div>
-              <input name="data_index" type="hidden" value="<%= data_index %>">
-              <%= for input <- inputs do %>
-                <%= live_component @socket, Tr33ControlWeb.InputComponent, input: input, target: @myself, modifier_button?: false, step_buttons?: true  %>
-              <% end %>
-            </div>
-          </form>
+  <div class="d-flex">
 
-      </li>
+    <%= for param <- @value_params do %>
+      <div class="d-flex flex-column align-items-center" style="width:6rem;margin:2rem">
+        <%= live_component @socket, Tr33ControlWeb.SliderComponent, param: param, target: @myself %>
+        <span class="badge bg-secondary my-2 align-self-stretch "><%= Display.name(param) %></span>
+      </div>
     <% end %>
-  <% end %>
 
-</ul>
+    <%= for param <- @enum_params do %>
+    <% end %>
+
+  </div>
+</div>

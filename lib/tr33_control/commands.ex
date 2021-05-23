@@ -1,9 +1,8 @@
 defmodule Tr33Control.Commands do
-  alias __MODULE__.{Messages, Command, Cache}
+  alias __MODULE__.{ProtoBuf, Command, Cache, ValueParam}
 
-  @common_sub_message Messages.CommonParams
-  @default_command_type Messages.SingleColorCommand
-  @command_targets Application.fetch_env!(:tr33_control, :command_targets)
+  @default_command_type ProtoBuf.SingleColorCommand
+  @command_targets Application.compile_env!(:tr33_control, :command_targets)
   @pubsub_topic "#{inspect(__MODULE__)}"
 
   def init() do
@@ -30,10 +29,10 @@ defmodule Tr33Control.Commands do
   ### Commands ########################################################################################################
 
   def command_types() do
-    Messages.defs()
+    ProtoBuf.defs()
     |> Enum.filter(&match?({{:msg, _}, _}, &1))
     |> Enum.map(fn {{_, type}, _} -> type end)
-    |> List.delete(@common_sub_message)
+    |> List.delete(ProtoBuf.CommonParams)
   end
 
   def get_command(index) do
@@ -45,30 +44,34 @@ defmodule Tr33Control.Commands do
   end
 
   def create_command(index, type \\ @default_command_type) when is_atom(type) and is_number(index) do
-    common = apply(@common_sub_message, :new, [[index: index]])
+    common = apply(ProtoBuf.CommonParams, :new, [[index: index]])
 
     %Command{
       index: index,
-      message: apply(type, :new, [[common: common]])
+      params: apply(type, :new, [[common: common]])
     }
     |> process_command()
   end
 
-  def update_command_message(index, key, value) do
+  def delete_command(index) do
+    Cache.delete(Command, index)
+  end
+
+  def update_command_param(index, name, value) do
     command = %Command{} = get_command(index)
 
-    new_message = Map.replace!(command.message, key, value)
+    new_params = Map.replace!(command.params, name, value)
 
-    %Command{command | message: new_message}
+    %Command{command | params: new_params}
     |> process_command()
   end
 
-  def update_command_common_message(index, key, value) do
+  def update_command_common_param(index, name, value) do
     command = %Command{} = get_command(index)
 
-    new_common = Map.replace!(command.message.common, key, value)
+    new_common = Map.replace!(command.params.common, name, value)
 
-    %Command{command | message: %{command.message | common: new_common}}
+    %Command{command | params: %{command.params | common: new_common}}
     |> process_command()
   end
 
@@ -96,6 +99,22 @@ defmodule Tr33Control.Commands do
   def count_commands() do
     Cache.count(Command)
   end
+
+  ### Command Params ###############################################################################
+
+  def list_value_params(%Command{} = command) do
+    ValueParam.list(command)
+  end
+
+  def list_enum_params(%Command{} = command) do
+    EnumParam.list(command)
+  end
+
+  def get_common_param(%Command{} = command, name) do
+    ValueParam.get_common(command, name)
+  end
+
+  ### Helpers ###################################################################################
 
   defp process_command(%Command{} = command) do
     command

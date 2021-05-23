@@ -20,6 +20,8 @@ This app leverages phoenix channels to sync the state between all connected brow
 * batch UDP commands
 * transitions for changes in modifier period (hard)
 * fix max validations => inputs/data as proper data structures?
+* Wolken -> one structure, multiple strip indexes
+
 
 ## low
 

@@ -1,3 +1,4 @@
+<!--
 <ul class="list-group pb-4">
 
     <li class="list-group-item">
@@ -11,7 +12,15 @@
 
   <%# live_component @socket, Tr33ControlWeb.SettingsComponent, id: :settings %>
 </ul>
+-->
+<ul class="nav nav-tabs">
+  <%= for index <- 0..@command_count-1 do %>
+    <div class="nav-link <%= if index == @active_command, do: "active bg-dark" %>">
+      <%= live_component @socket, Tr33ControlWeb.CommandHeaderComponent, id: index %>
+    </div>
+  <% end %>
+</ul>
 
-<%= for index <- 0..@command_count-1 do %>
-  <%= live_component @socket, Tr33ControlWeb.CommandComponent, id: index %>
-<% end %>
+<div class="border border-top-0 border-secondary ">
+  <%= live_component @socket, Tr33ControlWeb.CommandComponent, id: :active_command, index: @active_command %>
+</div>

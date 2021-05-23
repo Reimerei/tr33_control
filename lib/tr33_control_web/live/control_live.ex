@@ -2,14 +2,28 @@ defmodule Tr33ControlWeb.ControlLive do
   use Tr33ControlWeb, :live_view
   require Logger
 
+  alias Phoenix.LiveView.Socket
   alias Tr33Control.Commands
   alias Tr33Control.Commands.Command
-  alias Tr33ControlWeb.{CommandComponent, SettingsComponent}
+  alias Tr33ControlWeb.{CommandComponent, SettingsComponent, CommandHeaderComponent}
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: Commands.subscribe()
 
-    {:ok, fetch(socket)}
+    socket =
+      socket
+      |> assign(active_command: 0)
+      |> fetch()
+
+    {:ok, socket}
+  end
+
+  def handle_event("set_active_command", %{"index" => index}, socket) do
+    socket =
+      socket
+      |> assign(active_command: String.to_integer(index))
+
+    {:noreply, socket}
   end
 
   def handle_event(event, data, socket) do
@@ -17,8 +31,10 @@ defmodule Tr33ControlWeb.ControlLive do
     {:noreply, socket}
   end
 
-  def handle_info({:command_update, command = %Command{}}, socket) do
-    send_update(CommandComponent, id: command.index)
+  def handle_info({:command_update, command = %Command{}}, %Socket{} = socket) do
+    send_update(CommandHeaderComponent, id: command.index, command: command)
+    send_update(CommandComponent, id: :active_command, command: command)
+
     {:noreply, fetch(socket)}
   end
 

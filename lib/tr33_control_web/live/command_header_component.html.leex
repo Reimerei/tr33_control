@@ -1,0 +1,16 @@
+<div class="d-flex flex-column align-items-center" style="width:6rem;">
+  <h5><span class="badge bg-secondary">Command <%= @command.index + 1%></span></h5>
+
+  <div class="my-2">
+    <%= live_component @socket, Tr33ControlWeb.SliderComponent, param: @brightness_param, target: @myself %>
+  </div>
+
+  <span class="badge bg-secondary my-2 align-self-stretch "><%= Display.command_type(@command) %></span>
+
+  <button
+    class="btn btn-smx btn-primary text-light mb-2 align-self-stretch"
+    phx-click="set_active_command"
+    phx-value-index="<%= @command.index%>"
+    >▼</button>
+
+</div>
