@@ -10,7 +10,7 @@ defmodule Tr33ControlWeb.CommandHeaderComponent do
     socket =
       socket
       |> assign(:command, command)
-      |> assign(:brightness_param, Commands.get_common_param(command, :brightness))
+      |> assign(:brightness_param, Commands.get_common_value_param(command, :brightness))
 
     {:ok, socket}
   end

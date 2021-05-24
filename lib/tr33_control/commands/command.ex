@@ -2,6 +2,7 @@ defmodule Tr33Control.Commands.Command do
   use Ecto.Schema
 
   alias Tr33Control.Commands
+  alias Tr33Control.Commands.Schemas
 
   @primary_key false
   embedded_schema do
@@ -20,8 +21,17 @@ defmodule Tr33Control.Commands.Command do
     %__MODULE__{command | encoded: encoded}
   end
 
-  def list_params(%__MODULE__{params: %{__struct__: type} = params}) do
+  def get_common_field_def(name) when is_atom(name) do
+    Schemas.CommonParams.defs(:field, name)
+  end
+
+  def list_field_defs(%__MODULE__{params: params}) do
     params
+    |> field_defs_from_struct()
+  end
+
+  defp field_defs_from_struct(%{__struct__: type} = struct) do
+    struct
     |> Map.from_struct()
     |> Map.drop([:common])
     |> Map.keys()

@@ -1,5 +1,6 @@
 // $secondary: #003a3e;
 $primary: #003a3e;
+$warning: #ffc400;
 
 @import "../node_modules/bootswatch/dist/darkly/variables";
 @import "../node_modules/bootstrap/scss/bootstrap";
@@ -51,7 +52,7 @@ $range_width: 5rem;
 
 .custom-vertical-range::-moz-range-track {    
     height: 0.4rem;
-    background: $light;    
+    background: $secondary;    
     border-radius: 0.2rem;
 }
 

@@ -1,5 +1,5 @@
 defmodule Tr33ControlWeb.Display do
-  alias Tr33Control.Commands.{Command, ValueParam}
+  alias Tr33Control.Commands.{Command, ValueParam, EnumParam}
 
   def command_type(%Command{params: %{__struct__: module}}) do
     module
@@ -28,7 +28,10 @@ defmodule Tr33ControlWeb.Display do
     apply(struct, :defs, [])
   end
 
-  def name(%ValueParam{name: name}) do
+  def name(%ValueParam{name: name}), do: humanize_str(name)
+  def name(%EnumParam{name: name}), do: humanize_str(name)
+
+  def humanize_str(name) do
     name
     |> to_string()
     |> String.split("_")

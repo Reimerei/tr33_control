@@ -1,7 +1,7 @@
 defmodule Tr33Control.Commands do
-  alias __MODULE__.{ProtoBuf, Command, Cache, ValueParam}
+  alias __MODULE__.{Schemas, Command, Cache, ValueParam, EnumParam}
 
-  @default_command_type ProtoBuf.SingleColorCommand
+  @default_command_type Schemas.SingleColorCommand
   @command_targets Application.compile_env!(:tr33_control, :command_targets)
   @pubsub_topic "#{inspect(__MODULE__)}"
 
@@ -29,10 +29,10 @@ defmodule Tr33Control.Commands do
   ### Commands ########################################################################################################
 
   def command_types() do
-    ProtoBuf.defs()
+    Schemas.defs()
     |> Enum.filter(&match?({{:msg, _}, _}, &1))
     |> Enum.map(fn {{_, type}, _} -> type end)
-    |> List.delete(ProtoBuf.CommonParams)
+    |> List.delete(Schemas.CommonParams)
   end
 
   def get_command(index) do
@@ -44,7 +44,7 @@ defmodule Tr33Control.Commands do
   end
 
   def create_command(index, type \\ @default_command_type) when is_atom(type) and is_number(index) do
-    common = apply(ProtoBuf.CommonParams, :new, [[index: index]])
+    common = apply(Schemas.CommonParams, :new, [[index: index]])
 
     %Command{
       index: index,
@@ -103,15 +103,25 @@ defmodule Tr33Control.Commands do
   ### Command Params ###############################################################################
 
   def list_value_params(%Command{} = command) do
-    ValueParam.list(command)
+    Command.list_field_defs(command)
+    |> Enum.map(&ValueParam.new(command.params, &1))
+    |> Enum.reject(&is_nil/1)
   end
 
   def list_enum_params(%Command{} = command) do
-    EnumParam.list(command)
+    Command.list_field_defs(command)
+    |> Enum.map(&EnumParam.new(command.params, &1))
+    |> Enum.reject(&is_nil/1)
   end
 
-  def get_common_param(%Command{} = command, name) do
-    ValueParam.get_common(command, name)
+  def get_common_value_param(%Command{} = command, name) do
+    Command.get_common_field_def(name)
+    |> then(&ValueParam.new(command.params.common, &1))
+  end
+
+  def get_common_enum_param(%Command{} = command, name) do
+    Command.get_common_field_def(name)
+    |> then(&EnumParam.new(command.params.common, &1))
   end
 
   ### Helpers ###################################################################################

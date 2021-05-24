@@ -1,9 +1,8 @@
 defmodule Tr33ControlWeb.SliderComponent do
   use Tr33ControlWeb, :live_component
-
   alias Tr33Control.Commands.ValueParam
 
-  def update(%{target: target, param: %ValueParam{} = param}, socket) do
+  def update(%{target: target, param: %ValueParam{} = param} = assigns, socket) do
     socket =
       socket
       |> assign(target: target)
@@ -12,6 +11,7 @@ defmodule Tr33ControlWeb.SliderComponent do
       |> assign(max: param.max)
       |> assign(step: param.step)
       |> assign(name: param.name)
+      |> assign(secondary: Map.get(assigns, :secondary, false))
 
     {:ok, socket}
   end

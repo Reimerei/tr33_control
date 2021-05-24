@@ -53,7 +53,22 @@ enum ColorPalette {
   BLUE_CYAN_YELLOW = 43;
 }
 
-enum RenderType {
+// todo
+enum StripSelect {
+  ALL = 0;
+  TRUNK = 1;
+  BRANCHES = 2;
+  WOLKE_1 = 3;
+  WOLKE_2 = 4;
+  WOLKE_3 = 5;
+  WOLKE_4 = 6;
+  WOLKE_5 = 7;
+  WOLKE_6 = 8;
+  WOLKE_7 = 9;
+  WOLKE_8 = 10;
+}
+
+enum Shape1D {
     BALL = 0;
     COMET = 1;
     COMET_BOUNCE = 2;
@@ -62,7 +77,7 @@ enum RenderType {
     FILL = 5;
 }
 
-enum PingPongType {
+enum MovementType {
     LINEAR = 0;
     SINE = 1;
     COSINE = 2;
@@ -78,13 +93,14 @@ message CommonParams {
 
 message PingPongCommand {
   required CommonParams common = 1;
-  optional RenderType render_type = 2 [default = BALL];
-  optional PingPongType ping_pong_type = 3 [default = LINEAR];
+  optional Shape1D shape = 2 [default = BALL];
+  optional MovementType movement = 3 [default = LINEAR];
   optional int32 color = 4 [default = 65];
   optional int32 width = 5 [default = 20];
   optional int32 max_height = 6 [default = 255];
-  optional int32 period_ms = 7 [default = 6000];
-  optional int32 offset_ms = 8 [default = 0];
+  optional int32 count = 7 [default = 1];
+  optional int32 period_ms = 8 [default = 6000];
+  optional int32 offset_ms = 9 [default = 0];
 }
 
 message SingleColorCommand {

@@ -1,8 +1,9 @@
 <div class="container-fluid px-0">
   <div class="d-flex justify-content-start py-3 ps-3 bg-dark">
 
-    <div class="btn-group">
-      <button type="button" class="btn btn-secondary">Effect</button>
+    <%# Effect Select %>
+    <div class="btn-group pe-5">
+      <button type="button" class="btn btn-secondary fw-bold">Command</button>
 
       <div class="btn-group">
         <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown"><%= Display.command_type(@command) %></button>
@@ -22,7 +23,15 @@
       </div>
     </div>
 
-    <div class="btn-group ps-5">
+    <%# Color Palette %>
+    <div class="pe-5">
+      <%= live_component @socket, Tr33ControlWeb.SelectComponent, param: @color_palette_param, target: @myself, style: :header %>
+    </div>
+
+    <%# Strip Index %>
+
+    <%# Target Toggles %>
+    <div class="btn-group">
       <button type="button" class="btn btn-secondary">Targets</button>
       <%= for target <- @command_targets do %>
         <button
@@ -39,17 +48,22 @@
 
   </div>
 
-  <div class="d-flex">
+  <div class="d-flex flex-wrap">
 
     <%= for param <- @value_params do %>
       <div class="d-flex flex-column align-items-center" style="width:6rem;margin:2rem">
-        <%= live_component @socket, Tr33ControlWeb.SliderComponent, param: param, target: @myself %>
+        <%= live_component @socket, Tr33ControlWeb.SliderComponent, param: param, target: @myself, secondary: true %>
         <span class="badge bg-secondary my-2 align-self-stretch "><%= Display.name(param) %></span>
       </div>
     <% end %>
 
-    <%= for param <- @enum_params do %>
-    <% end %>
+    <div class="d-flex flex-column" style="margin:2rem">
+      <%= for param <- @enum_params do %>
+        <div class="mb-3">
+          <%= live_component @socket, Tr33ControlWeb.SelectComponent, param: param, target: @myself %>
+        </div>
+      <% end %>
+    </div>
 
   </div>
 </div>

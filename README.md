@@ -21,7 +21,7 @@ This app leverages phoenix channels to sync the state between all connected brow
 * transitions for changes in modifier period (hard)
 * fix max validations => inputs/data as proper data structures?
 * Wolken -> one structure, multiple strip indexes
-
+* Rotate effect, rotate over strips
 
 ## low
 

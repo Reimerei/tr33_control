@@ -70,6 +70,7 @@ defmodule Tr33ControlWeb.CommandComponent do
     socket
     |> assign(command: command)
     |> assign(value_params: Commands.list_value_params(command))
-    |> assign(value_params: Commands.list_enum_params(command))
+    |> assign(enum_params: Commands.list_enum_params(command))
+    |> assign(color_palette_param: Commands.get_common_enum_param(command, :color_palette))
   end
 end
