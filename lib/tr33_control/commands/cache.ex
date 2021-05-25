@@ -12,9 +12,10 @@ defmodule Tr33Control.Commands.Cache do
 
   def init(Command) do
     Commands.create_command(0)
+    Commands.update_command_param(0, :brightness, 0)
+
     Commands.create_command(1)
-    Commands.create_command(2)
-    Commands.create_command(3)
+    Commands.update_command_param(1, :brightness, 0)
   end
 
   # todo

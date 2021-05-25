@@ -1,16 +1,9 @@
 defmodule Tr33ControlWeb.Display do
-  alias Tr33Control.Commands.{Command, ValueParam, EnumParam}
+  alias Tr33Control.Commands.{Command, ValueParam, EnumParam, Schemas}
 
-  def command_type(%Command{params: %{__struct__: module}}) do
-    module
-    |> command_type()
-  end
-
-  def command_type(module) when is_atom(module) do
-    module
-    |> Module.split()
-    |> List.last()
-    |> String.replace("Command", "")
+  def command_type(%Command{} = command) do
+    Command.type(command)
+    |> humanize()
   end
 
   def command_target(target) when is_atom(target) do
@@ -28,10 +21,10 @@ defmodule Tr33ControlWeb.Display do
     apply(struct, :defs, [])
   end
 
-  def name(%ValueParam{name: name}), do: humanize_str(name)
-  def name(%EnumParam{name: name}), do: humanize_str(name)
+  def name(%ValueParam{name: name}), do: humanize(name)
+  def name(%EnumParam{name: name}), do: humanize(name)
 
-  def humanize_str(name) do
+  def humanize(name) do
     name
     |> to_string()
     |> String.split("_")

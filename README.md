@@ -8,7 +8,6 @@ This app leverages phoenix channels to sync the state between all connected brow
 # Bugs/features
 * Sync time between ESPs
 * Sync random seed betwenn ESPs
-* per command palettes
 * find effect lib
 * effects relative to strip height/prixel count
   * gravity height relative to strip length
@@ -19,13 +18,9 @@ This app leverages phoenix channels to sync the state between all connected brow
 * more scaling for bigger structures
 * batch UDP commands
 * transitions for changes in modifier period (hard)
-* fix max validations => inputs/data as proper data structures?
-* Wolken -> one structure, multiple strip indexes
 * Rotate effect, rotate over strips
 
 ## low
-
-* persistence per led structure
 * read led_structure from controller
 * ping pong sawtooth, fade out
 * modifier for palette 
@@ -42,6 +37,13 @@ This app leverages phoenix channels to sync the state between all connected brow
 * softer sparkle
 * fix add ball for gravity
 
+## doing
+* Strip index -> 0 == all
+* Wolken -> one structure, multiple strip indexes
+* per command palettes
+* fix max validations => inputs/data as proper data structures?
+* Tr33: fix extended LedStructure functions
+* white color palette
 
 ## done
 * render effect: position 2 bytes
@@ -58,9 +60,11 @@ This app leverages phoenix channels to sync the state between all connected brow
 * performance with modifiers
   * x/per minute relative to pixel count
 * double check modifier migration
+
 ## Wont do
 * cleanup: get rid of pub_sub rate limit (maybe not?)
 * handshake/ack commands and retry
 * position 16bit
 * x for disable
 * optionally avoid overlap in random transistion
+* persistence per led structure

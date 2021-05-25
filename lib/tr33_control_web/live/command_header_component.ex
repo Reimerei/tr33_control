@@ -28,7 +28,7 @@ defmodule Tr33ControlWeb.CommandHeaderComponent do
   end
 
   def handle_event("slider_change", %{"brightness" => brightness}, %Socket{} = socket) do
-    Commands.update_command_common_param(socket.assigns.command.index, :brightness, String.to_integer(brightness))
+    Commands.update_command_param(socket.assigns.command.index, :brightness, String.to_integer(brightness))
     {:noreply, socket}
   end
 

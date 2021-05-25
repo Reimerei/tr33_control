@@ -1,6 +1,8 @@
 defmodule Tr33Control.ESP.UDP do
   use GenServer
   require Logger
+  alias Tr33Control.Commands
+  alias Tr33Control.Commands.Command
 
   @tick_interval_ms 50
   @max_queue_len 1000 / 25
@@ -43,6 +45,8 @@ defmodule Tr33Control.ESP.UDP do
 
         {:ok, _} = Registry.register(@udp_registry, ip, target)
 
+        Commands.subscribe()
+
         {:ok, state}
 
       other ->
@@ -55,6 +59,17 @@ defmodule Tr33Control.ESP.UDP do
     state =
       if :queue.len(queue) < @max_queue_len do
         %{state | queue: :queue.in(binary, queue)}
+      else
+        state
+      end
+
+    {:noreply, state}
+  end
+
+  def handle_info({:command_update, %Command{} = command}, %{queue: queue} = state) do
+    state =
+      if :queue.len(queue) < @max_queue_len do
+        %{state | queue: :queue.in(command.encoded, queue)}
       else
         state
       end

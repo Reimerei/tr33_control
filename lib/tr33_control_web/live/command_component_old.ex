@@ -99,11 +99,11 @@ defmodule Tr33ControlWeb.CommandComponentOld do
   end
 
   def handle_event("command_toggle_enabled", _params, %Socket{assigns: %{id: id}} = socket) do
-    %Command{enabled: enabled} = command = Commands.get_command(id)
+    # %Command{enabled: enabled} = command = Commands.get_command(id)
 
-    command
-    |> Commands.edit_command!(%{enabled: !enabled})
-    |> Commands.send_to_esp()
+    # command
+    # |> Commands.edit_command!(%{enabled: !enabled})
+    # |> Commands.send_to_esp()
 
     {:noreply, socket}
   end

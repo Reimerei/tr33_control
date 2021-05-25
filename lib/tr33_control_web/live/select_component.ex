@@ -18,10 +18,10 @@ defmodule Tr33ControlWeb.SelectComponent do
   def render(assigns) do
     ~L"""
     <div class="btn-group">
-      <button type="button" class="btn btn-<%= label_class(@style) %> text-start"><%= Display.humanize_str(@name) %></button>
+      <button type="button" class="btn btn-<%= label_class(@style) %> text-start"><%= Display.humanize(@name) %></button>
 
       <div class="btn-group">
-        <button type="button" class="btn btn-primary text-start dropdown-toggle" data-bs-toggle="dropdown"><%= Display.humanize_str(@value) %></button>
+        <button type="button" class="btn btn-primary text-start dropdown-toggle" data-bs-toggle="dropdown"><%= Display.humanize(@value) %></button>
         <div class="dropdown-menu">
           <%= for option <- @options do %>
             <div
@@ -32,7 +32,7 @@ defmodule Tr33ControlWeb.SelectComponent do
               phx-value-selected="<%= option %>"
               phx-target="<%= @target %>"
               >
-              <%= Display.humanize_str(option) %>
+              <%= Display.humanize(option) %>
             </div>
           <% end %>
         </div>

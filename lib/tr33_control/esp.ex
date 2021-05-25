@@ -30,8 +30,8 @@ defmodule Tr33Control.ESP do
     children =
       [
         {Registry, [keys: :unique, name: @udp_registry]},
-        Tr33Control.ESP.Poller,
-        UART
+        Tr33Control.ESP.Poller
+        # UART
       ] ++ udp_children
 
     Supervisor.init(children, strategy: :one_for_one)

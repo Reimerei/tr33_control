@@ -45,13 +45,30 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
-  def handle_event(
-        "toggle_target",
-        %{"target" => target_str},
-        %Socket{assigns: %{command: %Command{index: index}}} = socket
-      ) do
+  def handle_event("toggle_target", %{"target" => target_str}, %Socket{} = socket) do
+    %{command: %Command{index: index}} = socket.assigns
     target = String.to_existing_atom(target_str)
     Commands.toggle_command_target(index, target)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("select_change", %{"name" => name_str, "selected" => selected_str}, %Socket{} = socket) do
+    name = String.to_existing_atom(name_str)
+    selected = String.to_existing_atom(selected_str)
+    %{command: %Command{index: index}} = socket.assigns
+
+    update_param(index, name, selected)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("slider_change", %{"_target" => [name_str]} = date, %Socket{} = socket) do
+    name = String.to_existing_atom(name_str)
+    value = Map.fetch!(date, name_str) |> String.to_integer()
+    %{command: %Command{index: index}} = socket.assigns
+
+    update_param(index, name, value)
 
     {:noreply, socket}
   end
@@ -72,5 +89,14 @@ defmodule Tr33ControlWeb.CommandComponent do
     |> assign(value_params: Commands.list_value_params(command))
     |> assign(enum_params: Commands.list_enum_params(command))
     |> assign(color_palette_param: Commands.get_common_enum_param(command, :color_palette))
+  end
+
+  # todo
+  # defp update_param(index, name, value) when name in @common_params do
+  #   Commands.update_command_common_param(index, name, value)
+  # end
+
+  defp update_param(index, name, value) do
+    Commands.update_command_param(index, name, value)
   end
 end

@@ -12,24 +12,4 @@ defmodule Tr33Control.Commands.ValueParam do
   end
 
   def new(_, _), do: nil
-
-  # def get_common(%Command{params: %{common: %CommonParams{} = common}}, name) do
-  #   %__MODULE__{
-  #     name: name,
-  #     value: Map.fetch!(common, name)
-  #   }
-  # end
-
-  # def list(%Command{params: params} = command) do
-  #   Command.list_params(command)
-  #   |> Enum.filter(&match?(%{type: :int32}, &1))
-  #   |> Enum.map(fn %{name: name} ->
-  #     %__MODULE__{
-  #       name: name,
-  #       value: Map.fetch!(params, name)
-  #     }
-  #   end)
-  # end
-
-  # defp overrides(value_paramstruct, name), do: %{}
 end

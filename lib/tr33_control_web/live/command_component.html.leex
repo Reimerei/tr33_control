@@ -16,7 +16,7 @@
               phx-value-type="<%= type %>"
               phx-target="<%= @myself %>"
               >
-              <%= Display.command_type(type) %>
+              <%= humanize(type) %>
             </div>
           <% end %>
         </div>
