@@ -45,7 +45,6 @@ defmodule Tr33Control.MixProject do
       {:jason, "~> 1.0"},
       {:plug_cowboy, "~> 2.0"},
       {:ecto, "~> 3.0"},
-      # {:ecto_enum, "~> 1.0"},
       {:nerves_uart, "~> 1.2"},
       {:nerves_leds, "~> 0.8"},
       {:input_event, "~> 0.4"},

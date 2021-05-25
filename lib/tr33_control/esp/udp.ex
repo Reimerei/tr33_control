@@ -9,12 +9,8 @@ defmodule Tr33Control.ESP.UDP do
   @udp_registry :udp_targets
   @target_port 1337
 
-  def start_link({target, process_name}) when is_atom(target) do
-    GenServer.start_link(__MODULE__, target, name: process_name)
-  end
-
-  def send(binary, process_name) when is_binary(binary) do
-    GenServer.cast(process_name, {:send, binary})
+  def start_link({target, host, process_name}) when is_atom(target) do
+    GenServer.start_link(__MODULE__, {target, host}, name: process_name)
   end
 
   def toggle_debug() do
@@ -22,24 +18,26 @@ defmodule Tr33Control.ESP.UDP do
     Application.put_env(:tr33_control, :udp_debug, not current)
   end
 
-  def init(target) do
-    host = "#{target}.#{Application.fetch_env!(:tr33_control, :local_domain)}" |> String.to_charlist()
-
-    case :inet.gethostbyname(host, :inet) do
+  def init({target, host}) do
+    case host |> String.to_charlist() |> :inet.gethostbyname(:inet) do
       {:ok, {:hostent, _host, [], :inet, 4, [{192, _, _, _} = ip | _]}} ->
         Logger.info(
-          "#{__MODULE__}: Resovled host #{host} to #{inspect(ip)}. Sending UDP commands to port #{@target_port}"
+          "#{__MODULE__}: Resovled host #{host} for target #{inspect(target)} to #{inspect(ip)}. Sending UDP commands to port #{@target_port}"
         )
 
         {:ok, socket} = :gen_udp.open(Enum.random(5000..65535), [:binary])
 
-        state = %{
-          socket: socket,
-          last_packet: System.os_time(:millisecond),
-          queue: :queue.new(),
-          host: host,
-          sequence: 0
-        }
+        state =
+          %{
+            socket: socket,
+            last_packet: System.os_time(:millisecond),
+            queue: :queue.new(),
+            target: target,
+            host: host,
+            ip: ip,
+            sequence: 0
+          }
+          |> resync_queue()
 
         :timer.send_interval(@tick_interval_ms, :tick)
 
@@ -55,26 +53,17 @@ defmodule Tr33Control.ESP.UDP do
     end
   end
 
-  def handle_cast({:send, binary}, %{queue: queue} = state) do
+  def handle_info({:command_update, %Command{} = command}, %{target: target} = state) do
     state =
-      if :queue.len(queue) < @max_queue_len do
-        %{state | queue: :queue.in(binary, queue)}
-      else
-        state
-      end
+      command
+      |> Commands.binary_for_target(target)
+      |> maybe_enqueue(state)
 
     {:noreply, state}
   end
 
-  def handle_info({:command_update, %Command{} = command}, %{queue: queue} = state) do
-    state =
-      if :queue.len(queue) < @max_queue_len do
-        %{state | queue: :queue.in(command.encoded, queue)}
-      else
-        state
-      end
-
-    {:noreply, state}
+  def handle_info(:resync, state) do
+    {:noreply, resync_queue(state)}
   end
 
   def handle_info(:tick, %{queue: queue} = state) do
@@ -92,10 +81,31 @@ defmodule Tr33Control.ESP.UDP do
     {:noreply, state}
   end
 
-  defp transmit_binary(binary, state = %{socket: socket, host: host}) when is_binary(binary) do
-    result = :gen_udp.send(socket, host, @target_port, binary)
+  defp maybe_enqueue(binary, %{queue: queue} = state) do
+    if :queue.len(queue) < @max_queue_len do
+      %{state | queue: :queue.in(binary, queue)}
+    else
+      state
+    end
+  end
 
-    "Send packet to #{inspect(host)} result: #{inspect(result)} content: #{inspect(binary)}"
+  defp resync_queue(state) do
+    debug_log("Enqueuing resync commands for #{inspect(state.host)}")
+
+    queue =
+      Commands.list_commands()
+      |> Enum.reduce(:queue.new(), fn %Command{encoded: encoded}, queue_acc -> :queue.in(encoded, queue_acc) end)
+
+    %{state | queue: queue}
+  end
+
+  defp transmit_binary(binary, state = %{socket: socket, host: host}) when is_binary(binary) do
+    "Sending packet to #{inspect(host)} content: #{inspect(binary)}"
+    |> debug_log()
+
+    result = :gen_udp.send(socket, String.to_charlist(host), @target_port, binary)
+
+    "Send Result: #{inspect(result)}"
     |> debug_log()
 
     state

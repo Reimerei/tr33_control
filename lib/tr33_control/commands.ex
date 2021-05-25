@@ -92,6 +92,15 @@ defmodule Tr33Control.Commands do
     Cache.count(Command)
   end
 
+  def binary_for_target(%Command{encoded: encoded, index: index, targets: targets}, target) do
+    if target in targets do
+      encoded
+    else
+      %Command{encoded: encoded} = Command.disabled(index)
+      encoded
+    end
+  end
+
   ### Command Params: EnumParam + ValueParam ###############################################################################
 
   def list_value_params(%Command{} = command) do

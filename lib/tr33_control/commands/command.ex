@@ -24,6 +24,15 @@ defmodule Tr33Control.Commands.Command do
       index: index,
       params: CommandParams.new(index: index, type_params: {type, type_message})
     }
+    |> encode()
+  end
+
+  def disabled(index) do
+    %__MODULE__{
+      index: index,
+      params: CommandParams.new(index: index, disabled: true)
+    }
+    |> encode()
   end
 
   def encode(%__MODULE__{params: %{__struct__: type} = msg} = command) do
