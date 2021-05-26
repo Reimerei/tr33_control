@@ -3,8 +3,7 @@ defmodule Tr33Control.Commands.Cache do
   alias Tr33Control.Commands
   alias Tr33Control.Commands.{Command, Event, Preset, Modifier}
 
-  # @all_cache_keys [Command, Event, Preset, Modifier]
-  @all_cache_keys [Command]
+  @all_cache_keys [Command, Preset]
 
   def init_all() do
     Enum.map(@all_cache_keys, &init/1)

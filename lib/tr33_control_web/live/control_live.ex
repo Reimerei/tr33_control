@@ -5,7 +5,7 @@ defmodule Tr33ControlWeb.ControlLive do
   alias Phoenix.LiveView.Socket
   alias Tr33Control.Commands
   alias Tr33Control.Commands.Command
-  alias Tr33ControlWeb.{CommandComponent, SettingsComponent, CommandHeaderComponent}
+  alias Tr33ControlWeb.{CommandComponent, PresetComponent, CommandHeaderComponent}
 
   def mount(_params, _session, socket) do
     if connected?(socket), do: Commands.subscribe()
@@ -38,20 +38,21 @@ defmodule Tr33ControlWeb.ControlLive do
     {:noreply, fetch(socket)}
   end
 
-  def handle_info({:event_update, :update_settings}, socket) do
-    send_update(SettingsComponent, id: :settings)
-    {:noreply, socket}
-  end
-
   def handle_info({:preset_update, _name}, socket) do
-    send_update(SettingsComponent, id: :settings)
+    send_update(PresetComponent, id: :presets)
+
     {:noreply, socket}
   end
 
-  def handle_info({:preset_load, _name}, socket) do
-    send_update(SettingsComponent, id: :settings)
-    {:noreply, socket}
-  end
+  # def handle_info({:event_update, :update_settings}, socket) do
+  #   send_update(SettingsComponent, id: :settings)
+  #   {:noreply, socket}
+  # end
+
+  # def handle_info({:preset_load, _name}, socket) do
+  #   send_update(SettingsComponent, id: :settings)
+  #   {:noreply, socket}
+  # end
 
   def handle_info({:modifier_update, {id, _}}, socket) do
     send_update(CommandComponent, id: id)

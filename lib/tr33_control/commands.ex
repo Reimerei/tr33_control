@@ -1,5 +1,5 @@
 defmodule Tr33Control.Commands do
-  alias __MODULE__.{Schemas, Command, Cache, ValueParam, EnumParam}
+  alias __MODULE__.{Schemas, Command, Cache, ValueParam, EnumParam, Preset}
   alias __MODULE__.Schemas.CommandParams
 
   @default_command_type :single_color
@@ -24,6 +24,11 @@ defmodule Tr33Control.Commands do
   def notify_subscribers(%Command{} = command) do
     pubsub_broadcast({:command_update, command})
     command
+  end
+
+  def notify_subscribers(%Preset{} = preset) do
+    pubsub_broadcast({:preset_update, preset})
+    preset
   end
 
   defp pubsub_broadcast(message), do: Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @pubsub_topic, message)
@@ -131,6 +136,51 @@ defmodule Tr33Control.Commands do
 
   def list_common_params() do
     @common_params
+  end
+
+  ### Presets ###############################################################################
+
+  def create_preset(name) when is_binary(name) do
+    %Preset{
+      name: name,
+      commands: list_commands()
+    }
+    |> Cache.insert()
+    |> notify_subscribers()
+  end
+
+  def delete_preset(name) do
+    Cache.delete(Preset, name)
+  end
+
+  def load_preset(name) do
+    %Preset{commands: commands} = preset = Cache.get(Preset, name)
+
+    commands
+    |> Enum.map(&process_command/1)
+
+    preset
+  end
+
+  def list_presets() do
+    Cache.all(Preset)
+  end
+
+  def get_default_preset() do
+    Cache.all(Preset)
+    |> Enum.find(fn %Preset{} = preset -> preset.default end)
+  end
+
+  def set_default_preset(name) do
+    get_default_preset()
+    |> case do
+      nil -> :noop
+      preset -> %Preset{preset | default: false} |> Cache.insert()
+    end
+
+    load_preset(name)
+    |> then(fn preset -> %Preset{preset | default: true} end)
+    |> Cache.insert()
   end
 
   ### Helpers ###################################################################################

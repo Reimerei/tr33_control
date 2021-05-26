@@ -36,9 +36,4 @@ defmodule Tr33ControlWeb.CommandHeaderComponent do
     Logger.warn("#{__MODULE__}: Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     {:noreply, socket}
   end
-
-  def handle_info(data, socket) do
-    Logger.warn("#{__MODULE__}: Unhandled info #{inspect(data)}")
-    {:noreply, socket}
-  end
 end

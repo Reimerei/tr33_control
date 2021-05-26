@@ -1,5 +1,5 @@
 defmodule Tr33ControlWeb.Display do
-  alias Tr33Control.Commands.{Command, ValueParam, EnumParam, Schemas}
+  alias Tr33Control.Commands.{Command, ValueParam, EnumParam, Schemas, Preset}
 
   def command_type(%Command{} = command) do
     Command.type(command)
@@ -32,4 +32,10 @@ defmodule Tr33ControlWeb.Display do
     |> Enum.map(&String.replace(&1, "Ms", "[ms]"))
     |> Enum.join(" ")
   end
+
+  def current_preset(nil), do: "Load Preset"
+  def current_preset(%Preset{name: name}), do: name
+
+  def preset_option(%Preset{name: name, default: true}), do: "#{name} [default]"
+  def preset_option(%Preset{name: name}), do: name
 end

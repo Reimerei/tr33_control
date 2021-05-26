@@ -249,22 +249,22 @@ defmodule Tr33Control.CommandsOld do
     Cache.all(Preset)
   end
 
-  def load_preset(%Preset{commands: commands, modifiers: modifiers, events: events, name: name} = preset) do
-    set_current_preset(preset)
+  # def load_preset(%Preset{commands: commands, modifiers: modifiers, events: events, name: name} = preset) do
+  #   set_current_preset(preset)
 
-    Cache.clear(Command)
-    Cache.clear(Event)
-    Cache.clear(Modifier)
+  #   Cache.clear(Command)
+  #   Cache.clear(Event)
+  #   Cache.clear(Modifier)
 
-    (commands ++ events ++ modifiers)
-    |> Enum.map(&Cache.insert(&1, true))
+  #   (commands ++ events ++ modifiers)
+  #   |> Enum.map(&Cache.insert(&1, true))
 
-    ESP.resync()
+  #   ESP.resync()
 
-    notify_subscribers({:preset_load, name}, true)
+  #   notify_subscribers({:preset_load, name}, true)
 
-    preset
-  end
+  #   preset
+  # end
 
   def load_preset(name) when is_binary(name) do
     Cache.get(Preset, name)
@@ -298,8 +298,9 @@ defmodule Tr33Control.CommandsOld do
         preset
 
       nil ->
-        Enum.sort_by(presets, fn %Preset{updated_at: updated_at} -> NaiveDateTime.to_erl(updated_at) end)
-        |> List.last()
+        nil
+        # Enum.sort_by(presets, fn %Preset{updated_at: updated_at} -> NaiveDateTime.to_erl(updated_at) end)
+        # |> List.last()
     end
   end
 

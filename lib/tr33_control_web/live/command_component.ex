@@ -78,11 +78,6 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
-  def handle_info(data, socket) do
-    Logger.warn("#{__MODULE__}: Unhandled info #{inspect(data)}")
-    {:noreply, socket}
-  end
-
   defp update_command(socket, command) do
     socket
     |> assign(command: command)
@@ -90,11 +85,6 @@ defmodule Tr33ControlWeb.CommandComponent do
     |> assign(enum_params: Commands.list_enum_params(command))
     |> assign(color_palette_param: Commands.get_common_enum_param(command, :color_palette))
   end
-
-  # todo
-  # defp update_param(index, name, value) when name in @common_params do
-  #   Commands.update_command_common_param(index, name, value)
-  # end
 
   defp update_param(index, name, value) do
     Commands.update_command_param(index, name, value)

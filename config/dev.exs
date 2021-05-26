@@ -1,7 +1,7 @@
 import Config
 
 config :tr33_control,
-  udp_debug: true,
+  udp_debug: false,
   uart_debug: false,
   joystick_debug: false
 
