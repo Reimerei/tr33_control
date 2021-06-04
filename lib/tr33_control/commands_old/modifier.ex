@@ -99,20 +99,20 @@ defmodule Tr33Control.Commands.Modifier do
     do: "#{floor(val / 256)}." <> String.pad_leading("#{round(rem(val, 256) * 1000 / 256)}", 3, "0")
 
   defp input_def(_command_max) do
-    [
-      type: %Select{name: "Modifier Type", options: ModifierType.__enum_map__(), default: 0},
-      beats_per_minute: %Slider{
-        name: "Cycles per Minute",
-        max: 256 * 256 - 1,
-        default: 512,
-        display_fun: &display_beats_per_minute/1
-      },
-      offset: %Slider{name: "Offset [s]", max: 256 * 256 - 1, default: 0, display_fun: &display_offset/1},
-      min: %Slider{name: "Min value", max: 255, default: 0},
-      max: %Slider{name: "Max value", max: 255, default: 255},
-      data_index: %Hidden{},
-      data_length: %Hidden{}
-    ]
+    # [
+    #   type: %Select{name: "Modifier Type", options: ModifierType.__enum_map__(), default: 0},
+    #   beats_per_minute: %Slider{
+    #     name: "Cycles per Minute",
+    #     max: 256 * 256 - 1,
+    #     default: 512,
+    #     display_fun: &display_beats_per_minute/1
+    #   },
+    #   offset: %Slider{name: "Offset [s]", max: 256 * 256 - 1, default: 0, display_fun: &display_offset/1},
+    #   min: %Slider{name: "Min value", max: 255, default: 0},
+    #   max: %Slider{name: "Max value", max: 255, default: 255},
+    #   data_index: %Hidden{},
+    #   data_length: %Hidden{}
+    # ]
   end
 
   # there are better ways to do this
@@ -123,8 +123,8 @@ defmodule Tr33Control.Commands.Modifier do
     |> input_max()
   end
 
-  defp input_max(%Slider{max: max}), do: max
-  defp input_max(%Select{options: options}), do: Enum.max_by(options, fn {_key, value} -> value end) |> elem(1)
+  # defp input_max(%Slider{max: max}), do: max
+  # defp input_max(%Select{options: options}), do: Enum.max_by(options, fn {_key, value} -> value end) |> elem(1)
   defp input_max(_), do: 0
 
   defp input_name(index, data_index) do
@@ -134,8 +134,8 @@ defmodule Tr33Control.Commands.Modifier do
     |> input_name()
   end
 
-  defp input_name(%Slider{name: name}), do: name
-  defp input_name(%Select{name: name}), do: name
+  # defp input_name(%Slider{name: name}), do: name
+  # defp input_name(%Select{name: name}), do: name
   defp input_name(_), do: "THIS SHOULD NOT BE HERE"
 
   defp input_data_length(index, data_index) do

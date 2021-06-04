@@ -2,17 +2,20 @@ defmodule Tr33Control.Commands do
   alias __MODULE__.{Schemas, Command, Cache, ValueParam, EnumParam, Preset}
   alias __MODULE__.Schemas.CommandParams
 
-  @default_command_type :single_color
-  @command_targets Application.compile_env!(:tr33_control, :command_targets)
+  @command_targets Application.compile_env!(:tr33_control, :targets)
   @pubsub_topic "#{inspect(__MODULE__)}"
   @common_params %CommandParams{} |> Map.from_struct() |> Map.delete(:type_params) |> Map.keys()
 
   def init() do
     Cache.init_all()
 
-    # todo
-    # default_preset()
-    # |> load_preset
+    case get_default_preset() do
+      nil ->
+        create_command(0, :rainbow)
+
+      %Preset{name: name} ->
+        load_preset(name)
+    end
   end
 
   ### PubSub #######################################################################
@@ -29,6 +32,14 @@ defmodule Tr33Control.Commands do
   def notify_subscribers(%Preset{} = preset) do
     pubsub_broadcast({:preset_update, preset})
     preset
+  end
+
+  def notify_subscribers(:preset_deleted, name) do
+    pubsub_broadcast({:preset_deleted, name})
+  end
+
+  def notify_subscribers(:command_deleted, index) do
+    pubsub_broadcast({:command_deleted, index})
   end
 
   defp pubsub_broadcast(message), do: Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @pubsub_topic, message)
@@ -48,15 +59,44 @@ defmodule Tr33Control.Commands do
 
   def list_commands() do
     Cache.all(Command)
+    |> Enum.sort_by(fn %Command{} = c -> c.index end)
   end
 
-  def create_command(index, type \\ @default_command_type) when is_atom(type) and is_number(index) do
-    Command.new(index, type)
-    |> process_command()
+  def create_command(index, type, params \\ []) when is_atom(type) and is_number(index) and is_list(params) do
+    Command.new(index, type, params)
+    |> insert_and_push_command()
+  end
+
+  def create_command(protobuf) when is_binary(protobuf) do
+    Command.new(protobuf)
+    |> insert_and_push_command()
+  end
+
+  def create_disabled_command(index) do
+    Command.disabled(index)
+    |> insert_and_push_command()
   end
 
   def delete_command(index) do
-    Cache.delete(Command, index)
+    count = Cache.count(Command)
+
+    if count > 1 do
+      {_first, second} =
+        Cache.all(Command)
+        |> Enum.split(index)
+
+      second
+      |> tl()
+      |> Enum.with_index(index)
+      |> Enum.map(fn {%Command{} = command, new_index} ->
+        %Command{command | index: new_index}
+      end)
+      |> Enum.map(&insert_and_push_command/1)
+
+      create_disabled_command(index)
+      Cache.delete(Command, count - 1)
+      notify_subscribers(:command_deleted, index)
+    end
   end
 
   def update_command_param(index, name, value) when name in @common_params do
@@ -65,7 +105,7 @@ defmodule Tr33Control.Commands do
     new_params = Map.replace!(command.params, name, value)
 
     %Command{command | params: new_params}
-    |> process_command()
+    |> insert_and_push_command()
   end
 
   def update_command_param(index, name, value) do
@@ -76,7 +116,7 @@ defmodule Tr33Control.Commands do
     new_params = %CommandParams{command.params | type_params: {type, new_type_params}}
 
     %Command{command | params: new_params}
-    |> process_command()
+    |> insert_and_push_command()
   end
 
   def toggle_command_target(index, target) when target in @command_targets do
@@ -90,7 +130,7 @@ defmodule Tr33Control.Commands do
       end
 
     %Command{command | targets: new_targets}
-    |> process_command()
+    |> insert_and_push_command()
   end
 
   def count_commands() do
@@ -138,6 +178,14 @@ defmodule Tr33Control.Commands do
     @common_params
   end
 
+  def get_strip_index_options(%Command{targets: [target]}) do
+    Application.fetch_env!(:tr33_control, :target_strip_indices)
+    |> Map.get(target, [])
+    |> Enum.with_index()
+  end
+
+  def get_strip_index_options(%Command{}), do: []
+
   ### Presets ###############################################################################
 
   def create_preset(name) when is_binary(name) do
@@ -151,13 +199,22 @@ defmodule Tr33Control.Commands do
 
   def delete_preset(name) do
     Cache.delete(Preset, name)
+    notify_subscribers({:preset_deleted, name})
   end
 
   def load_preset(name) do
     %Preset{commands: commands} = preset = Cache.get(Preset, name)
 
+    previous_count = count_commands()
+    new_count = Enum.count(commands)
+
+    if previous_count > new_count do
+      (previous_count - 1)..new_count
+      |> Enum.map(&delete_command/1)
+    end
+
     commands
-    |> Enum.map(&process_command/1)
+    |> Enum.map(&insert_and_push_command/1)
 
     preset
   end
@@ -181,11 +238,12 @@ defmodule Tr33Control.Commands do
     load_preset(name)
     |> then(fn preset -> %Preset{preset | default: true} end)
     |> Cache.insert()
+    |> notify_subscribers()
   end
 
   ### Helpers ###################################################################################
 
-  defp process_command(%Command{} = command) do
+  defp insert_and_push_command(%Command{} = command) do
     command
     |> Command.encode()
     |> Cache.insert()

@@ -1,10 +1,6 @@
 defmodule Tr33ControlWeb.Display do
-  alias Tr33Control.Commands.{Command, ValueParam, EnumParam, Schemas, Preset}
-
-  def command_type(%Command{} = command) do
-    Command.type(command)
-    |> humanize()
-  end
+  alias Tr33Control.Commands.{Command, ValueParam, EnumParam, Preset}
+  alias Tr33Control.Commands.Schemas.CommandParams
 
   def command_target(target) when is_atom(target) do
     target
@@ -38,4 +34,9 @@ defmodule Tr33ControlWeb.Display do
 
   def preset_option(%Preset{name: name, default: true}), do: "#{name} [default]"
   def preset_option(%Preset{name: name}), do: name
+
+  def strip_index_name(%Command{params: %CommandParams{strip_index: value}}, options) do
+    {name, _value} = Enum.find(options, &match?({_name, ^value}, &1))
+    humanize(name)
+  end
 end

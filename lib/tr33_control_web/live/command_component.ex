@@ -6,7 +6,7 @@ defmodule Tr33ControlWeb.CommandComponent do
   alias Tr33Control.Commands.Command
   alias Tr33ControlWeb.Display
 
-  @command_targets Application.compile_env!(:tr33_control, :command_targets)
+  @command_targets Application.compile_env!(:tr33_control, :targets)
 
   def mount(socket) do
     socket =
@@ -38,13 +38,6 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:ok, socket}
   end
 
-  def handle_event("type_select", %{"type" => type_str}, %Socket{assigns: %{command: %Command{index: index}}} = socket) do
-    type = String.to_existing_atom(type_str)
-    Commands.create_command(index, type)
-
-    {:noreply, socket}
-  end
-
   def handle_event("toggle_target", %{"target" => target_str}, %Socket{} = socket) do
     %{command: %Command{index: index}} = socket.assigns
     target = String.to_existing_atom(target_str)
@@ -53,22 +46,49 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
-  def handle_event("select_change", %{"name" => name_str, "selected" => selected_str}, %Socket{} = socket) do
-    name = String.to_existing_atom(name_str)
-    selected = String.to_existing_atom(selected_str)
-    %{command: %Command{index: index}} = socket.assigns
+  def handle_event("select_change", %{"strip_select" => index_str}, %Socket{} = socket) do
+    %Command{index: index} = socket.assigns.command
 
-    update_param(index, name, selected)
+    strip_index = String.to_integer(index_str)
+    Commands.update_command_param(index, :strip_index, strip_index)
 
     {:noreply, socket}
   end
 
-  def handle_event("slider_change", %{"_target" => [name_str]} = date, %Socket{} = socket) do
+  def handle_event("select_change", %{"command" => type_str}, %Socket{} = socket) do
+    %Command{index: index} = socket.assigns.command
+
+    type = String.to_existing_atom(type_str)
+    Commands.create_command(index, type)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("select_change", %{"_target" => [name_str]} = data, %Socket{} = socket) do
+    %Command{index: index} = socket.assigns.command
+
     name = String.to_existing_atom(name_str)
-    value = Map.fetch!(date, name_str) |> String.to_integer()
-    %{command: %Command{index: index}} = socket.assigns
+    value = Map.fetch!(data, name_str) |> String.to_existing_atom() |> IO.inspect()
 
     update_param(index, name, value)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("slider_change", %{"_target" => [name_str]} = data, %Socket{} = socket) do
+    %Command{index: index} = socket.assigns.command
+
+    name = String.to_existing_atom(name_str)
+    value = Map.fetch!(data, name_str) |> String.to_integer()
+
+    update_param(index, name, value)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("delete_command", %{"index" => index_str}, socket) do
+    String.to_integer(index_str)
+    |> Commands.delete_command()
 
     {:noreply, socket}
   end
@@ -84,6 +104,7 @@ defmodule Tr33ControlWeb.CommandComponent do
     |> assign(value_params: Commands.list_value_params(command))
     |> assign(enum_params: Commands.list_enum_params(command))
     |> assign(color_palette_param: Commands.get_common_enum_param(command, :color_palette))
+    |> assign(strip_index_options: Commands.get_strip_index_options(command))
   end
 
   defp update_param(index, name, value) do

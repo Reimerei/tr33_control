@@ -20,10 +20,11 @@ defmodule Tr33ControlWeb.SliderComponent do
     ~L"""
 
       <div class="custom-vertical-range-container">
-        <form phx-change="slider_change" phx-target="<%= @target %>" phx-throttle="50" phx-auto-recover="ignore">
+        <form phx-change="slider_change" phx-target="<%= @target %>" phx-auto-recover="ignore">
           <input
             type="range"
             class="form-range custom-vertical-range"
+            phx-throttle="30"
             mix=<%= @min %>
             max=<%= @max %>
             value=<%= @value %>

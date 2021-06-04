@@ -21,6 +21,10 @@
       <%= live_component @socket, Tr33ControlWeb.CommandHeaderComponent, id: index %>
     </div>
   <% end %>
+
+  <div class="p-2">
+    <button class="btn btn-dark btn-sm h-100 text-light" phx-click="add_command">+</button>
+  </div>
 </ul>
 
 <div class="border border-top-0 border-secondary ">

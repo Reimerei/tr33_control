@@ -81,7 +81,7 @@ defmodule Tr33Control.ESP.UDP do
     {:noreply, state}
   end
 
-  def handle_info(_, state), do: {:noreply, state}
+  def handle_info({_, _}, state), do: {:noreply, state}
 
   defp maybe_enqueue(binary, %{queue: queue} = state) do
     if :queue.len(queue) < @max_queue_len do

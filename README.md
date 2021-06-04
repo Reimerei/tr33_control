@@ -4,8 +4,26 @@ A web interface to control effects on leds strips. It sends commands to an ESP32
 
 This app leverages phoenix channels to sync the state between all connected browsers, so everybody sees the same state. The dynamic forms are all rendered in the backend and pushed via a live_html channel to the clients. It is an attempt to create a dynamic web app with almost no javascript.
 
+# currents
+* mapped shape/slope/... broken? (Tr33 only, strip index 0)
+* gravity not working
+* select command when last is deleted 
+* white color palette
+* render position max to 65... (custom params on sliders)
+* ping pong count
+* mapped ping_pong
+* modifier
+* color palettes (steal some from wled)
+* UART not working for some reason, might be the cable
+* using cursors for UI selects
+* ping pong period @ 0 crashes
+* order branch and trunk indices/PINs
+* debounce issues when slider is at the bottom
+* Tr33 rainbow broken at trunk/branches crossing
 
 # Bugs/features
+* disable button for Commands
+* resync button
 * Sync time between ESPs
 * Sync random seed betwenn ESPs
 * find effect lib
@@ -38,16 +56,21 @@ This app leverages phoenix channels to sync the state between all connected brow
 * fix add ball for gravity
 
 ## doing
-* Strip index -> 0 == all
-* Wolken -> one structure, multiple strip indexes
-* per command palettes
-* fix max validations => inputs/data as proper data structures?
-* Tr33: fix extended LedStructure functions
-* white color palette
 
 ## done
+* wolken index
+* rainbow_width and size @ 0 (Tr33 only, strip index 0)
+* Wolken -> one structure, multiple strip indexes
+
+* Tr33: fix extended LedStructure functions
+* single color always overwrites (Tr33 only, strip index 0)
+* fix wifi status overlay
+* Strip index -> 0 == all
+* per command palettes
+* fix max validations => inputs/data as proper data structures?
 * render effect: position 2 bytes
 * add more palettes
+* strip index select does not work
 * send sync request on boot
 * discard live view sessions on restart/reconnect
 * Move modifiers to ESP
@@ -60,6 +83,8 @@ This app leverages phoenix channels to sync the state between all connected brow
 * performance with modifiers
   * x/per minute relative to pixel count
 * double check modifier migration
+* fix strip_index
+
 
 ## Wont do
 * cleanup: get rid of pub_sub rate limit (maybe not?)

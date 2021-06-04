@@ -169,7 +169,7 @@ defmodule Tr33Control.Joystick do
   #   Commands.new_event!(%{type: :joystick, data: [max(value * -1, -126)]})
   # end
 
-  defp twang_event(_, _), do: %Event{type: :beat}
+  # defp twang_event(_, _), do: %Event{type: :beat}
 
   defp smooth_jitter(current, new) when abs(new - current) > 1, do: new
   defp smooth_jitter(current, _), do: current

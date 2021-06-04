@@ -16,7 +16,6 @@ defmodule Tr33Control.ESP.Poller do
 
   def handle_info(:tick, state) do
     ESP.try_reconnect()
-    # ESP.resync()
 
     {:noreply, state}
   end

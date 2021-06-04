@@ -5,7 +5,7 @@
     <%= live_component @socket, Tr33ControlWeb.SliderComponent, param: @brightness_param, target: @myself %>
   </div>
 
-  <span class="badge bg-secondary my-2 align-self-stretch "><%= Display.command_type(@command) %></span>
+  <span class="badge bg-secondary my-2 align-self-stretch "><%= Command.type(@command) |> Display.humanize() %></span>
 
   <button
     class="btn btn-smx btn-primary text-light mb-2 align-self-stretch"

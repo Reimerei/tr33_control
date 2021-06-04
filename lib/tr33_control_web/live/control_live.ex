@@ -26,6 +26,19 @@ defmodule Tr33ControlWeb.ControlLive do
     {:noreply, socket}
   end
 
+  def handle_event("add_command", _, socket) do
+    %Command{index: index} =
+      Commands.count_commands()
+      |> Commands.create_command(:single_color, brightness: 0)
+
+    socket =
+      socket
+      |> assign(active_command: index)
+      |> fetch()
+
+    {:noreply, socket}
+  end
+
   def handle_event(event, data, socket) do
     Logger.warn("#{__MODULE__}: Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     {:noreply, socket}
@@ -38,24 +51,19 @@ defmodule Tr33ControlWeb.ControlLive do
     {:noreply, fetch(socket)}
   end
 
+  def handle_info({:command_deleted, _}, socket) do
+    {:noreply, fetch(socket)}
+  end
+
   def handle_info({:preset_update, _name}, socket) do
     send_update(PresetComponent, id: :presets)
 
     {:noreply, socket}
   end
 
-  # def handle_info({:event_update, :update_settings}, socket) do
-  #   send_update(SettingsComponent, id: :settings)
-  #   {:noreply, socket}
-  # end
+  def handle_info({:preset_deleted, _name}, socket) do
+    send_update(PresetComponent, id: :presets)
 
-  # def handle_info({:preset_load, _name}, socket) do
-  #   send_update(SettingsComponent, id: :settings)
-  #   {:noreply, socket}
-  # end
-
-  def handle_info({:modifier_update, {id, _}}, socket) do
-    send_update(CommandComponent, id: id)
     {:noreply, socket}
   end
 

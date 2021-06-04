@@ -3,6 +3,7 @@ defmodule Tr33ControlWeb.CommandHeaderComponent do
   require Logger
   alias Phoenix.LiveView.Socket
   alias Tr33Control.Commands
+  alias Tr33Control.Commands.Command
   alias Tr33ControlWeb.Display
 
   # update with new command state
