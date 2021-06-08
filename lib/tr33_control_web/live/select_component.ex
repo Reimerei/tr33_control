@@ -31,7 +31,7 @@ defmodule Tr33ControlWeb.SelectComponent do
     <div class="btn-group">
       <button type="button" class="btn btn-<%= label_class(@style) %> text-start"><%= Display.humanize(@name) %></button>
       <form phx-change="select_change" phx-target="<%= @target %>" phx-auto-recover="ignore">
-        <select class="form-select custom-select" name="<%= @name %>">]
+        <select class="form-select custom-select" name="<%= @name %>">
           <%= for {option_name, option_value} <- @options do %>
             <option value="<%= option_value %>" <%= if option_value == @value, do: "selected" %> >
               <%= Display.humanize(option_name) %>

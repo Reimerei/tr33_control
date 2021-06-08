@@ -7,19 +7,29 @@ This app leverages phoenix channels to sync the state between all connected brow
 # currents
 * mapped shape/slope/... broken? (Tr33 only, strip index 0)
 * gravity not working
-* select command when last is deleted 
 * white color palette
 * render position max to 65... (custom params on sliders)
 * ping pong count
 * mapped ping_pong
-* modifier
-* color palettes (steal some from wled)
 * UART not working for some reason, might be the cable
-* using cursors for UI selects
 * ping pong period @ 0 crashes
 * order branch and trunk indices/PINs
 * debounce issues when slider is at the bottom
+  * move rate limiting to listeners
 * Tr33 rainbow broken at trunk/branches crossing
+* remember targets on commadn change
+* resync should reset all target commands
+* improve mobile support
+* Idea for testing: create some sequence that uses all features
+* create header button style
+* add pb option to define max value
+* add_modifier: get proper max value 
+* regularly send squence number from ESPs for eventual consistency
+* initial preset load fails completely
+* movement_type circle (for trommel)
+* delete all modifiers when toggled off
+
+** modifier
 
 # Bugs/features
 * disable button for Commands
@@ -56,11 +66,14 @@ This app leverages phoenix channels to sync the state between all connected brow
 * fix add ball for gravity
 
 ## doing
+* select command when last is deleted 
 
 ## done
 * wolken index
 * rainbow_width and size @ 0 (Tr33 only, strip index 0)
 * Wolken -> one structure, multiple strip indexes
+* color palettes (steal some from wled)
+* using cursors for UI selects
 
 * Tr33: fix extended LedStructure functions
 * single color always overwrites (Tr33 only, strip index 0)

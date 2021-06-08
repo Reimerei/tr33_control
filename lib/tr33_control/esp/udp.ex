@@ -27,17 +27,15 @@ defmodule Tr33Control.ESP.UDP do
 
         {:ok, socket} = :gen_udp.open(Enum.random(5000..65535), [:binary])
 
-        state =
-          %{
-            socket: socket,
-            last_packet: System.os_time(:millisecond),
-            queue: :queue.new(),
-            target: target,
-            host: host,
-            ip: ip,
-            sequence: 0
-          }
-          |> resync_queue()
+        state = %{
+          socket: socket,
+          last_packet: System.os_time(:millisecond),
+          queue: :queue.new(),
+          target: target,
+          host: host,
+          ip: ip,
+          sequence: 0
+        }
 
         :timer.send_interval(@tick_interval_ms, :tick)
 
@@ -92,10 +90,10 @@ defmodule Tr33Control.ESP.UDP do
   end
 
   defp resync_queue(state) do
-    debug_log("Enqueuing resync commands for #{inspect(state.host)}")
+    Logger.info("#{__MODULE__}: Enqueuing resync commands for #{inspect(state.host)}")
 
     queue =
-      Commands.list_commands()
+      Commands.list_commands(include_empty: true)
       |> Enum.reduce(:queue.new(), fn %Command{encoded: encoded}, queue_acc -> :queue.in(encoded, queue_acc) end)
 
     %{state | queue: queue}

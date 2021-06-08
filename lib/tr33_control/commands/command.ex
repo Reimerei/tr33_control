@@ -2,7 +2,7 @@ defmodule Tr33Control.Commands.Command do
   use Ecto.Schema
 
   alias Protobuf.Field
-  alias Tr33Control.Commands.Schemas.CommandParams
+  alias Tr33Control.Commands.Schemas.{CommandParams, Modifier}
 
   @max_index Application.compile_env!(:tr33_control, :command_max_index)
 
@@ -56,6 +56,16 @@ defmodule Tr33Control.Commands.Command do
     |> Map.from_struct()
     |> Map.keys()
     |> Enum.map(&apply(type_params.__struct__, :defs, [:field, &1]))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.sort_by(& &1.fnum)
+  end
+
+  def list_modifier_field_defs() do
+    %Modifier{}
+    |> Map.from_struct()
+    |> Map.drop([:field_index])
+    |> Map.keys()
+    |> Enum.map(&Modifier.defs(:field, &1))
     |> Enum.reject(&is_nil/1)
     |> Enum.sort_by(& &1.fnum)
   end

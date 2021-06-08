@@ -19,8 +19,9 @@ config :tr33_control,
   serial_port: System.get_env("SERIAL_PORT") || "ttyAMA0",
   udp_listen_port: 1337,
   cache_persist_dir: System.get_env("CACHE_PERSIST_DIR") || "/root/tr33/cache_persist",
-  command_max_index: 16,
-  targets: [:tr33, :wand, :wolken, :trommel],
+  command_max_index: 8,
+  # targets: [:tr33, :wand, :wolken, :trommel],
+  targets: [:wand],
   target_hosts: %{
     wand: ["wand.fritz.box"],
     wolken: [

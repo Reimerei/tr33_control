@@ -22,12 +22,13 @@
     </div>
   <% end %>
 
-  <div class="p-2">
-    <button class="btn btn-dark btn-sm h-100 text-light" phx-click="add_command">+</button>
+  <div class="d-flex flex-column px-1">
+    <button class="btn btn-dark btn-sm h-75 text-light my-1" phx-click="add_command">+</button>
+    <button class="btn btn-dark btn-sm h-25 text-light my-1" phx-click="delete_command">-</button>
   </div>
 </ul>
 
-<div class="border border-top-0 border-secondary ">
+<div class="">
   <%= live_component @socket, Tr33ControlWeb.CommandComponent, id: :active_command, index: @active_command %>
 </div>
 

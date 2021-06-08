@@ -3,7 +3,7 @@ defmodule Tr33ControlWeb.CommandComponent do
   require Logger
   alias Phoenix.LiveView.Socket
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.Command
+  alias Tr33Control.Commands.{Command, EnumParam, ValueParam}
   alias Tr33ControlWeb.Display
 
   @command_targets Application.compile_env!(:tr33_control, :targets)
@@ -13,6 +13,7 @@ defmodule Tr33ControlWeb.CommandComponent do
       socket
       |> assign(command_types: Commands.command_types())
       |> assign(command_targets: @command_targets)
+      |> assign(modifiers_active: false)
 
     {:ok, socket}
   end
@@ -86,10 +87,41 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
-  def handle_event("delete_command", %{"index" => index_str}, socket) do
-    String.to_integer(index_str)
-    |> Commands.delete_command()
+  def handle_event("toggle_modifiers", _, %Socket{} = socket) do
+    socket =
+      socket
+      |> assign(:modifiers_active, not socket.assigns.modifiers_active)
 
+    {:noreply, socket}
+  end
+
+  def handle_event("add_modifier", %{"name" => name_str}, %Socket{} = socket) do
+    name = String.to_existing_atom(name_str)
+    Commands.add_modifier(socket.assigns.command, name)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("delete_modifier", %{"name" => name_str}, %Socket{} = socket) do
+    name = String.to_existing_atom(name_str)
+    Commands.delete_modifier(socket.assigns.command, name)
+
+    {:noreply, socket}
+  end
+
+  def handle_event("update_modifier", %{"name" => name_str} = data, %Socket{} = socket) do
+    name = String.to_existing_atom(name_str)
+
+    field_updates =
+      data
+      |> Map.drop(["name", "_target"])
+      |> Enum.map(fn
+        {"movement_type" = name, val} -> {String.to_existing_atom(name), String.to_existing_atom(val)}
+        {name, val} -> {String.to_existing_atom(name), String.to_integer(val)}
+      end)
+      |> Enum.into(%{})
+
+    Commands.update_modifier(socket.assigns.command, name, field_updates)
     {:noreply, socket}
   end
 
@@ -105,9 +137,15 @@ defmodule Tr33ControlWeb.CommandComponent do
     |> assign(enum_params: Commands.list_enum_params(command))
     |> assign(color_palette_param: Commands.get_common_enum_param(command, :color_palette))
     |> assign(strip_index_options: Commands.get_strip_index_options(command))
+    |> assign(modifier_names: Commands.list_modifier_names(command))
+    |> assign(modifier_params: Commands.get_modifier_params(command))
   end
 
   defp update_param(index, name, value) do
     Commands.update_command_param(index, name, value)
+  end
+
+  defp modifier_active?(command, name) do
+    Commands.get_modifier(command, name) != nil
   end
 end

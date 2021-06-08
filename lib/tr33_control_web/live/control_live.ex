@@ -39,6 +39,13 @@ defmodule Tr33ControlWeb.ControlLive do
     {:noreply, socket}
   end
 
+  def handle_event("delete_command", _, %Socket{} = socket) do
+    socket.assigns.active_command
+    |> Commands.delete_command()
+
+    {:noreply, socket}
+  end
+
   def handle_event(event, data, socket) do
     Logger.warn("#{__MODULE__}: Unhandled event #{inspect(event)} Data: #{inspect(data)}")
     {:noreply, socket}
@@ -51,7 +58,14 @@ defmodule Tr33ControlWeb.ControlLive do
     {:noreply, fetch(socket)}
   end
 
-  def handle_info({:command_deleted, _}, socket) do
+  def handle_info({:command_deleted, index}, %Socket{} = socket) do
+    socket =
+      if socket.assigns.active_command == index do
+        assign(socket, :active_command, 0)
+      else
+        socket
+      end
+
     {:noreply, fetch(socket)}
   end
 

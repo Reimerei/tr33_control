@@ -1,6 +1,6 @@
 defmodule Tr33Control.Commands do
   alias __MODULE__.{Schemas, Command, Cache, ValueParam, EnumParam, Preset}
-  alias __MODULE__.Schemas.CommandParams
+  alias __MODULE__.Schemas.{CommandParams, Modifier}
 
   @command_targets Application.compile_env!(:tr33_control, :targets)
   @pubsub_topic "#{inspect(__MODULE__)}"
@@ -57,9 +57,10 @@ defmodule Tr33Control.Commands do
     Cache.get(Command, index)
   end
 
-  def list_commands() do
+  def list_commands(opts \\ []) do
     Cache.all(Command)
     |> Enum.sort_by(fn %Command{} = c -> c.index end)
+    |> maybe_fill_commands(Keyword.get(opts, :include_empty))
   end
 
   def create_command(index, type, params \\ []) when is_atom(type) and is_number(index) and is_list(params) do
@@ -186,6 +187,87 @@ defmodule Tr33Control.Commands do
 
   def get_strip_index_options(%Command{}), do: []
 
+  ### Modifiers ###################################################################################
+
+  def list_modifier_names(%Command{} = command) do
+    common =
+      list_common_params()
+      |> Enum.filter(&(&1 in [:brightness, :color_palette, :strip_index]))
+
+    type =
+      command
+      |> list_value_params()
+      |> Enum.map(fn %ValueParam{name: name} -> name end)
+
+    common ++ type
+  end
+
+  def get_modifier_params(%Command{params: %CommandParams{modifiers: modifiers}} = command) do
+    modifiers
+    |> Enum.sort_by(fn %Modifier{field_index: i} -> i end)
+    |> Enum.map(fn modifier ->
+      name = modifier_name(command, modifier)
+
+      field_defs = Command.list_modifier_field_defs()
+      enum_params = Enum.map(field_defs, &EnumParam.new(modifier, &1)) |> Enum.reject(&is_nil/1)
+      value_params = Enum.map(field_defs, &ValueParam.new(modifier, &1)) |> Enum.reject(&is_nil/1)
+
+      {name, enum_params, value_params}
+    end)
+  end
+
+  def get_modifier(%Command{params: %CommandParams{} = params}, field_index) when is_number(field_index) do
+    params.modifiers
+    |> Enum.find(&match?(%Modifier{field_index: ^field_index}, &1))
+  end
+
+  def get_modifier(%Command{} = command, name) when is_atom(name) do
+    field_index = modifier_field_index(command, name)
+    get_modifier(command, field_index)
+  end
+
+  def add_modifier(%Command{params: %CommandParams{} = params} = command, name) when is_atom(name) do
+    field_index = modifier_field_index(command, name)
+
+    case get_modifier(command, field_index) do
+      nil ->
+        modifiers = [%Modifier{field_index: field_index} | params.modifiers]
+        update_command_param(command.index, :modifiers, modifiers)
+
+      %Modifier{} ->
+        command
+    end
+  end
+
+  def update_modifier(%Command{params: %CommandParams{} = params} = command, name, fields) when is_map(fields) do
+    field_index = modifier_field_index(command, name)
+
+    modifiers =
+      params.modifiers
+      |> Enum.map(fn
+        %Modifier{field_index: ^field_index} = modifier -> Map.merge(modifier, fields)
+        modifier -> modifier
+      end)
+
+    update_command_param(command.index, :modifiers, modifiers)
+  end
+
+  def delete_modifier(%Command{params: %CommandParams{} = params} = command, name) when is_atom(name) do
+    to_delete = get_modifier(command, name)
+
+    modifiers =
+      params.modifiers
+      |> List.delete(to_delete)
+
+    update_command_param(command.index, :modifiers, modifiers)
+  end
+
+  def modifier_name(%Command{} = command, %Modifier{field_index: field_index}) do
+    command
+    |> list_modifier_names()
+    |> Enum.at(field_index)
+  end
+
   ### Presets ###############################################################################
 
   def create_preset(name) when is_binary(name) do
@@ -199,7 +281,7 @@ defmodule Tr33Control.Commands do
 
   def delete_preset(name) do
     Cache.delete(Preset, name)
-    notify_subscribers({:preset_deleted, name})
+    notify_subscribers(:preset_deleted, name)
   end
 
   def load_preset(name) do
@@ -243,10 +325,31 @@ defmodule Tr33Control.Commands do
 
   ### Helpers ###################################################################################
 
+  defp modifier_field_index(%Command{} = command, name) do
+    {_, index} =
+      command
+      |> list_modifier_names()
+      |> Enum.with_index()
+      |> Enum.find(&match?({^name, _}, &1))
+
+    index
+  end
+
   defp insert_and_push_command(%Command{} = command) do
     command
     |> Command.encode()
     |> Cache.insert()
     |> notify_subscribers()
+  end
+
+  defp maybe_fill_commands(commands, false), do: commands
+
+  defp maybe_fill_commands(commands, true) do
+    max = Application.fetch_env!(:tr33_control, :command_max_index)
+
+    case Enum.count(commands) do
+      ^max -> commands
+      count -> commands ++ Enum.map(count..(max - 1), &create_disabled_command/1)
+    end
   end
 end
