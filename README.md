@@ -28,6 +28,8 @@ This app leverages phoenix channels to sync the state between all connected brow
 * initial preset load fails completely
 * movement_type circle (for trommel)
 * delete all modifiers when toggled off
+* fix UART
+* twang + joystick
 
 ** modifier
 

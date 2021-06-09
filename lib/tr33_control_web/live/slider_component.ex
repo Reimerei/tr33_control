@@ -23,8 +23,7 @@ defmodule Tr33ControlWeb.SliderComponent do
           <input
             type="range"
             class="form-range custom-vertical-range"
-            phx-throttle="30"
-            mix=<%= @min %>
+            phx-throttleX="30"            mix=<%= @min %>
             max=<%= @max %>
             value=<%= @value %>
             step=<%= @step %>

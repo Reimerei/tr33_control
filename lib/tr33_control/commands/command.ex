@@ -26,7 +26,6 @@ defmodule Tr33Control.Commands.Command do
       index: index,
       params: CommandParams.new([index: index, type_params: {type, type_message}] ++ params)
     }
-    |> encode()
   end
 
   def new(protobuf) when is_binary(protobuf) do
@@ -39,12 +38,12 @@ defmodule Tr33Control.Commands.Command do
   end
 
   def disabled(index) do
+    # todo: create this once at compile_time
     new(index, :single_color, enabled: false)
   end
 
-  def encode(%__MODULE__{params: %{__struct__: type} = msg} = command) do
-    encoded = apply(type, :encode, [msg])
-    %__MODULE__{command | encoded: encoded}
+  def encode(%__MODULE__{params: %CommandParams{} = params} = command) do
+    %__MODULE__{command | encoded: CommandParams.encode(params)}
   end
 
   def get_field_def(name) when is_atom(name) do

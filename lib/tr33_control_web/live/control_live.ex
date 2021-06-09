@@ -8,7 +8,10 @@ defmodule Tr33ControlWeb.ControlLive do
   alias Tr33ControlWeb.{CommandComponent, PresetComponent, CommandHeaderComponent}
 
   def mount(_params, _session, socket) do
-    if connected?(socket), do: Commands.subscribe()
+    if connected?(socket) do
+      Commands.subscribe_commands()
+      Commands.subscribe_presets()
+    end
 
     socket =
       socket

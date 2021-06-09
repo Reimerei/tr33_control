@@ -1,7 +1,7 @@
 defmodule Tr33Control.Commands.Cache do
   require Logger
   alias Tr33Control.Commands
-  alias Tr33Control.Commands.{Command, Event, Preset, Modifier}
+  alias Tr33Control.Commands.{Command, Preset}
 
   @all_cache_keys [Command, Preset]
 
@@ -31,14 +31,16 @@ defmodule Tr33Control.Commands.Cache do
     Cachex.clear!(key)
   end
 
-  def insert(%Command{encoded: nil} = command) do
-    raise RuntimeError, "Trying to insert command without encoding: #{inspect(command)}"
+  def insert(%Command{index: index} = command) do
+    command
+    |> Command.encode()
+    |> tap(&Cachex.put!(Command, index, &1))
   end
 
-  def insert(%{__struct__: cache} = struct) when cache in @all_cache_keys do
-    Cachex.put!(cache, cache_key(struct), struct)
-    maybe_persist_cache(struct)
-    struct
+  def insert(%Preset{name: name} = preset) do
+    Cachex.put!(Preset, name, preset)
+    Cachex.dump!(Preset, presets_persist_file())
+    preset
   end
 
   def get(cache, key) when cache in @all_cache_keys do
@@ -61,13 +63,6 @@ defmodule Tr33Control.Commands.Cache do
     res = Cachex.take(cache, key)
     res
   end
-
-  defp cache_key(%Command{index: index}), do: index
-  defp cache_key(%Preset{name: name}), do: name
-  # defp cache_key(%Modifier{index: index, data_index: data_index}), do: {index, data_index}
-
-  defp maybe_persist_cache(%Preset{}), do: Cachex.dump!(Preset, presets_persist_file())
-  defp maybe_persist_cache(_), do: :noop
 
   defp presets_persist_file() do
     Application.fetch_env!(:tr33_control, :cache_persist_dir) |> Path.join("presets2.bin")

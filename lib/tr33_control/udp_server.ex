@@ -4,7 +4,7 @@ defmodule Tr33Control.UdpServer do
   alias Tr33Control.{Commands, ESP}
 
   @listen_port Application.fetch_env!(:tr33_control, :udp_listen_port)
-  @resync_packet "resync"
+  @sequence_header "SEQ"
 
   def start_link(opts) do
     GenServer.start_link(__MODULE__, :ok, [{:name, __MODULE__} | opts])
@@ -28,9 +28,9 @@ defmodule Tr33Control.UdpServer do
     {:ok, state}
   end
 
-  def handle_info({:udp, _socket, address, port, @resync_packet}, state) do
-    Logger.info("#{__MODULE__}: Resync request from #{inspect(address)}:#{inspect(port)}")
-    ESP.resync(address, port)
+  def handle_info({:udp, _socket, address, port, <<@sequence_header, sequence::size(8)>>}, state) do
+    debug_log("Incoming sequence \"#{sequence}\" from #{inspect(address)}:#{inspect(port)}")
+    ESP.handle_udp_sequence(address, port, sequence)
     {:noreply, state}
   end
 
@@ -56,7 +56,7 @@ defmodule Tr33Control.UdpServer do
   end
 
   def debug_log(message) do
-    if Application.get_env(:tr33_control, :udp_debug, false) do
+    if Application.get_env(:tr33_control, :udp_server_debug, false) do
       Logger.debug("#{__MODULE__}: #{message}")
     end
   end

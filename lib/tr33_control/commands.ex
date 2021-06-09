@@ -1,9 +1,10 @@
 defmodule Tr33Control.Commands do
   alias __MODULE__.{Schemas, Command, Cache, ValueParam, EnumParam, Preset}
-  alias __MODULE__.Schemas.{CommandParams, Modifier}
+  alias __MODULE__.Schemas.{CommandParams, Modifier, WireMessage, TimeSync}
 
   @command_targets Application.compile_env!(:tr33_control, :targets)
-  @pubsub_topic "#{inspect(__MODULE__)}"
+  @commands_topic "command_updates"
+  @presets_topic "preset_updates"
   @common_params %CommandParams{} |> Map.from_struct() |> Map.delete(:type_params) |> Map.keys()
 
   def init() do
@@ -13,36 +14,31 @@ defmodule Tr33Control.Commands do
       nil ->
         create_command(0, :rainbow)
 
-      %Preset{name: name} ->
-        load_preset(name)
+      %Preset{commands: commands} ->
+        Enum.map(commands, &Cache.insert/1)
     end
   end
 
   ### PubSub #######################################################################
 
-  def subscribe() do
-    Phoenix.PubSub.subscribe(Tr33Control.PubSub, @pubsub_topic)
-  end
+  def subscribe_commands(), do: Phoenix.PubSub.subscribe(Tr33Control.PubSub, @commands_topic)
+  def subscribe_presets(), do: Phoenix.PubSub.subscribe(Tr33Control.PubSub, @presets_topic)
 
   def notify_subscribers(%Command{} = command) do
-    pubsub_broadcast({:command_update, command})
-    command
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @commands_topic, {:command_update, command})
   end
 
   def notify_subscribers(%Preset{} = preset) do
-    pubsub_broadcast({:preset_update, preset})
-    preset
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @commands_topic, {:preset_udpate, preset})
   end
 
   def notify_subscribers(:preset_deleted, name) do
-    pubsub_broadcast({:preset_deleted, name})
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @commands_topic, {:preset_deleted, name})
   end
 
   def notify_subscribers(:command_deleted, index) do
-    pubsub_broadcast({:command_deleted, index})
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @commands_topic, {:command_deleted, index})
   end
-
-  defp pubsub_broadcast(message), do: Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @pubsub_topic, message)
 
   ### Commands ########################################################################################################
 
@@ -58,43 +54,39 @@ defmodule Tr33Control.Commands do
   end
 
   def list_commands(opts \\ []) do
+    include_empty = Keyword.get(opts, :include_empty, false)
+
     Cache.all(Command)
     |> Enum.sort_by(fn %Command{} = c -> c.index end)
-    |> maybe_fill_commands(Keyword.get(opts, :include_empty))
+    |> maybe_fill_commands(include_empty)
   end
 
   def create_command(index, type, params \\ []) when is_atom(type) and is_number(index) and is_list(params) do
     Command.new(index, type, params)
-    |> insert_and_push_command()
+    |> insert_and_notify()
   end
 
   def create_command(protobuf) when is_binary(protobuf) do
     Command.new(protobuf)
-    |> insert_and_push_command()
-  end
-
-  def create_disabled_command(index) do
-    Command.disabled(index)
-    |> insert_and_push_command()
+    |> insert_and_notify()
   end
 
   def delete_command(index) do
     count = Cache.count(Command)
 
     if count > 1 do
-      {_first, second} =
+      {_before_delete, after_deleted} =
         Cache.all(Command)
         |> Enum.split(index)
 
-      second
+      after_deleted
       |> tl()
       |> Enum.with_index(index)
       |> Enum.map(fn {%Command{} = command, new_index} ->
         %Command{command | index: new_index}
       end)
-      |> Enum.map(&insert_and_push_command/1)
+      |> Enum.map(&insert_and_notify/1)
 
-      create_disabled_command(index)
       Cache.delete(Command, count - 1)
       notify_subscribers(:command_deleted, index)
     end
@@ -106,7 +98,7 @@ defmodule Tr33Control.Commands do
     new_params = Map.replace!(command.params, name, value)
 
     %Command{command | params: new_params}
-    |> insert_and_push_command()
+    |> insert_and_notify()
   end
 
   def update_command_param(index, name, value) do
@@ -117,7 +109,7 @@ defmodule Tr33Control.Commands do
     new_params = %CommandParams{command.params | type_params: {type, new_type_params}}
 
     %Command{command | params: new_params}
-    |> insert_and_push_command()
+    |> insert_and_notify()
   end
 
   def toggle_command_target(index, target) when target in @command_targets do
@@ -131,20 +123,11 @@ defmodule Tr33Control.Commands do
       end
 
     %Command{command | targets: new_targets}
-    |> insert_and_push_command()
+    |> insert_and_notify()
   end
 
   def count_commands() do
     Cache.count(Command)
-  end
-
-  def binary_for_target(%Command{encoded: encoded, index: index, targets: targets}, target) do
-    if target in targets do
-      encoded
-    else
-      %Command{encoded: encoded} = Command.disabled(index)
-      encoded
-    end
   end
 
   ### Command Params: EnumParam + ValueParam ###############################################################################
@@ -296,7 +279,7 @@ defmodule Tr33Control.Commands do
     end
 
     commands
-    |> Enum.map(&insert_and_push_command/1)
+    |> Enum.map(&insert_and_notify/1)
 
     preset
   end
@@ -323,6 +306,27 @@ defmodule Tr33Control.Commands do
     |> notify_subscribers()
   end
 
+  ### Protobuf ###################################################################################
+
+  def time_sync_binary() do
+    time_sync = TimeSync.new(millis: System.os_time(:millisecond))
+
+    WireMessage.new(message: {:time_sync, time_sync}, sequence: 0)
+    |> WireMessage.encode()
+  end
+
+  def command_binary(%Command{index: index, targets: targets} = command, target, sequence) do
+    %Command{params: %CommandParams{} = params} =
+      if target in targets do
+        command
+      else
+        Command.disabled(index)
+      end
+
+    WireMessage.new(sequence: sequence, message: {:command_params, params})
+    |> WireMessage.encode()
+  end
+
   ### Helpers ###################################################################################
 
   defp modifier_field_index(%Command{} = command, name) do
@@ -335,11 +339,10 @@ defmodule Tr33Control.Commands do
     index
   end
 
-  defp insert_and_push_command(%Command{} = command) do
+  defp insert_and_notify(%Command{} = command) do
     command
-    |> Command.encode()
     |> Cache.insert()
-    |> notify_subscribers()
+    |> tap(&notify_subscribers/1)
   end
 
   defp maybe_fill_commands(commands, false), do: commands
@@ -349,7 +352,7 @@ defmodule Tr33Control.Commands do
 
     case Enum.count(commands) do
       ^max -> commands
-      count -> commands ++ Enum.map(count..(max - 1), &create_disabled_command/1)
+      count -> commands ++ Enum.map(count..(max - 1), &Command.disabled/1)
     end
   end
 end

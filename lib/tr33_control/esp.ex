@@ -4,6 +4,8 @@ defmodule Tr33Control.ESP do
 
   alias Tr33Control.ESP.{UDP, UART}
 
+  @pubsub_topic "esp"
+
   @udp_registry :udp_targets
 
   ### Supervisor ##############################################
@@ -30,23 +32,29 @@ defmodule Tr33Control.ESP do
 
   ### External API ###########################################
 
-  def resync(address, _port) do
-    try_reconnect()
+  def subscribe(), do: Phoenix.PubSub.subscribe(Tr33Control.PubSub, @pubsub_topic)
 
+  def handle_udp_sequence(address, _port, sequence) do
     case Registry.lookup(@udp_registry, address) do
       [{pid, _target}] ->
-        send(pid, :resync)
+        GenServer.cast(pid, {:sequence, sequence})
 
       _ ->
-        Logger.warn("#{__MODULE__}: Could not resync because #{inspect(address)} has no registered UDP process")
-        :noop
+        "#{__MODULE__}: Can't handle squence message, #{inspect(address)} is not registered. Trying to reconnect"
+        |> Logger.info()
+
+        udp_reconnect()
     end
   end
 
-  def try_reconnect() do
+  def udp_reconnect() do
     for %{id: child_id} <- udp_children() do
       Supervisor.restart_child(__MODULE__, child_id)
     end
+  end
+
+  def time_sync() do
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @pubsub_topic, :time_sync)
   end
 
   ### Helper ##########################################
@@ -57,7 +65,6 @@ defmodule Tr33Control.ESP do
 
   def udp_children() do
     targets = Application.fetch_env!(:tr33_control, :targets)
-
     hosts = Application.fetch_env!(:tr33_control, :target_hosts)
 
     targets
