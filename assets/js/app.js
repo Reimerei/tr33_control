@@ -1,48 +1,22 @@
+import "../css/app.scss"
 import "phoenix_html"
-import {Socket} from "phoenix"
-import "bootstrap-slider"
+import { Socket } from "phoenix"
+import topbar from "topbar"
+import { LiveSocket } from "phoenix_live_view"
+import 'bootstrap';
 
-let socket = new Socket("/socket", {})
-socket.connect()
+let csrfToken = document.querySelector("meta[name='csrf-token']").getAttribute("content")
+let liveSocket = new LiveSocket("/live", Socket, { params: { _csrf_token: csrfToken } })
 
-let channel = socket.channel("live_forms", {})
-channel.join()
-  .receive("ok", resp => {
-    var length = resp.msgs.length;
-    for (var i = 0; i < length; i++) {
-      on_msg(resp.msgs[i]);
-    }
-    console.log("Joined channel successfully", resp)
-  })
-  .receive("error", resp => { console.log("Unable to join channel", resp) })
+// Show progress bar on live navigation and form submits
+topbar.config({ barColors: { 0: "#29d" }, shadowColor: "rgba(0, 0, 0, .3)" })
+window.addEventListener("phx:page-loading-start", info => topbar.show())
+window.addEventListener("phx:page-loading-stop", info => topbar.hide())
 
-channel.on("form", msg => { on_msg(msg); });
+// connect if there are any LiveViews on the page
+liveSocket.connect()
 
-function on_msg(msg) {
-  $("#" + msg.id).html(msg.html);
-
-  // add event listeners
-  $(".listen_form_change_" + msg.id).change(function(event){
-    on_event(msg.id, "form_change");
-  });
-
-  $(".listen_button_" + msg.id).on('click', function () {
-    on_event(msg.id, "button");
-  });
-
-  // enable sliders
-  $("[id^=slider_"  + msg.id + "]").each(function(){
-    $(this).slider();
-  });
-}
-
-function on_event(id, topic) {
-  var form = $("#form_" + id).serializeArray();
-  var data = {};
-  $.each(form, function(i, v) {data[v.name] = v.value});
-  channel.push(topic, data);
-}
-
-
-
-
+// expose liveSocket on window for web console debug logs and latency simulation:
+// >> liveSocket.enableDebug()
+// >> liveSocket.enableLatencySim(1000)
+window.liveSocket = liveSocket

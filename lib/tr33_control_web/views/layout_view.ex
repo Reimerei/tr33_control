@@ -1,4 +1,7 @@
 defmodule Tr33ControlWeb.LayoutView do
   use Tr33ControlWeb, :view
-  alias Tr33Control.Commands.Preset
+
+  def title do
+    "Tr33 Control"
+  end
 end

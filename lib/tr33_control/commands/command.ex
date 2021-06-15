@@ -1,122 +1,79 @@
 defmodule Tr33Control.Commands.Command do
   use Ecto.Schema
-  import EctoEnum
-  alias Ecto.Changeset
-  alias Tr33Control.Commands.{Command}
 
-  defenum CommandTypes,
-    disabled: 0,
-    single_hue: 1,
-    single_color: 2,
-    color_wipe: 3,
-    rainbow_sine: 4,
-    ping_pong: 5,
-    gravity: 6,
-    off: 7,
-    white: 8,
-    sparkle: 9
+  alias Protobuf.Field
+  alias Tr33Control.Commands.Schemas.{CommandParams, Modifier}
 
-  @background_types [:off, :single_hue, :single_color, :rainbow_sine, :white]
-
-  defenum StripIndex,
-    trunk_0: 0,
-    trunk_1: 1,
-    trunk_2: 2,
-    trunk_3: 3,
-    branch_0: 4,
-    branch_1: 5,
-    branch_2: 6,
-    branch_3: 7,
-    branch_4: 8,
-    branch_5: 9,
-    ring: 10
+  @max_index Application.compile_env!(:tr33_control, :command_max_index)
 
   @primary_key false
   embedded_schema do
-    field :index, :integer
-    field :type, CommandTypes
-    field :data, {:array, :integer}, default: []
+    # internal
+    field :index, :integer, default: 0
+    field :targets, {:array, Tr33Control.Atom}, default: Application.compile_env!(:tr33_control, :targets)
+
+    # protobuf
+    field :params, :map
+    field :encoded, :binary
   end
 
-  def changeset(command, params) do
-    command
-    |> Changeset.cast(params, [:index, :type, :data])
-    |> Changeset.validate_required([:index, :type])
-    |> Changeset.validate_number(:index, less_than: 256)
+  def new(index, type, common_values \\ []) when is_atom(type) and index < @max_index do
+    params = CommandParams.new([index: index] ++ common_values)
+
+    %__MODULE__{index: index, params: params}
+    |> new_type_params(type)
   end
 
-  def to_binary(%Command{index: index, type: type, data: data}) do
-    type_bin = CommandTypes.__enum_map__() |> Keyword.get(type)
-    data_bin = Enum.map(data, fn int -> <<int::size(8)>> end) |> Enum.join()
-    <<index::size(8), type_bin::size(8), data_bin::binary>>
+  def new(protobuf) when is_binary(protobuf) do
+    params = %CommandParams{} = CommandParams.decode(protobuf)
+
+    %__MODULE__{
+      index: params.index,
+      params: params
+    }
   end
 
-  def defaults(%Command{type: :single_hue} = cmd), do: %Command{cmd | data: [226]}
-  def defaults(%Command{type: :single_color} = cmd), do: %Command{cmd | data: [0, 0, 255]}
-  def defaults(%Command{type: :rainbow_sine} = cmd), do: %Command{cmd | data: [10, 150, 255]}
-  def defaults(%Command{type: :color_wipe} = cmd), do: %Command{cmd | data: [30, 10, 0]}
-  def defaults(%Command{type: :ping_pong} = cmd), do: %Command{cmd | data: [4, 65, 25, 91]}
-  def defaults(%Command{type: :gravity} = cmd), do: %Command{cmd | data: [4, 13, 80, 0, 5]}
-  def defaults(%Command{type: :white} = cmd), do: %Command{cmd | data: [0, 255]}
-  def defaults(%Command{type: :sparkle} = cmd), do: %Command{cmd | data: [1, 0, 15, 50]}
-  def defaults(%Command{} = cmd), do: %Command{cmd | data: [0, 0, 0, 0, 0]}
-
-  def types() do
-    Tr33Control.Commands.Command.CommandTypes.__enum_map__()
-    |> Enum.map(fn {type, _} -> type end)
-    |> Enum.filter(fn type -> type not in @background_types end)
+  def disabled(index) do
+    # todo: create this once at compile_time
+    new(index, :single_color, enabled: false)
   end
 
-  def background_types(), do: @background_types
+  def new_type_params(%__MODULE__{params: params} = command, type) do
+    %Protobuf.OneOfField{fields: fields} = CommandParams.defs(:field, :type_params)
+    %Field{type: {:msg, type_full}} = Enum.find(fields, &match?(%Field{name: ^type}, &1))
+    type_params = apply(type_full, :new, [])
 
-  def data_inputs(%Command{type: :single_hue}) do
-    [{:slider, {"Hue", 255}}]
+    %__MODULE__{command | params: %CommandParams{params | type_params: {type, type_params}}}
   end
 
-  def data_inputs(%Command{type: :single_color}) do
-    [{:slider, {"Hue", 255}}, {:slider, {"Saturation", 255}}, {:slider, {"Value", 255}}]
+  def encode(%__MODULE__{params: %CommandParams{} = params} = command) do
+    %__MODULE__{command | encoded: CommandParams.encode(params)}
   end
 
-  def data_inputs(%Command{type: :color_wipe}) do
-    [{:slider, {"Hue", 255}}, {:slider, {"Rate", 255}}, {:slider, {"Offset", 255}}]
+  def get_field_def(name) when is_atom(name) do
+    CommandParams.defs(:field, name)
   end
 
-  def data_inputs(%Command{type: :rainbow_sine}) do
-    [{:slider, {"Rate", 255}}, {:slider, {"Wavelength", 255}}, {:slider, {"Width", 255}}]
+  def list_type_field_defs(%__MODULE__{params: %CommandParams{type_params: {_, type_params}}}) do
+    type_params
+    |> Map.from_struct()
+    |> Map.keys()
+    |> Enum.map(&apply(type_params.__struct__, :defs, [:field, &1]))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.sort_by(& &1.fnum)
   end
 
-  def data_inputs(%Command{type: :ping_pong}) do
-    [
-      {:select, {"Strip Index", StripIndex}},
-      {:slider, {"Hue", 255}},
-      {:slider, {"Rate", 255}},
-      {:slider, {"Width", 255}}
-    ]
+  def list_modifier_field_defs() do
+    %Modifier{}
+    |> Map.from_struct()
+    |> Map.drop([:field_index])
+    |> Map.keys()
+    |> Enum.map(&Modifier.defs(:field, &1))
+    |> Enum.reject(&is_nil/1)
+    |> Enum.sort_by(& &1.fnum)
   end
 
-  def data_inputs(%Command{type: :gravity}) do
-    [
-      {:select, {"Strip Index", StripIndex}},
-      {:slider, {"Hue", 255}},
-      {:slider, {"Width", 255}},
-      {:slider, {"Inital Speed", 150}},
-      {:slider, {"New Balls (per 100 sec)", 100}},
-      {:button, {"Add Ball"}}
-    ]
-  end
+  def type(%__MODULE__{params: %CommandParams{type_params: {type, _}}}), do: type
 
-  def data_inputs(%Command{type: :white}) do
-    [{:slider, {"Color Temperature", 255}}, {:slider, {"Value", 255}}]
-  end
-
-  def data_inputs(%Command{type: :sparkle}) do
-    [
-      {:slider, {"Hue", 255}},
-      {:slider, {"Saturation", 255}},
-      {:slider, {"Width", 255}},
-      {:slider, {"Sparkles (per 1/100 sec)", 255}}
-    ]
-  end
-
-  def data_inputs(_), do: []
+  def type_params(%__MODULE__{params: %CommandParams{type_params: {_, type_params}}}), do: type_params
 end

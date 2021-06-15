@@ -1,8 +1,0 @@
-<ul class="list-group">
-  <div id="presets">
-  </div>
-  <%= for index <- 0..31 do %>
-    <div id="<%= index %>">
-    </div>
-  <% end %>
-</ul>
