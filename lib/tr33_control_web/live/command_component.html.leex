@@ -121,7 +121,7 @@
 
               <%= for %ValueParam{name: param_name, value: value} <- values do %>
                 <button class="btn btn-secondary ms-2"><%= Display.humanize(param_name) %></button>
-                <input type="text" class="form-control bg-dark text-body" style="width:4rem;" name="<%= param_name %>" value="<%= value %>">
+                <input type="text" class="form-control bg-dark text-body" style="width:5rem;" name="<%= param_name %>" value="<%= value %>">
               <% end %>
 
               <button type="submit" class="btn btn-primary ms-2">Apply</button>

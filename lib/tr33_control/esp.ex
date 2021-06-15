@@ -22,8 +22,8 @@ defmodule Tr33Control.ESP do
   def init(_init_arg) do
     children =
       [
-        {Registry, [keys: :unique, name: @udp_registry]},
-        Tr33Control.ESP.Poller
+        {Registry, [keys: :unique, name: @udp_registry]}
+        # Tr33Control.ESP.Poller
         # UART
       ] ++ udp_children()
 

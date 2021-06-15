@@ -3,7 +3,7 @@
     <button type="button" class="btn btn-dark text-start fw-bold">Presets</button>
 
     <div class="btn-group">
-      <button type="button" class="btn btn-primary text-start dropdown-toggle" data-bs-toggle="dropdown"><%= Display.current_preset(@current_preset) %></button>
+      <button type="button" class="btn btn-primary text-start dropdown-toggle" data-bs-toggle="dropdown"><%= if is_nil(@current_preset), do: "Load Preset", else: Display.preset_option(@current_preset) %></button>
       <div class="dropdown-menu">
         <%= for preset <- @presets do %>
           <div

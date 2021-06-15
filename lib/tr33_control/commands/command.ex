@@ -17,15 +17,11 @@ defmodule Tr33Control.Commands.Command do
     field :encoded, :binary
   end
 
-  def new(index, type, params \\ []) when is_atom(type) and index < @max_index do
-    %Protobuf.OneOfField{fields: fields} = CommandParams.defs(:field, :type_params)
-    %Field{type: {:msg, type_struct}} = Enum.find(fields, &match?(%Field{name: ^type}, &1))
-    type_message = apply(type_struct, :new, [])
+  def new(index, type, common_values \\ []) when is_atom(type) and index < @max_index do
+    params = CommandParams.new([index: index] ++ common_values)
 
-    %__MODULE__{
-      index: index,
-      params: CommandParams.new([index: index, type_params: {type, type_message}] ++ params)
-    }
+    %__MODULE__{index: index, params: params}
+    |> new_type_params(type)
   end
 
   def new(protobuf) when is_binary(protobuf) do
@@ -40,6 +36,14 @@ defmodule Tr33Control.Commands.Command do
   def disabled(index) do
     # todo: create this once at compile_time
     new(index, :single_color, enabled: false)
+  end
+
+  def new_type_params(%__MODULE__{params: params} = command, type) do
+    %Protobuf.OneOfField{fields: fields} = CommandParams.defs(:field, :type_params)
+    %Field{type: {:msg, type_full}} = Enum.find(fields, &match?(%Field{name: ^type}, &1))
+    type_params = apply(type_full, :new, [])
+
+    %__MODULE__{command | params: %CommandParams{params | type_params: {type, type_params}}}
   end
 
   def encode(%__MODULE__{params: %CommandParams{} = params} = command) do

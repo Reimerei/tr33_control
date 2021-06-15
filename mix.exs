@@ -50,7 +50,7 @@ defmodule Tr33Control.MixProject do
       {:input_event, "~> 0.4"},
       {:cachex, "~> 3.3"},
       {:ex_rated, "~> 1.2"},
-      {:exprotobuf, "~> 1.2"}
+      {:exprotobuf, github: "reimerei/exprotobuf"}
     ]
   end
 

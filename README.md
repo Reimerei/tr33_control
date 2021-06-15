@@ -4,55 +4,32 @@ A web interface to control effects on leds strips. It sends commands to an ESP32
 
 This app leverages phoenix channels to sync the state between all connected browsers, so everybody sees the same state. The dynamic forms are all rendered in the backend and pushed via a live_html channel to the clients. It is an attempt to create a dynamic web app with almost no javascript.
 
-# currents
+# Bugs/features
 * mapped shape/slope/... broken? (Tr33 only, strip index 0)
 * gravity not working
 * white color palette
-* render position max to 65... (custom params on sliders)
-* ping pong count
 * mapped ping_pong
-* UART not working for some reason, might be the cable
-* ping pong period @ 0 crashes
+* fix UART in general
+* tr33 UART not working for some reason, might be the cable
 * order branch and trunk indices/PINs
-* debounce issues when slider is at the bottom
-  * move rate limiting to listeners
-* Tr33 rainbow broken at trunk/branches crossing
-* remember targets on commadn change
-* resync should reset all target commands
 * improve mobile support
 * Idea for testing: create some sequence that uses all features
 * create header button style
-* add pb option to define max value
-* add_modifier: get proper max value 
-* regularly send squence number from ESPs for eventual consistency
-* initial preset load fails completely
-* movement_type circle (for trommel)
-* delete all modifiers when toggled off
-* fix UART
+* movement_type (or render option) circle (for trommel and others)
 * twang + joystick
-
-** modifier
-
-# Bugs/features
+* mapped position to 16bit
+* properly set max value for modifiers
+* measure FPS (looks good)
+* replace sequence with phash2 of all commands
+* movement_type: steps, steps_transition
 * disable button for Commands
 * resync button
 * Sync time between ESPs
 * Sync random seed betwenn ESPs
-* find effect lib
+* use some effects from WLED
 * effects relative to strip height/prixel count
   * gravity height relative to strip length
-* multiple instances of rain/sparkle/etc
-* fix docs for packet format
-* modifier_incresae events
-* kill uart when there is no connection
-* more scaling for bigger structures
-* batch UDP commands
-* transitions for changes in modifier period (hard)
-* Rotate effect, rotate over strips
-
-## low
-* read led_structure from controller
-* ping pong sawtooth, fade out
+* fix add ball for gravity
 * modifier for palette 
 * random walk for tr33
 * diffusion (lava lamp) effect
@@ -65,18 +42,28 @@ This app leverages phoenix channels to sync the state between all connected brow
 * generally more effects like kaleidoscope
 * mapped 2D bouncing ball
 * softer sparkle
-* fix add ball for gravity
-
-## doing
-* select command when last is deleted 
 
 ## done
+* select command when last is deleted 
+* multiple instances of rain/sparkle/etc
 * wolken index
 * rainbow_width and size @ 0 (Tr33 only, strip index 0)
 * Wolken -> one structure, multiple strip indexes
 * color palettes (steal some from wled)
 * using cursors for UI selects
-
+* ping pong period @ 0 crashes
+* ping pong count
+* initial preset load fails completely
+* delete all modifiers when toggled off
+* add pb option to define max value
+* resync should reset all target commands? (wont do)
+* remember targets on command change
+* render position max to 65... (custom params on sliders)
+* debounce issues when slider is at the bottom
+  * move rate limiting to listeners
+* modifier
+* Tr33 rainbow broken at trunk/branches crossing
+* regularly send squence number from ESPs for eventual consistency
 * Tr33: fix extended LedStructure functions
 * single color always overwrites (Tr33 only, strip index 0)
 * fix wifi status overlay
@@ -102,9 +89,18 @@ This app leverages phoenix channels to sync the state between all connected brow
 
 
 ## Wont do
+* read led_structure from controller
+* ping pong sawtooth, fade out
 * cleanup: get rid of pub_sub rate limit (maybe not?)
 * handshake/ack commands and retry
 * position 16bit
 * x for disable
 * optionally avoid overlap in random transistion
 * persistence per led structure
+* fix docs for packet format
+* modifier_incresae events
+* kill uart when there is no connection
+* more scaling for bigger structures
+* batch UDP commands
+* transitions for changes in modifier period (hard)
+* Rotate effect, rotate over strips

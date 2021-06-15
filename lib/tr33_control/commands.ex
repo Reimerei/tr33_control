@@ -29,11 +29,11 @@ defmodule Tr33Control.Commands do
   end
 
   def notify_subscribers(%Preset{} = preset) do
-    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @commands_topic, {:preset_udpate, preset})
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @presets_topic, {:preset_update, preset})
   end
 
   def notify_subscribers(:preset_deleted, name) do
-    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @commands_topic, {:preset_deleted, name})
+    Phoenix.PubSub.broadcast!(Tr33Control.PubSub, @presets_topic, {:preset_deleted, name})
   end
 
   def notify_subscribers(:command_deleted, index) do
@@ -90,6 +90,12 @@ defmodule Tr33Control.Commands do
       Cache.delete(Command, count - 1)
       notify_subscribers(:command_deleted, index)
     end
+  end
+
+  def update_command_type(index, type) when is_atom(type) do
+    get_command(index)
+    |> Command.new_type_params(type)
+    |> insert_and_notify()
   end
 
   def update_command_param(index, name, value) when name in @common_params do
@@ -254,12 +260,15 @@ defmodule Tr33Control.Commands do
   ### Presets ###############################################################################
 
   def create_preset(name) when is_binary(name) do
-    %Preset{
-      name: name,
-      commands: list_commands()
-    }
+    preset =
+      case Cache.get(Preset, name) do
+        nil -> %Preset{name: name}
+        preset -> preset
+      end
+
+    %Preset{preset | commands: list_commands()}
     |> Cache.insert()
-    |> notify_subscribers()
+    |> tap(&notify_subscribers/1)
   end
 
   def delete_preset(name) do

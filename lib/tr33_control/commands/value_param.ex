@@ -1,23 +1,28 @@
 defmodule Tr33Control.Commands.ValueParam do
   alias Protobuf.Field
-  alias Tr33Control.Commands.Schemas
 
   @enforce_keys [:name]
   defstruct [:value, :name, min: 0, max: 255, step: 1]
 
-  def new(struct, %Field{type: :int32} = field_def) when is_struct(struct) do
+  def new(struct, %Field{type: :int32, opts: opts} = field_def) when is_struct(struct) do
     %__MODULE__{
       name: field_def.name,
       value: Map.fetch!(struct, field_def.name)
     }
-    |> override(struct)
+    |> add_max_value(opts)
   end
 
   def new(_, _), do: nil
 
-  defp override(%__MODULE__{name: :position} = param, %Schemas.Render{}) do
-    %__MODULE__{param | max: 256 * 256, step: 64}
-  end
+  defp add_max_value(%__MODULE__{} = param, opts) do
+    opts
+    |> Enum.find(&match?({[:nanopb, :max_size], _}, &1))
+    |> case do
+      nil ->
+        param
 
-  defp override(%__MODULE__{} = param, _), do: param
+      {[:nanopb, :max_size], size} ->
+        %__MODULE__{param | max: size}
+    end
+  end
 end

@@ -16,7 +16,7 @@
   "eternal": {:hex, :eternal, "1.2.2", "d1641c86368de99375b98d183042dd6c2b234262b8d08dfd72b9eeaafc2a1abd", [:mix], [], "hexpm", "2c9fe32b9c3726703ba5e1d43a1d255a4f3f2d8f8f9bc19f094c7cb1a7a9e782"},
   "ex2ms": {:hex, :ex2ms, "1.6.0", "f39bbd9ff1b0f27b3f707bab2d167066dd8965e7df1149b962d94c74615d0e09", [:mix], [], "hexpm", "0d1ab5e08421af5cd69146efb408dbb1ff77f38a2f4df5f086f2512dc8cf65bf"},
   "ex_rated": {:hex, :ex_rated, "1.3.3", "30ecbdabe91f7eaa9d37fa4e81c85ba420f371babeb9d1910adbcd79ec798d27", [:mix], [{:ex2ms, "~> 1.5", [hex: :ex2ms, repo: "hexpm", optional: false]}], "hexpm", "26817cf0927b7a2e7bc2e14b4dab66a329fafa4520b513a8a4025532ac5a7cbf"},
-  "exprotobuf": {:hex, :exprotobuf, "1.2.17", "3003937da617f588a8fb63ebdd7b127a18d78d6502623c272076fd54c07c4de1", [:mix], [{:gpb, "~> 4.0", [hex: :gpb, repo: "hexpm", optional: false]}], "hexpm", "e07ec1e5ae6f8c1c8521450d5f6b658c8c700b1f34c70356e91ece0766f4361a"},
+  "exprotobuf": {:git, "https://github.com/reimerei/exprotobuf.git", "026c7978146dc77f99138e289d1996c61a159678", []},
   "file_system": {:hex, :file_system, "0.2.10", "fb082005a9cd1711c05b5248710f8826b02d7d1784e7c3451f9c1231d4fc162d", [:mix], [], "hexpm", "41195edbfb562a593726eda3b3e8b103a309b733ad25f3d642ba49696bf715dc"},
   "floki": {:hex, :floki, "0.30.1", "75d35526d3a1459920b6e87fdbc2e0b8a3670f965dd0903708d2b267e0904c55", [:mix], [{:html_entities, "~> 0.5.0", [hex: :html_entities, repo: "hexpm", optional: false]}], "hexpm", "e9c03524447d1c4cbfccd672d739b8c18453eee377846b119d4fd71b1a176bb8"},
   "gpb": {:hex, :gpb, "4.17.7", "24ce1c51681ddcf3fd1f4f42bac0bbe8813f2d389e79df17a2eefe65ae91280f", [:make, :rebar3], [], "hexpm", "da64d241435000663fa43214b5eeaaa4dfb7ed24281e18ebf5262cb01277720d"},

@@ -60,7 +60,7 @@ defmodule Tr33ControlWeb.CommandComponent do
     %Command{index: index} = socket.assigns.command
 
     type = String.to_existing_atom(type_str)
-    Commands.create_command(index, type)
+    Commands.update_command_type(index, type)
 
     {:noreply, socket}
   end
@@ -69,7 +69,7 @@ defmodule Tr33ControlWeb.CommandComponent do
     %Command{index: index} = socket.assigns.command
 
     name = String.to_existing_atom(name_str)
-    value = Map.fetch!(data, name_str) |> String.to_existing_atom() |> IO.inspect()
+    value = Map.fetch!(data, name_str) |> String.to_existing_atom()
 
     update_param(index, name, value)
 
@@ -88,9 +88,14 @@ defmodule Tr33ControlWeb.CommandComponent do
   end
 
   def handle_event("toggle_modifiers", _, %Socket{} = socket) do
+    modifier_count =
+      socket.assigns.command
+      |> Commands.get_modifier_params()
+      |> Enum.count()
+
     socket =
       socket
-      |> assign(:modifiers_active, not socket.assigns.modifiers_active)
+      |> assign(:modifiers_active, modifier_count != 0 || not socket.assigns.modifiers_active)
 
     {:noreply, socket}
   end
@@ -130,7 +135,9 @@ defmodule Tr33ControlWeb.CommandComponent do
     {:noreply, socket}
   end
 
-  defp update_command(socket, command) do
+  defp update_command(%Socket{} = socket, command) do
+    modifier_params = Commands.get_modifier_params(command)
+
     socket
     |> assign(command: command)
     |> assign(value_params: Commands.list_value_params(command))
@@ -138,7 +145,8 @@ defmodule Tr33ControlWeb.CommandComponent do
     |> assign(color_palette_param: Commands.get_common_enum_param(command, :color_palette))
     |> assign(strip_index_options: Commands.get_strip_index_options(command))
     |> assign(modifier_names: Commands.list_modifier_names(command))
-    |> assign(modifier_params: Commands.get_modifier_params(command))
+    |> assign(modifier_params: modifier_params)
+    |> assign(modifiers_active: socket.assigns.modifiers_active || length(modifier_params) > 0)
   end
 
   defp update_param(index, name, value) do
